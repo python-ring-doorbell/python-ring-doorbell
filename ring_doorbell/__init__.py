@@ -85,6 +85,13 @@ class Ring(object):
       _LOGGER.error("Error!!")
     return response
 
+  def _locator(self, lst, key, value):
+    """Return the position of an item in list that matches with key(value)"""
+    try:
+      return next(index for (index, d) in enumerate(lst) if d[key] == value)
+    except StopIteration:
+      return -1
+
   @property
   def poll(self):
     """Check current activity"""
@@ -96,6 +103,34 @@ class Ring(object):
     """Get devices"""
     url = API_URI + DEVICES_ENDPOINT
     return self._query(url)
+
+  @property
+  def get_chimes_by_name(self):
+    """Get list of chimes by name"""
+    req = self.get_devices.get('chimes')
+    return list((object['description'] for object in req))
+
+  @property
+  def get_doorbells_by_name(self):
+    """Get list of doorbells by name"""
+    req = self.get_devices.get('doorbots')
+    return list((object['description'] for object in req))
+
+  def get_chime_attributes(self, name):
+    """Get chime attributes"""
+    lst = self.get_devices.get('chimes')
+    index = self._locator(lst, 'description', name)
+    if index == -1:
+      return None
+    return lst[index]
+
+  def get_doorbell_attributes(self, name):
+    """Get doorbell attributes"""
+    lst = self.get_devices.get('doorbots')
+    index = self._locator(lst, 'description', name)
+    if index == -1:
+      return None
+    return lst[index]
 
   def get_recording(self, recording_id):
     """Download recording in MP4 format"""
