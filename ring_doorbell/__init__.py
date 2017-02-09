@@ -1,15 +1,15 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell wrapper."""
-
+import os
 import logging
 import requests
 from urllib.parse import urlencode
 
 from ring_doorbell.const import (
     API_VERSION, API_URI, DEVICES_ENDPOINT, DINGS_ENDPOINT,
-    HEADERS, NEW_SESSION_ENDPOINT, NOT_FOUND, URL_HISTORY,
-    URL_RECORDING, POST_DATA, RETRY_TOKEN)
+    FILE_EXISTS, HEADERS, GENERIC_FAIL, NEW_SESSION_ENDPOINT,
+    NOT_FOUND, URL_HISTORY, URL_RECORDING, POST_DATA, RETRY_TOKEN)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class Ring(object):
         self.is_connected = None
         self.id = None
         self.token = None
-        self.params = None
+        self._params = None
 
         self.debug = debug
         self.username = username
@@ -41,10 +41,10 @@ class Ring(object):
         loop = 0
         while loop <= attempts:
             loop += 1
-            # req = session.post((url),
-            #                     data=urlencode(POST_DATA),
-            #                     headers=HEADERS)
-            req = self.session.post((url), data=POST_DATA, headers=HEADERS)
+            try:
+                req = self.session.post((url), data=POST_DATA, headers=HEADERS)
+            except:
+                raise
 
             # if token is expired, refresh credentials and try again
             if req.status_code == 201:
@@ -53,27 +53,30 @@ class Ring(object):
                 self.id = data.get('id')
                 self.is_connected = True
                 self.token = data.get('authentication_token')
-                self.params = {'api_version': API_VERSION,
-                               'auth_token': self.token}
+                self._params = {'api_version': API_VERSION,
+                                'auth_token': self.token}
                 return
 
         self.is_connected = False
         req.raise_for_status()
 
-    def _query(self, url, attempts=RETRY_TOKEN):
+    def _query(self, url, attempts=RETRY_TOKEN, raw=False):
         """Query data from Ring API."""
         if self.debug:
             _LOGGER.debug("Querying %s", url)
 
-        if not self.is_connected:
-            _LOGGER.info("Not connected. Refreshing token...")
+        if self.debug and not self.is_connected:
+            _LOGGER.debug("Not connected. Refreshing token...")
             self._authenticate
 
         response = None
         loop = 0
         while loop <= attempts:
             loop += 1
-            req = self.session.get((url), params=urlencode(self.params))
+            try:
+                req = self.session.get((url), params=urlencode(self._params))
+            except:
+                raise
 
             # if token is expired, refresh credentials and try again
             if req.status_code == 401:
@@ -82,11 +85,16 @@ class Ring(object):
                 continue
 
             if req.status_code == 200:
-                response = req.json()
+                # if raw, return session object otherwise return JSON
+                if raw:
+                    response = req
+                else:
+                    response = req.json()
+
                 break
 
         if response is None:
-            _LOGGER.error("Error!!")
+            _LOGGER.error(GENERIC_FAIL)
         return response
 
     def _locator(self, lst, key, value):
@@ -105,60 +113,86 @@ class Ring(object):
 
     @property
     def get_devices(self):
-        """Get devices."""
+        """Return devices."""
         url = API_URI + DEVICES_ENDPOINT
         return self._query(url)
 
     @property
-    def get_chimes_by_name(self):
-        """Get list of chimes by name."""
-        req = self.get_devices.get('chimes')
-        return list((object['description'] for object in req))
+    def get_history(self):
+        """Return history."""
+        url = API_URI + URL_HISTORY
+        return self._query(url)
 
     @property
-    def get_doorbells_by_name(self):
-        """Get list of doorbells by name."""
-        req = self.get_devices.get('doorbots')
-        return list((object['description'] for object in req))
+    def get_chimes_by_name(self):
+        """Return list of chimes by name."""
+        req = self.get_devices.get('chimes')
+        return list((obj['description'] for obj in req))
 
     def get_chime_attributes(self, name):
-        """Get chime attributes."""
+        """Return chime attributes."""
         lst = self.get_devices.get('chimes')
         index = self._locator(lst, 'description', name)
         if index == NOT_FOUND:
             return None
         return lst[index]
 
+    @property
+    def get_chimes_quantity(self):
+        """Return number of chimes."""
+        return len(self.get_chimes_by_name)
+
+    @property
+    def get_doorbells_by_name(self):
+        """Return list of doorbells by name."""
+        req = self.get_devices.get('doorbots')
+        return list((obj['description'] for obj in req))
+
     def get_doorbell_attributes(self, name):
-        """Get doorbell attributes."""
+        """Return doorbell attributes."""
         lst = self.get_devices.get('doorbots')
         index = self._locator(lst, 'description', name)
         if index == NOT_FOUND:
             return None
         return lst[index]
 
+    def get_doorbell_battery_life(self, name):
+        """ Return doorbell battery life."""
+        return self.get_doorbell_attributes(name).get('battery_life')
+
+    @property
+    def get_doorbells_quantity(self):
+        """Return number of doorbells."""
+        return len(self.get_doorbells_by_name)
+
     def get_recording(self, recording_id):
-        """Download recording in MP4 format."""
+        """Return recording in MP4 format."""
         url = API_URI + URL_RECORDING.format(recording_id)
-        req = self.session.get((url), params=urlencode(self.params))
+        req = self._query(url, raw=True)
         if req.status_code == 200:
             return req.content
         return None
 
-    @property
-    def get_history(self):
-        """Get history."""
-        url = API_URI + URL_HISTORY
-        return self._query(url)
+    def save_recording(self, recording_id, filename, override=False):
+        """Download and save recording in MP4 format to a file."""
+        try:
+            if os.path.isfile(filename) and not override:
+                _LOGGER.error(FILE_EXISTS.format(filename))
+                return False
 
-    @property
-    def get_chimes_quantity(self):
-        """Get number of chimes."""
-        res = self.get_devices
-        return len(res.get('chimes'))
+            with open(filename, 'wb') as fd:
+                mp4 = self.get_recording(recording_id)
+                fd.write(mp4)
 
-    @property
-    def get_doorbells_quantity(self):
-        """Get number of doorbells."""
-        res = self.get_devices
-        return len(res.get('doorbots'))
+        except IOError as e:
+            _LOGGER.error(e)
+            return False
+        return True
+
+    def get_recording_url(self, recording_id):
+        """Return HTTPS recording URL."""
+        url = API_URI + URL_RECORDING.format(recording_id)
+        req = self._query(url, raw=True)
+        if req.status_code == 200:
+            return req.url
+        return False
