@@ -51,7 +51,7 @@ class Ring(object):
         self.is_connected = True
         self.token = data.get('authentication_token')
         self.params = {'api_version': API_VERSION, 'auth_token': self.token}
-        break
+        return
 
     self.is_connected = False
     req.raise_for_status()
@@ -78,9 +78,8 @@ class Ring(object):
         continue
 
       if req.status_code == 200:
-        if req.json():
-          response = req.json()
-          break
+        response = req.json()
+        break
 
     if response is None:
       _LOGGER.error("Error!!")
