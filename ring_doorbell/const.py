@@ -1,10 +1,10 @@
 # coding: utf-8
-# vim:sw=2:ts=2:et:
+# vim:sw=4:ts=4:et:
+"""Constants."""
 
-## Constants
-HEADERS = { 'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
-            'User-Agent': 'Dalvik/1.6.0 (Linux; U; Android 4.4.4; Build/KTU84Q)',
-            'Accept-Encoding': 'gzip, deflate'}
+HEADERS = {'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
+           'User-Agent': 'Dalvik/1.6.0 (Linux; Android 4.4.4; Build/KTU84Q)',
+           'Accept-Encoding': 'gzip, deflate'}
 
 # number of attempts to refresh token
 RETRY_TOKEN = 3
@@ -29,8 +29,8 @@ POST_DATA = {
           'device_model': 'VirtualBox',
           'resolution': '600x800',
           'app_version': '1.7.29',
-          'app_instalation_date' : '',
-          'os_version' : '4.4.4',
+          'app_instalation_date': '',
+          'os_version': '4.4.4',
           'manufacturer': 'innotek GmbH',
           'is_tablet': 'true',
           'linphone_initialized': 'true',
