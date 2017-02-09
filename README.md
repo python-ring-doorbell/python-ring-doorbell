@@ -1,4 +1,4 @@
-This project is a Python wrapper to access the Ring.comd doorbell.
+This project is a Python wrapper to access the Ring.com doorbell.
 
 Currently Ring.com does not offer an official API.
 
