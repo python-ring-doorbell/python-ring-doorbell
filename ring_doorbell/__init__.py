@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 from ring_doorbell.const import (
     API_VERSION, API_URI, DEVICES_ENDPOINT, DINGS_ENDPOINT,
-    HEADERS, NEW_SESSION_ENDPOINT, URL_HISTORY,
+    HEADERS, NEW_SESSION_ENDPOINT, NOT_FOUND, URL_HISTORY,
     URL_RECORDING, POST_DATA, RETRY_TOKEN)
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ class Ring(object):
     try:
       return next(index for (index, d) in enumerate(lst) if d[key] == value)
     except StopIteration:
-      return -1
+      return NOT_FOUND
 
   @property
   def poll(self):
@@ -120,7 +120,7 @@ class Ring(object):
     """Get chime attributes"""
     lst = self.get_devices.get('chimes')
     index = self._locator(lst, 'description', name)
-    if index == -1:
+    if index == NOT_FOUND:
       return None
     return lst[index]
 
@@ -128,7 +128,7 @@ class Ring(object):
     """Get doorbell attributes"""
     lst = self.get_devices.get('doorbots')
     index = self._locator(lst, 'description', name)
-    if index == -1:
+    if index == NOT_FOUND:
       return None
     return lst[index]
 

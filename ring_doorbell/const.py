@@ -8,6 +8,8 @@ HEADERS = { 'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
 
 # number of attempts to refresh token
 RETRY_TOKEN = 3
+# code when item was not found
+NOT_FOUND = -1
 
 API_VERSION = '9'
 API_URI = 'https://api.ring.com'
