@@ -8,8 +8,9 @@ from urllib.parse import urlencode
 
 from ring_doorbell.const import (
     API_VERSION, API_URI, DEVICES_ENDPOINT, DINGS_ENDPOINT,
-    FILE_EXISTS, HEADERS, GENERIC_FAIL, NEW_SESSION_ENDPOINT,
-    NOT_FOUND, URL_HISTORY, URL_RECORDING, POST_DATA, RETRY_TOKEN)
+    FILE_EXISTS, GENERIC_FAIL, HEADERS, LINKED_CHIMES_ENDPOINT,
+    LIVE_STREAMING_ENDPOINT, NEW_SESSION_ENDPOINT, NOT_FOUND,
+    URL_HISTORY, URL_RECORDING, POST_DATA, RETRY_TOKEN)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -130,6 +131,10 @@ class Ring(object):
         req = self.__devices.get('chimes')
         return list((obj['description'] for obj in req))
 
+    def chime_id(self, name):
+        """Return chime ID."""
+        return self.chime_attributes(name).get('id')
+
     def chime_attributes(self, name):
         """Return chime attributes."""
         lst = self.__devices.get('chimes')
@@ -137,6 +142,12 @@ class Ring(object):
         if index == NOT_FOUND:
             return None
         return lst[index]
+
+    def chime_tree(self, name):
+        """Return doorbell data linked to chime."""
+        chime_id = self.chime_id(name)
+        url = API_URI + LINKED_CHIMES_ENDPOINT.format(chime_id)
+        return self._query(url)
 
     @property
     def doorbells(self):
@@ -152,11 +163,37 @@ class Ring(object):
             return None
         return lst[index]
 
+    def doorbell_id(self, name):
+        """Return doorbell ID."""
+        return self.doorbell_attributes(name).get('id')
+
     def doorbell_battery_life(self, name):
         """Return doorbell battery life."""
         return self.doorbell_attributes(name).get('battery_life')
 
-    def activity(self, limit=30):
+    def __live_streaming_create_session(self, name):
+        """Initiate session live streaming URL."""
+        door_id = self.doorbell_id(name)
+        url = API_URI + LIVE_STREAMING_ENDPOINT.format(door_id)
+        req = self.session.post((url), params=urlencode(self._params))
+        if req.status_code == 204:
+            return True
+
+    def live_streaming(self, name):
+        """Return JSON for live streaming."""
+        ret = self.__live_streaming_create_session(name)
+        if ret:
+            url = API_URI + DINGS_ENDPOINT
+            return self._query(url)
+        return False
+
+    @property
+    def check_activity(self):
+        """Return JSON when motion or ring is detected"""
+        url = API_URI + DINGS_ENDPOINT
+        return self._query(url)
+
+    def history(self, limit=30):
         """Return history."""
         # allow modify the items to return
         params = self._params
@@ -164,12 +201,6 @@ class Ring(object):
 
         url = API_URI + URL_HISTORY
         return self._query(url, params=params)
-
-    @property
-    def doorbell_poll(self):
-        """Check current activity."""
-        url = API_URI + DINGS_ENDPOINT
-        return self._query(url)
 
     def doorbell_recording(self, recording_id):
         """Return recording in MP4 format."""
