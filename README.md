@@ -74,7 +74,7 @@ Out[10]:
  'subscribed_motions': True,
  'time_zone': 'America/New_York'}
 
-In [11]: myring.activity
+In [11]: myring.activity(limit=2)
 Out[11]:
 [{'answered': False,
   'created_at': '2017-02-08T22:22:15.000Z',

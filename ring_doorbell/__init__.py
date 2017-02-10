@@ -60,8 +60,13 @@ class Ring(object):
         self.is_connected = False
         req.raise_for_status()
 
-    def _query(self, url, attempts=RETRY_TOKEN, raw=False):
+    def _query(self, url, attempts=RETRY_TOKEN,
+               raw=False, params=None):
         """Query data from Ring API."""
+        # allow to override params
+        if params is None:
+            params = self._params
+
         if self.debug:
             _LOGGER.debug("Querying %s", url)
 
@@ -74,7 +79,7 @@ class Ring(object):
         while loop <= attempts:
             loop += 1
             try:
-                req = self.session.get((url), params=urlencode(self._params))
+                req = self.session.get((url), params=urlencode(params))
             except:
                 raise
 
@@ -151,11 +156,14 @@ class Ring(object):
         """Return doorbell battery life."""
         return self.doorbell_attributes(name).get('battery_life')
 
-    @property
-    def activity(self):
+    def activity(self, limit=30):
         """Return history."""
+        # allow modify the items to return
+        params = self._params
+        params.update({'limit': str(limit)})
+
         url = API_URI + URL_HISTORY
-        return self._query(url)
+        return self._query(url, params=params)
 
     @property
     def doorbell_poll(self):
