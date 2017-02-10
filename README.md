@@ -1,7 +1,4 @@
-This project is a Python wrapper to access the Ring.com doorbell.
-
-Currently Ring.com does not offer an official API.
-
+This project is a Python wrapper to access the Ring.com (http://www.ring.com) doorbell.
 
 ## Install
 ```bash
