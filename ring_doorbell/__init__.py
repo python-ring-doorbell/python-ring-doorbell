@@ -106,66 +106,64 @@ class Ring(object):
             return NOT_FOUND
 
     @property
-    def poll(self):
-        """Check current activity."""
-        url = API_URI + DINGS_ENDPOINT
-        return self._query(url)
+    def devices(self):
+        """Return all devices."""
+        d = {}
+        d['chimes'] = self.chimes
+        d['doorbells'] = self.doorbells
+        return d
 
     @property
-    def get_devices(self):
-        """Return devices."""
+    def __devices(self):
+        """Private method to query devices."""
         url = API_URI + DEVICES_ENDPOINT
         return self._query(url)
 
     @property
-    def get_history(self):
+    def chimes(self):
+        """Return list of chimes by name."""
+        req = self.__devices.get('chimes')
+        return list((obj['description'] for obj in req))
+
+    def chime_attributes(self, name):
+        """Return chime attributes."""
+        lst = self.__devices.get('chimes')
+        index = self._locator(lst, 'description', name)
+        if index == NOT_FOUND:
+            return None
+        return lst[index]
+
+    @property
+    def doorbells(self):
+        """Return list of doorbells by name."""
+        req = self.__devices.get('doorbots')
+        return list((obj['description'] for obj in req))
+
+    def doorbell_attributes(self, name):
+        """Return doorbell attributes."""
+        lst = self.__devices.get('doorbots')
+        index = self._locator(lst, 'description', name)
+        if index == NOT_FOUND:
+            return None
+        return lst[index]
+
+    def doorbell_battery_life(self, name):
+        """Return doorbell battery life."""
+        return self.doorbell_attributes(name).get('battery_life')
+
+    @property
+    def activity(self):
         """Return history."""
         url = API_URI + URL_HISTORY
         return self._query(url)
 
     @property
-    def get_chimes_by_name(self):
-        """Return list of chimes by name."""
-        req = self.get_devices.get('chimes')
-        return list((obj['description'] for obj in req))
+    def doorbell_poll(self):
+        """Check current activity."""
+        url = API_URI + DINGS_ENDPOINT
+        return self._query(url)
 
-    def get_chime_attributes(self, name):
-        """Return chime attributes."""
-        lst = self.get_devices.get('chimes')
-        index = self._locator(lst, 'description', name)
-        if index == NOT_FOUND:
-            return None
-        return lst[index]
-
-    @property
-    def get_chimes_quantity(self):
-        """Return number of chimes."""
-        return len(self.get_chimes_by_name)
-
-    @property
-    def get_doorbells_by_name(self):
-        """Return list of doorbells by name."""
-        req = self.get_devices.get('doorbots')
-        return list((obj['description'] for obj in req))
-
-    def get_doorbell_attributes(self, name):
-        """Return doorbell attributes."""
-        lst = self.get_devices.get('doorbots')
-        index = self._locator(lst, 'description', name)
-        if index == NOT_FOUND:
-            return None
-        return lst[index]
-
-    def get_doorbell_battery_life(self, name):
-        """ Return doorbell battery life."""
-        return self.get_doorbell_attributes(name).get('battery_life')
-
-    @property
-    def get_doorbells_quantity(self):
-        """Return number of doorbells."""
-        return len(self.get_doorbells_by_name)
-
-    def get_recording(self, recording_id):
+    def doorbell_recording(self, recording_id):
         """Return recording in MP4 format."""
         url = API_URI + URL_RECORDING.format(recording_id)
         req = self._query(url, raw=True)
@@ -173,7 +171,8 @@ class Ring(object):
             return req.content
         return None
 
-    def save_recording(self, recording_id, filename, override=False):
+    def doorbell_download_recording(self, recording_id,
+                                    filename, override=False):
         """Download and save recording in MP4 format to a file."""
         try:
             if os.path.isfile(filename) and not override:
@@ -181,7 +180,7 @@ class Ring(object):
                 return False
 
             with open(filename, 'wb') as fd:
-                mp4 = self.get_recording(recording_id)
+                mp4 = self.doorbell_recording(recording_id)
                 fd.write(mp4)
 
         except IOError as e:
@@ -189,7 +188,7 @@ class Ring(object):
             return False
         return True
 
-    def get_recording_url(self, recording_id):
+    def doorbell_recording_url(self, recording_id):
         """Return HTTPS recording URL."""
         url = API_URI + URL_RECORDING.format(recording_id)
         req = self._query(url, raw=True)
