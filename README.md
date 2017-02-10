@@ -4,7 +4,7 @@ Currently Ring.com does not offer an official API.
 
 
 ## Install
-```python
+```bash
 $ pip3 install git+https://github.com/tchellomello/python-ring-doorbell --upgrade
 ```
 
