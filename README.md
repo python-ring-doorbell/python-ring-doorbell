@@ -136,7 +136,30 @@ In [15]: while True:
    ...:     print(myring.check_activity)
 []
 []
-[{'audio_jitter_buffer_ms': 0, 'sip_server_ip': '1.2.3.4', 'protocol': 'sip', 'state': 'ringing', 'sip_from': 'sip:1234@ring.com', 'video_jitter_buffer_ms': 0, 'snapshot_url': '', 'expires_in': 178, 'sip_session_id': 'iaaaaaaaaaaaaam', 'device_kind': 'lpd_v1', 'sip_endpoints': None, 'id': 123456, 'sip_ding_id': '123456', 'sip_to': 'sip:12345@1.2.3.4:15063;transport=tcp', 'optimization_level': 1, 'sip_server_tls': 'false', 'doorbot_description': 'Front Door', 'doorbot_id': 12345, 'motion': True, 'sip_server_port': '15063', 'sip_token': 'iaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'kind': 'motion', 'now': 1486710420.82264, 'id_str': '212345'}]
+[{'audio_jitter_buffer_ms': 0,
+  'device_kind': 'lpd_v1',
+  'doorbot_description': 'Front Door',
+  'doorbot_id': 12345,
+  'expires_in': 179,
+  'id': 123456,
+  'id_str': '12345',
+  'kind': 'on_demand',
+  'motion': False,
+  'now': 1486710809.55569,
+  'optimization_level': 3,
+  'protocol': 'sip',
+  'sip_ding_id': '1234563',
+  'sip_endpoints': None,
+  'sip_from': 'sip:12345@ring.com',
+  'sip_server_ip': '1.2.3.4',
+  'sip_server_port': '15063',
+  'sip_server_tls': 'false',
+  'sip_session_id': '1iaaaaaaaaaq',
+  'sip_to': 'sip:1iaaaaaaaaaq@1.2.3.4.5:15063;transport=tcp',
+  'sip_token': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab',
+  'snapshot_url': '',
+  'state': 'ringing',
+  'video_jitter_buffer_ms': 0}]
 []
 []
 ```
