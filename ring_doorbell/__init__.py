@@ -178,6 +178,7 @@ class Ring(object):
         req = self.session.post((url), params=urlencode(self._params))
         if req.status_code == 204:
             return True
+        return False
 
     def live_streaming(self, name):
         """Return JSON for live streaming."""
