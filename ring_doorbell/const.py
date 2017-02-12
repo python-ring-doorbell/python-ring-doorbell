@@ -24,19 +24,19 @@ URL_RECORDING = '/clients_api/dings/{0}/recording'
 
 # structure acquired from reverse engineering to create auth token
 POST_DATA = {
-        'api_version': API_VERSION,
-        'device[os]': 'android',
-        'device[hardware_id]': '180940d0-aaaa-bbbb-8c64-6ea91491982c',
-        'device[app_brand]': 'ring',
-        'device[metadata][device_model]': 'KVM',
-        'device[metadata][resolution]': '600x800',
-        'device[metadata][app_version]': '1.7.29',
-        'device[metadata][app_instalation_date]': '',
-        'device[metadata][os_version]': '4.4.4',
-        'device[metadata][manufacturer]': 'innotek GmbH',
-        'device[metadata][is_tablet]': 'true',
-        'device[metadata][linphone_initialized]': 'true',
-        'device[metadata][language]': 'en'}
+    'api_version': API_VERSION,
+    'device[os]': 'android',
+    'device[hardware_id]': '180940d0-aaaa-bbbb-8c64-6ea91491982c',
+    'device[app_brand]': 'ring',
+    'device[metadata][device_model]': 'KVM',
+    'device[metadata][resolution]': '600x800',
+    'device[metadata][app_version]': '1.7.29',
+    'device[metadata][app_instalation_date]': '',
+    'device[metadata][os_version]': '4.4.4',
+    'device[metadata][manufacturer]': 'innotek GmbH',
+    'device[metadata][is_tablet]': 'true',
+    'device[metadata][linphone_initialized]': 'true',
+    'device[metadata][language]': 'en'}
 
 # error strings
 GENERIC_FAIL = 'Sorry.. Something went wrong...'
