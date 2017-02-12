@@ -35,4 +35,4 @@ disable=
   abstract-method
 
 [EXCEPTIONS]
-overgeneral-exceptions=Exception,HomeAssistantError
+overgeneral-exceptions=Exception
