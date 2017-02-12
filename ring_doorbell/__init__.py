@@ -165,6 +165,13 @@ class Ring(object):
         except AttributeError:
             return NOT_FOUND
 
+    def chime_firmware(self, name):
+        """Return firmware."""
+        try:
+            return self.chime_attributes(name).get('firmware_version')
+        except AttributeError:
+            return NOT_FOUND
+
     def is_chime_online(self, name):
         """Return if chime is online."""
         try:
@@ -250,6 +257,13 @@ class Ring(object):
         """Return doorbell battery life."""
         try:
             return self.doorbell_attributes(name).get('battery_life')
+        except AttributeError:
+            return NOT_FOUND
+
+    def doorbell_firmware(self, name):
+        """Return doorbell firmware."""
+        try:
+            return self.doorbell_attributes(name).get('firmware_version')
         except AttributeError:
             return NOT_FOUND
 
