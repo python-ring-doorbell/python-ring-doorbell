@@ -1,16 +1,18 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell wrapper."""
+from urllib.parse import urlencode
+
 import os
 import logging
 import requests
-from urllib.parse import urlencode
 
 from ring_doorbell.const import (
     API_VERSION, API_URI, DEVICES_ENDPOINT, DINGS_ENDPOINT,
     FILE_EXISTS, GENERIC_FAIL, HEADERS, LINKED_CHIMES_ENDPOINT,
     LIVE_STREAMING_ENDPOINT, NEW_SESSION_ENDPOINT, NOT_FOUND,
     URL_HISTORY, URL_RECORDING, POST_DATA, RETRY_TOKEN)
+from ring_doorbell.utils import _locator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class Ring(object):
         """Initialize the Ring object."""
         self.features = None
         self.is_connected = None
-        self.id = None
+        self._id = None
         self.token = None
         self._params = None
 
@@ -32,9 +34,8 @@ class Ring(object):
         self.session = requests.Session()
         self.session.auth = (self.username, self.password)
 
-        self._authenticate
+        self._authenticate()
 
-    @property
     def _authenticate(self, attempts=RETRY_TOKEN):
         """Authenticate user against Ring API."""
         url = API_URI + NEW_SESSION_ENDPOINT
@@ -51,7 +52,7 @@ class Ring(object):
             if req.status_code == 201:
                 data = req.json().get('profile')
                 self.features = data.get('features')
-                self.id = data.get('id')
+                self._id = data.get('id')
                 self.is_connected = True
                 self.token = data.get('authentication_token')
                 self._params = {'api_version': API_VERSION,
@@ -73,7 +74,7 @@ class Ring(object):
 
         if self.debug and not self.is_connected:
             _LOGGER.debug("Not connected. Refreshing token...")
-            self._authenticate
+            self._authenticate()
 
         response = None
         loop = 0
@@ -87,7 +88,7 @@ class Ring(object):
             # if token is expired, refresh credentials and try again
             if req.status_code == 401:
                 self.is_connected = False
-                self._authenticate
+                self._authenticate()
                 continue
 
             if req.status_code == 200:
@@ -103,21 +104,13 @@ class Ring(object):
             _LOGGER.error(GENERIC_FAIL)
         return response
 
-    def _locator(self, lst, key, value):
-        """Return the position of a match item in list."""
-        try:
-            return next(index for (index, d) in enumerate(lst)
-                        if d[key] == value)
-        except StopIteration:
-            return NOT_FOUND
-
     @property
     def devices(self):
         """Return all devices."""
-        d = {}
-        d['chimes'] = self.chimes
-        d['doorbells'] = self.doorbells
-        return d
+        devs = {}
+        devs['chimes'] = self.chimes
+        devs['doorbells'] = self.doorbells
+        return devs
 
     @property
     def __devices(self):
@@ -138,7 +131,7 @@ class Ring(object):
     def chime_attributes(self, name):
         """Return chime attributes."""
         lst = self.__devices.get('chimes')
-        index = self._locator(lst, 'description', name)
+        index = _locator(lst, 'description', name)
         if index == NOT_FOUND:
             return None
         return lst[index]
@@ -158,7 +151,7 @@ class Ring(object):
     def doorbell_attributes(self, name):
         """Return doorbell attributes."""
         lst = self.__devices.get('doorbots')
-        index = self._locator(lst, 'description', name)
+        index = _locator(lst, 'description', name)
         if index == NOT_FOUND:
             return None
         return lst[index]
@@ -190,7 +183,7 @@ class Ring(object):
 
     @property
     def check_activity(self):
-        """Return JSON when motion or ring is detected"""
+        """Return JSON when motion or ring is detected."""
         url = API_URI + DINGS_ENDPOINT
         return self._query(url)
 
@@ -216,15 +209,15 @@ class Ring(object):
         """Download and save recording in MP4 format to a file."""
         try:
             if os.path.isfile(filename) and not override:
-                _LOGGER.error(FILE_EXISTS.format(filename))
+                _LOGGER.error("%s", FILE_EXISTS.format(filename))
                 return False
 
-            with open(filename, 'wb') as fd:
+            with open(filename, 'wb') as recording:
                 mp4 = self.doorbell_recording(recording_id)
-                fd.write(mp4)
+                recording.write(mp4)
 
-        except IOError as e:
-            _LOGGER.error(e)
+        except IOError as error:
+            _LOGGER.error("%s", error)
             return False
         return True
 
