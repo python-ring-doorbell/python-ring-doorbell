@@ -100,8 +100,8 @@ class Ring(object):
 
                 break
 
-        if response is None:
-            _LOGGER.error(GENERIC_FAIL)
+        if response is None and self.debug:
+            _LOGGER.debug(GENERIC_FAIL)
         return response
 
     @property
