@@ -106,7 +106,7 @@ class Ring(object):
 
     @property
     def has_subscription(self):
-        """Return if account has subscription"""
+        """Return if account has subscription."""
         try:
             return self.features.get('subscriptions_enabled')
         except AttributeError:
@@ -154,7 +154,7 @@ class Ring(object):
             return NOT_FOUND
 
     def is_chime_online(self, name):
-        """Return if chime is online"""
+        """Return if chime is online."""
         try:
             result = self.chime_attributes(name).get('subscribed')
             if result is None:
@@ -164,7 +164,7 @@ class Ring(object):
         return True
 
     def is_chime_subscribed_motions(self, name):
-        """Return if chime is subscribed_motions"""
+        """Return if chime is subscribed_motions."""
         try:
             result = self.chime_attributes(name).get('subscribed_motions')
             if result is None:
@@ -207,7 +207,7 @@ class Ring(object):
             return NOT_FOUND
 
     def is_doorbell_online(self, name):
-        """Return state for doorbell is online"""
+        """Return state for doorbell is online."""
         try:
             result = self.doorbell_attributes(name).get('subscribed')
             if result is None:
@@ -217,7 +217,7 @@ class Ring(object):
         return True
 
     def is_doorbell_subscribed_motions(self, name):
-        """Return if doorbell is subscribed"""
+        """Return if doorbell is subscribed."""
         try:
             result = self.doorbell_attributes(name).get('subscribed_motions')
             if result is None:
