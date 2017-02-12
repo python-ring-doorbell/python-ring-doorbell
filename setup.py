@@ -8,7 +8,7 @@ setup(
     description = 'A Python library to communicate with Ring Door Bell (https://ring.com/)',
     author = 'Marcelo Moreira de Mello',
     author_email = 'tchello.mello@gmail.com',
-    url = 'https://github.com/tchellomello/python-ring_doorbell',
+    url = 'https://github.com/tchellomello/python-ring-doorbell',
     license = 'LGPLv3+',
     include_package_data = True,
     keywords = [
