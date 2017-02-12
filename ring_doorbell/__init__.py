@@ -57,18 +57,14 @@ class Ring(object):
                 self.token = data.get('authentication_token')
                 self._params = {'api_version': API_VERSION,
                                 'auth_token': self.token}
-                return
+                return True
 
         self.is_connected = False
         req.raise_for_status()
 
     def _query(self, url, attempts=RETRY_TOKEN,
-               raw=False, params=None):
+               raw=False, extra_params=None):
         """Query data from Ring API."""
-        # allow to override params
-        if params is None:
-            params = self._params
-
         if self.debug:
             _LOGGER.debug("Querying %s", url)
 
@@ -79,6 +75,15 @@ class Ring(object):
         response = None
         loop = 0
         while loop <= attempts:
+
+            # allow to override params when necessary
+            # and update self._params globally for the next connection
+            if extra_params:
+                params = self._params
+                params.update(extra_params)
+            else:
+                params = self._params
+
             loop += 1
             try:
                 req = self.session.get((url), params=urlencode(params))
@@ -100,9 +105,17 @@ class Ring(object):
 
                 break
 
-        if response is None:
-            _LOGGER.error(GENERIC_FAIL)
+        if response is None and self.debug:
+            _LOGGER.debug(GENERIC_FAIL)
         return response
+
+    @property
+    def has_subscription(self):
+        """Return if account has subscription."""
+        try:
+            return self.features.get('subscriptions_enabled')
+        except AttributeError:
+            return NOT_FOUND
 
     @property
     def devices(self):
@@ -121,20 +134,49 @@ class Ring(object):
     @property
     def chimes(self):
         """Return list of chimes by name."""
-        req = self.__devices.get('chimes')
-        return list((obj['description'] for obj in req))
+        try:
+            req = self.__devices.get('chimes')
+            return list((obj['description'] for obj in req))
+        except AttributeError:
+            return NOT_FOUND
 
     def chime_id(self, name):
         """Return chime ID."""
-        return self.chime_attributes(name).get('id')
+        try:
+            return self.chime_attributes(name).get('id')
+        except AttributeError:
+            return NOT_FOUND
 
     def chime_attributes(self, name):
         """Return chime attributes."""
-        lst = self.__devices.get('chimes')
-        index = _locator(lst, 'description', name)
-        if index == NOT_FOUND:
-            return None
-        return lst[index]
+        try:
+            lst = self.__devices.get('chimes')
+            index = _locator(lst, 'description', name)
+            if index == NOT_FOUND:
+                return NOT_FOUND
+            return lst[index]
+        except AttributeError:
+            return NOT_FOUND
+
+    def is_chime_online(self, name):
+        """Return if chime is online."""
+        try:
+            result = self.chime_attributes(name).get('subscribed')
+            if result is None:
+                return False
+        except AttributeError:
+            return NOT_FOUND
+        return True
+
+    def is_chime_subscribed_motions(self, name):
+        """Return if chime is subscribed_motions."""
+        try:
+            result = self.chime_attributes(name).get('subscribed_motions')
+            if result is None:
+                return False
+        except AttributeError:
+            return NOT_FOUND
+        return True
 
     def chime_tree(self, name):
         """Return doorbell data linked to chime."""
@@ -145,24 +187,56 @@ class Ring(object):
     @property
     def doorbells(self):
         """Return list of doorbells by name."""
-        req = self.__devices.get('doorbots')
-        return list((obj['description'] for obj in req))
+        try:
+            req = self.__devices.get('doorbots')
+            return list((obj['description'] for obj in req))
+        except AttributeError:
+            return NOT_FOUND
 
     def doorbell_attributes(self, name):
         """Return doorbell attributes."""
-        lst = self.__devices.get('doorbots')
-        index = _locator(lst, 'description', name)
-        if index == NOT_FOUND:
-            return None
-        return lst[index]
+        try:
+            lst = self.__devices.get('doorbots')
+            index = _locator(lst, 'description', name)
+            if index == NOT_FOUND:
+                return NOT_FOUND
+            return lst[index]
+        except AttributeError:
+            return NOT_FOUND
 
     def doorbell_id(self, name):
         """Return doorbell ID."""
-        return self.doorbell_attributes(name).get('id')
+        try:
+            return self.doorbell_attributes(name).get('id')
+        except AttributeError:
+            return NOT_FOUND
+
+    def is_doorbell_online(self, name):
+        """Return state for doorbell is online."""
+        try:
+            result = self.doorbell_attributes(name).get('subscribed')
+            if result is None:
+                return False
+        except AttributeError:
+            return NOT_FOUND
+        return True
+
+    def is_doorbell_subscribed_motions(self, name):
+        """Return if doorbell is subscribed."""
+        try:
+            result = self.doorbell_attributes(name).get('subscribed_motions')
+            if result is None:
+                return False
+        except AttributeError:
+            return NOT_FOUND
+        return True
 
     def doorbell_battery_life(self, name):
         """Return doorbell battery life."""
-        return self.doorbell_attributes(name).get('battery_life')
+        try:
+            return self.doorbell_attributes(name).get('battery_life')
+        except AttributeError:
+            return NOT_FOUND
 
     def __live_streaming_create_session(self, name):
         """Initiate session live streaming URL."""
@@ -190,11 +264,10 @@ class Ring(object):
     def history(self, limit=30):
         """Return history."""
         # allow modify the items to return
-        params = self._params
-        params.update({'limit': str(limit)})
+        params = {'limit': str(limit)}
 
         url = API_URI + URL_HISTORY
-        return self._query(url, params=params)
+        return self._query(url, extra_params=params)
 
     def doorbell_recording(self, recording_id):
         """Return recording in MP4 format."""
