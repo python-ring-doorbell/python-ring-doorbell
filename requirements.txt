@@ -1,2 +1,4 @@
+flake8
+pylint
 requests
 tox
