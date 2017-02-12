@@ -158,6 +158,13 @@ class Ring(object):
         except AttributeError:
             return NOT_FOUND
 
+    def chime_get_volume(self, name):
+        """Return if chime volume."""
+        try:
+            return self.chime_attributes(name).get('settings').get('volume')
+        except AttributeError:
+            return NOT_FOUND
+
     def is_chime_online(self, name):
         """Return if chime is online."""
         try:
@@ -208,6 +215,14 @@ class Ring(object):
         """Return doorbell ID."""
         try:
             return self.doorbell_attributes(name).get('id')
+        except AttributeError:
+            return NOT_FOUND
+
+    def doorbell_get_volume(self, name):
+        """Return volume."""
+        try:
+            return self.doorbell_attributes(name). \
+                   get('settings').get('doorbell_volume')
         except AttributeError:
             return NOT_FOUND
 
