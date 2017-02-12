@@ -57,18 +57,14 @@ class Ring(object):
                 self.token = data.get('authentication_token')
                 self._params = {'api_version': API_VERSION,
                                 'auth_token': self.token}
-                return
+                return True
 
         self.is_connected = False
         req.raise_for_status()
 
     def _query(self, url, attempts=RETRY_TOKEN,
-               raw=False, params=None):
+               raw=False, extra_params=None):
         """Query data from Ring API."""
-        # allow to override params
-        if params is None:
-            params = self._params
-
         if self.debug:
             _LOGGER.debug("Querying %s", url)
 
@@ -79,6 +75,15 @@ class Ring(object):
         response = None
         loop = 0
         while loop <= attempts:
+
+            # allow to override params when necessary
+            # and update self._params globally for the next connection
+            if extra_params:
+                params = self._params
+                params.update(extra_params)
+            else:
+                params = self._params
+
             loop += 1
             try:
                 req = self.session.get((url), params=urlencode(params))
@@ -259,11 +264,10 @@ class Ring(object):
     def history(self, limit=30):
         """Return history."""
         # allow modify the items to return
-        params = self._params
-        params.update({'limit': str(limit)})
+        params = {'limit': str(limit)}
 
         url = API_URI + URL_HISTORY
-        return self._query(url, params=params)
+        return self._query(url, extra_params=params)
 
     def doorbell_recording(self, recording_id):
         """Return recording in MP4 format."""
