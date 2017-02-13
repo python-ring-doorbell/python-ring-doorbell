@@ -256,7 +256,10 @@ class Ring(object):
     def doorbell_battery_life(self, name):
         """Return doorbell battery life."""
         try:
-            return self.doorbell_attributes(name).get('battery_life')
+            value = int(self.doorbell_attributes(name).get('battery_life'))
+            if value > 100:
+                value = 100
+            return value
         except AttributeError:
             return NOT_FOUND
 
