@@ -17,7 +17,8 @@ from ring_doorbell.const import (
     API_VERSION, API_URI, DEVICES_ENDPOINT, DINGS_ENDPOINT,
     FILE_EXISTS, GENERIC_FAIL, HEADERS, LINKED_CHIMES_ENDPOINT,
     LIVE_STREAMING_ENDPOINT, NEW_SESSION_ENDPOINT, NOT_FOUND,
-    URL_HISTORY, URL_RECORDING, POST_DATA, RETRY_TOKEN)
+    URL_HISTORY, URL_DOORBELL_HISTORY, URL_RECORDING,
+    POST_DATA, RETRY_TOKEN)
 from ring_doorbell.utils import _locator
 
 _LOGGER = logging.getLogger(__name__)
@@ -306,11 +307,15 @@ class Ring(object):
         url = API_URI + DINGS_ENDPOINT
         return self._query(url)
 
-    def history(self, limit=30, timezone=None):
+    def history(self, name=None, limit=30, timezone=None):
         """Return history with datetime objects."""
         # allow modify the items to return
         params = {'limit': str(limit)}
-        url = API_URI + URL_HISTORY
+
+        if name:
+            url = API_URI + URL_DOORBELL_HISTORY.format(self.doorbell_id(name))
+        else:
+            url = API_URI + URL_HISTORY
 
         response = self._query(url, extra_params=params)
 

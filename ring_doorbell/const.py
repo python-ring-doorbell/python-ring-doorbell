@@ -20,6 +20,7 @@ LINKED_CHIMES_ENDPOINT = '/clients_api/chimes/{0}/linked_doorbots'
 LIVE_STREAMING_ENDPOINT = '/clients_api/doorbots/{0}/vod'
 NEW_SESSION_ENDPOINT = '/clients_api/session'
 URL_HISTORY = '/clients_api/doorbots/history'
+URL_DOORBELL_HISTORY = '/clients_api/doorbots/{0}/history'
 URL_RECORDING = '/clients_api/dings/{0}/recording'
 
 # structure acquired from reverse engineering to create auth token

@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name='ring_doorbell',
     packages=['ring_doorbell'],
-    version='0.0.3',
+    version='0.0.4',
     description='A Python library to communicate with Ring' +
                 ' Door Bell (https://ring.com/)',
     author='Marcelo Moreira de Mello',
@@ -20,7 +20,6 @@ setup(
         'home automation',
         ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
         'Environment :: Other Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: ' +
