@@ -13,7 +13,7 @@ setup(
     url='https://github.com/tchellomello/python-ring-doorbell',
     license='LGPLv3+',
     include_package_data=True,
-    install_requires=['requests'],
+    install_requires=['requests', 'pytz'],
     keywords=[
         'ring',
         'door bell',
