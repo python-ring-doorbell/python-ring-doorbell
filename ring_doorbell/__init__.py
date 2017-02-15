@@ -1,8 +1,12 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell wrapper."""
-from urllib.parse import urlencode
 from datetime import datetime
+
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
 import os
 import logging
