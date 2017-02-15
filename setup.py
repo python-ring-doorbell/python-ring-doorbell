@@ -20,7 +20,7 @@ setup(
         'home automation',
         ],
     classifiers=[
-        'Development Status :: 3 - Beta',
+        'Development Status :: 3 - Alpha',
         'Environment :: Other Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: ' +
