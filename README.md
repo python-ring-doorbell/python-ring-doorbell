@@ -3,8 +3,8 @@ This project is a Python 2.7/3.x wrapper to access the Ring.com (http://www.ring
 ## Install
 ```bash
 # Installing from PyPi
-$ pip install ring_doorbell #python 2.7
-$ pip3 install ring_doorbell #python 2.7
+$ pip install ring_doorbell  #python 2.7
+$ pip3 install ring_doorbell #python 3.x
 
 # Installing latest development
 $ pip3 install git+https://github.com/tchellomello/python-ring-doorbell@dev --upgrade
@@ -15,17 +15,16 @@ $ pip3 install git+https://github.com/tchellomello/python-ring-doorbell@dev --up
 from ring_doorbell import Ring
 myring = Ring('user@email.com', 'secret')
 
-In [5]: myring.devices
-Out[5]: {'chimes': ['Downstairs'], 'doorbells': ['Front Door']}
+myring.devices
+{'chimes': ['Downstairs'], 'doorbells': ['Front Door']}
 
-In [6]: myring.chimes
-Out[6]: ['Downstairs']
+myring.chimes
+['Downstairs']
 
-In [7]: myring.doorbells
-Out[7]: ['Front Door']
+myring.doorbells
+['Front Door']
 
-In [8]: myring.chime_attributes('Downstairs')
-Out[8]:
+myring.chime_attributes('Downstairs')
 {'address': '123 Example St, New York, NY, USA',
  'alerts': {'connection': 'online'},
  'description': 'Downstairs',
@@ -50,11 +49,10 @@ Out[8]:
  'time_zone': 'America/New_York'}
 
 # for battery powered it will show a range 0-100
-In [9]: myring.doorbell_battery_life('Front Door')
-Out[9]: '4107
+myring.doorbell_battery_life('Front Door')
+'4107
 
-In [10]: myring.doorbell_attributes('Front Door')
-Out[10]:
+myring.doorbell_attributes('Front Door')
 {'address': '123 Example St, New York, NY, USA',
  'alerts': {'connection': 'online'},
  'battery_life': '4107',
@@ -79,8 +77,7 @@ Out[10]:
  'subscribed_motions': True,
  'time_zone': 'America/New_York'}
 
-In [11]: myring.history(limit=2, timezone='America/Sao_Paulo')
-Out[11]:
+myring.history(limit=2, timezone='America/Sao_Paulo')
 [{'answered': False,
   'created_at': datetime.datetime(2017, 2, 14, 19, 51, 31, tzinfo=<DstTzInfo 'America/Sao_Paulo' BRST-1 day, 22:00:00 DST>),
   'doorbot': {'description': 'Front Door', 'id': 12345},
@@ -100,16 +97,27 @@ Out[11]:
   'recording': {'status': 'ready'},
   'snapshot_url': ''}]
 
+myring.history(name='Front Door', limit=1, timezone='America/Sao_Paulo')
+[{'answered': False,
+  'created_at': datetime.datetime(2017, 2, 14, 19, 51, 31, tzinfo=<DstTzInfo 'America/Sao_Paulo' BRST-1 day, 22:00:00 DST>),
+  'doorbot': {'description': 'Front Door', 'id': 12345},
+  'events': [],
+  'favorite': False,
+  'id': 1234,
+  'kind': 'motion',
+  'recording': {'status': 'ready'},
+  'snapshot_url': ''}]
+
 # download video
-In [12]: myring.doorbell_download_recording(123456, '/home/user/test.mp4')
-Out[12]: True
+myring.doorbell_download_recording(123456, '/home/user/test.mp4')
+True
 
 # show video URL
-In [13]: myring.doorbell_recording_url(123456)
-Out[13]: 'https://ring-transcoded-videos.s3.amazonaws.com/123456.mp4?X-Amz-Expires=3600&X-Amz-Date=20170210T000928Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=zzzzzzzzzzzzAAA/20170210/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+myring.doorbell_recording_url(123456)
+'https://ring-transcoded-videos.s3.amazonaws.com/123456.mp4?X-Amz-Expires=3600&X-Amz-Date=20170210T000928Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=zzzzzzzzzzzzAAA/20170210/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 
 # generate live streaming
-In [14]: myring.live_streaming('Front Door')
+myring.live_streaming('Front Door')
 [{'audio_jitter_buffer_ms': 0,
   'device_kind': 'lpd_v1',
   'doorbot_description': 'Front Door',
@@ -136,9 +144,9 @@ In [14]: myring.live_streaming('Front Door')
   'video_jitter_buffer_ms': 0}]
 
 # push notifications (motion or ring)
-In [15]: while True:
-   ...:     time.sleep(3)
-   ...:     print(myring.check_activity)
+ while True:
+     time.sleep(3)
+     print(myring.check_activity)
 []
 []
 [{'audio_jitter_buffer_ms': 0,
