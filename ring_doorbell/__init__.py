@@ -2,10 +2,12 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell wrapper."""
 from urllib.parse import urlencode
+from datetime import datetime
 
 import os
 import logging
 import requests
+import pytz
 
 from ring_doorbell.const import (
     API_VERSION, API_URI, DEVICES_ENDPOINT, DINGS_ENDPOINT,
@@ -158,6 +160,20 @@ class Ring(object):
         except AttributeError:
             return NOT_FOUND
 
+    def chime_get_volume(self, name):
+        """Return if chime volume."""
+        try:
+            return self.chime_attributes(name).get('settings').get('volume')
+        except AttributeError:
+            return NOT_FOUND
+
+    def chime_firmware(self, name):
+        """Return firmware."""
+        try:
+            return self.chime_attributes(name).get('firmware_version')
+        except AttributeError:
+            return NOT_FOUND
+
     def is_chime_online(self, name):
         """Return if chime is online."""
         try:
@@ -211,6 +227,14 @@ class Ring(object):
         except AttributeError:
             return NOT_FOUND
 
+    def doorbell_get_volume(self, name):
+        """Return volume."""
+        try:
+            return self.doorbell_attributes(name). \
+                   get('settings').get('doorbell_volume')
+        except AttributeError:
+            return NOT_FOUND
+
     def is_doorbell_online(self, name):
         """Return state for doorbell is online."""
         try:
@@ -234,7 +258,24 @@ class Ring(object):
     def doorbell_battery_life(self, name):
         """Return doorbell battery life."""
         try:
-            return self.doorbell_attributes(name).get('battery_life')
+            value = int(self.doorbell_attributes(name).get('battery_life'))
+            if value > 100:
+                value = 100
+            return value
+        except AttributeError:
+            return NOT_FOUND
+
+    def doorbell_firmware(self, name):
+        """Return doorbell firmware."""
+        try:
+            return self.doorbell_attributes(name).get('firmware_version')
+        except AttributeError:
+            return NOT_FOUND
+
+    def doorbell_timezone(self, name):
+        """Return doorbell timezone."""
+        try:
+            return self.doorbell_attributes(name).get('time_zone')
         except AttributeError:
             return NOT_FOUND
 
@@ -261,13 +302,30 @@ class Ring(object):
         url = API_URI + DINGS_ENDPOINT
         return self._query(url)
 
-    def history(self, limit=30):
-        """Return history."""
+    def history(self, limit=30, timezone=None):
+        """Return history with datetime objects."""
         # allow modify the items to return
         params = {'limit': str(limit)}
-
         url = API_URI + URL_HISTORY
-        return self._query(url, extra_params=params)
+
+        response = self._query(url, extra_params=params)
+
+        # convert for specific timezone
+        utc = pytz.utc
+        if timezone:
+            mytz = pytz.timezone(timezone)
+
+        for entry in response:
+            dt_at = datetime.strptime(entry['created_at'],
+                                      '%Y-%m-%dT%H:%M:%S.000Z')
+            utc_dt = datetime(dt_at.year, dt_at.month, dt_at.day, dt_at.hour,
+                              dt_at.minute, dt_at.second, tzinfo=utc)
+            if timezone:
+                tz_dt = utc_dt.astimezone(mytz)
+                entry['created_at'] = tz_dt
+            else:
+                entry['created_at'] = utc_dt
+        return response
 
     def doorbell_recording(self, recording_id):
         """Return recording in MP4 format."""
