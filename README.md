@@ -1,14 +1,19 @@
-This project is a Python wrapper to access the Ring.com (http://www.ring.com) doorbell.
+This project is a Python 2.7/3.x wrapper to access the Ring.com (http://www.ring.com) doorbell.
 
 ## Install
 ```bash
-$ pip3 install git+https://github.com/tchellomello/python-ring-doorbell --upgrade
+# Installing from PyPi
+$ pip install ring_doorbell #python 2.7
+$ pip3 install ring_doorbell #python 2.7
+
+# Installing latest development
+$ pip3 install git+https://github.com/tchellomello/python-ring-doorbell@dev --upgrade
 ```
 
 ## Usage
 ```python
 from ring_doorbell import Ring
-myring = Ring('user@me.com', 'secret')
+myring = Ring('user@email.com', 'secret')
 
 In [5]: myring.devices
 Out[5]: {'chimes': ['Downstairs'], 'doorbells': ['Front Door']}
@@ -74,23 +79,23 @@ Out[10]:
  'subscribed_motions': True,
  'time_zone': 'America/New_York'}
 
-In [11]: myring.history(limit=2)
+In [11]: myring.history(limit=2, timezone='America/Sao_Paulo')
 Out[11]:
 [{'answered': False,
-  'created_at': '2017-02-08T22:22:15.000Z',
-  'doorbot': {'description': 'Front Door', 'id': 234},
+  'created_at': datetime.datetime(2017, 2, 14, 19, 51, 31, tzinfo=<DstTzInfo 'America/Sao_Paulo' BRST-1 day, 22:00:00 DST>),
+  'doorbot': {'description': 'Front Door', 'id': 12345},
   'events': [],
   'favorite': False,
-  'id': 12345,
+  'id': 1234,
   'kind': 'motion',
   'recording': {'status': 'ready'},
   'snapshot_url': ''},
  {'answered': False,
-  'created_at': '2017-02-08T12:09:26.000Z',
-  'doorbot': {'description': 'Front Door', 'id': 234},
+  'created_at': datetime.datetime(2017, 2, 14, 18, 26, 6, tzinfo=<DstTzInfo 'America/Sao_Paulo' BRST-1 day, 22:00:00 DST>),
+  'doorbot': {'description': 'Front Door', 'id': 12345},
   'events': [],
   'favorite': False,
-  'id': 123456,
+  'id': 12345,
   'kind': 'motion',
   'recording': {'status': 'ready'},
   'snapshot_url': ''}]
