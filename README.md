@@ -12,169 +12,70 @@ $ pip3 install git+https://github.com/tchellomello/python-ring-doorbell@dev --up
 
 ## Usage
 ```python
-from ring_doorbell import Ring
-myring = Ring('user@email.com', 'secret')
+In [1]: from ring_doorbell import Ring
+In [2]: myring = Ring('user@email.com', 'password')
 
-myring.devices
-{'chimes': ['Downstairs'], 'doorbells': ['Front Door']}
+In [3]: myring.devices
+Out[3]: 
+{'chimes': [<RingChime: Downstairs>],
+ 'doorbells': [<RingDoorBell: Front Door>]}
+ 
+In [4]: myring.chimes
+Out[4]: [<RingChime: Downstairs>]
 
-myring.chimes
-['Downstairs']
+In [5]: myring.doorbells
+Out[5]: [<RingDoorBell: Front Door>]
 
-myring.doorbells
-['Front Door']
+In [6]: mychime = myring.chimes[0]
 
-myring.chime_attributes('Downstairs')
-{'address': '123 Example St, New York, NY, USA',
- 'alerts': {'connection': 'online'},
- 'description': 'Downstairs',
- 'device_id': '1234567',
- 'do_not_disturb': {'seconds_left': 0},
- 'features': {'ringtones_enabled': True},
- 'firmware_version': '1.1.31',
- 'id': 123456,
- 'kind': 'chime',
- 'latitude': 00.0000000,
- 'longitude': -00.000000,
- 'owned': True,
- 'owner': {'email': 'owner@email.com',
-  'first_name': 'Owner Name',
-  'id': 123456,
-  'last_name': 'Owner Surname'},
- 'settings': {'ding_audio_id': None,
-  'ding_audio_user_id': None,
-  'motion_audio_id': None,
-  'motion_audio_user_id': None,
-  'volume': 10},
- 'time_zone': 'America/New_York'}
+In [7]: mychime.
+         mychime.account_id         mychime.firmware           mychime.linked_tree        mychime.subscribed_motions 
+         mychime.address            mychime.id                 mychime.longitude          mychime.timezone           
+         mychime.debug              mychime.kind               mychime.name               mychime.update             
+         mychime.family             mychime.latitude           mychime.subscribed         mychime.volume  
 
-# for battery powered it will show a range 0-100
-myring.doorbell_battery_life('Front Door')
-'4107
+In [7]: mychime.volume
+Out[7]: 5
+    
+#updating volume
+In [8]: mychime.volume = 200
+Must be within the 0-10.
 
-myring.doorbell_attributes('Front Door')
-{'address': '123 Example St, New York, NY, USA',
- 'alerts': {'connection': 'online'},
- 'battery_life': '4107',
- 'description': 'Front Door',
- 'device_id': '12345678',
- 'external_connection': False,
- 'features': {'advanced_motion_enabled': False,
-  'motions_enabled': True,
-  'people_only_enabled': False,
-  'shadow_correction_enabled': False,
-  'show_recordings': True},
- 'firmware_version': '1.3.91',
+In [9]: mychime.volume = 4
 
-  '....SNIP....' : '....SNIP....',
+In [10]: mychime.volume
+Out[10]: 4
 
-  'video_settings': {'ae_level': 32,
-   'birton': None,
-   'brightness': 16,
-   'contrast': 80,
-   'saturation': 48}},
- 'subscribed': True,
- 'subscribed_motions': True,
- 'time_zone': 'America/New_York'}
+# DoorBells 
+In [11]: mydoorbell = myring.doorbells[0]
 
-myring.history(limit=2, timezone='America/Sao_Paulo')
-[{'answered': False,
-  'created_at': datetime.datetime(2017, 2, 14, 19, 51, 31, tzinfo=<DstTzInfo 'America/Sao_Paulo' BRST-1 day, 22:00:00 DST>),
-  'doorbot': {'description': 'Front Door', 'id': 12345},
-  'events': [],
-  'favorite': False,
-  'id': 1234,
-  'kind': 'motion',
-  'recording': {'status': 'ready'},
-  'snapshot_url': ''},
- {'answered': False,
-  'created_at': datetime.datetime(2017, 2, 14, 18, 26, 6, tzinfo=<DstTzInfo 'America/Sao_Paulo' BRST-1 day, 22:00:00 DST>),
-  'doorbot': {'description': 'Front Door', 'id': 12345},
-  'events': [],
-  'favorite': False,
-  'id': 12345,
-  'kind': 'motion',
-  'recording': {'status': 'ready'},
-  'snapshot_url': ''}]
+In [12]: mydoorbell.
+                     mydoorbell.account_id                      mydoorbell.kind                            
+                     mydoorbell.address                         mydoorbell.last_recording_id               
+                     mydoorbell.battery_life                    mydoorbell.latitude                        
+                     mydoorbell.check_activity                  mydoorbell.live_streaming_json             
+                     mydoorbell.debug                           mydoorbell.longitude                       
+                     mydoorbell.existing_doorbell_type          mydoorbell.name                            
+                     mydoorbell.existing_doorbell_type_duration mydoorbell.recording_download              
+                     mydoorbell.existing_doorbell_type_enabled  mydoorbell.recording_url                   
+                     mydoorbell.family                          mydoorbell.timezone                        
+                     mydoorbell.firmware                        mydoorbell.update                          
+                     mydoorbell.history                         mydoorbell.volume                          
+                     mydoorbell.id                                                                
+                     
+In [12]: mydoorbell.last_recording_id
+Out[12]: 2222222221
 
-myring.history(name='Front Door', limit=1, timezone='America/Sao_Paulo')
-[{'answered': False,
-  'created_at': datetime.datetime(2017, 2, 14, 19, 51, 31, tzinfo=<DstTzInfo 'America/Sao_Paulo' BRST-1 day, 22:00:00 DST>),
-  'doorbot': {'description': 'Front Door', 'id': 12345},
-  'events': [],
-  'favorite': False,
-  'id': 1234,
-  'kind': 'motion',
-  'recording': {'status': 'ready'},
-  'snapshot_url': ''}]
+In [14]: mydoorbell.existing_doorbell_type
+Out[14]: 'Mechanical'
 
-# download video
-myring.doorbell_download_recording(123456, '/home/user/test.mp4')
-True
+In [15]: mydoorbell.existing_doorbell_type_enabled
+Out[15]: True
 
-# show video URL
-myring.doorbell_recording_url(123456)
-'https://ring-transcoded-videos.s3.amazonaws.com/123456.mp4?X-Amz-Expires=3600&X-Amz-Date=20170210T000928Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=zzzzzzzzzzzzAAA/20170210/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+In [16]: mydoorbell.existing_doorbell_type_enabled = False
 
-# generate live streaming
-myring.live_streaming('Front Door')
-[{'audio_jitter_buffer_ms': 0,
-  'device_kind': 'lpd_v1',
-  'doorbot_description': 'Front Door',
-  'doorbot_id': 12345,
-  'expires_in': 179,
-  'id': 123456,
-  'id_str': '12345',
-  'kind': 'on_demand',
-  'motion': False,
-  'now': 1486710809.55569,
-  'optimization_level': 3,
-  'protocol': 'sip',
-  'sip_ding_id': '1234563',
-  'sip_endpoints': None,
-  'sip_from': 'sip:12345@ring.com',
-  'sip_server_ip': '1.2.3.4',
-  'sip_server_port': '15063',
-  'sip_server_tls': 'false',
-  'sip_session_id': '1iaaaaaaaaaq',
-  'sip_to': 'sip:1iaaaaaaaaaq@1.2.3.4.5:15063;transport=tcp',
-  'sip_token': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab',
-  'snapshot_url': '',
-  'state': 'ringing',
-  'video_jitter_buffer_ms': 0}]
-
-# push notifications (motion or ring)
- while True:
-     time.sleep(3)
-     print(myring.check_activity)
-[]
-[]
-[{'audio_jitter_buffer_ms': 0,
-  'device_kind': 'lpd_v1',
-  'doorbot_description': 'Front Door',
-  'doorbot_id': 12345,
-  'expires_in': 179,
-  'id': 123456,
-  'id_str': '12345',
-  'kind': 'on_demand',
-  'motion': False,
-  'now': 1486710809.55569,
-  'optimization_level': 3,
-  'protocol': 'sip',
-  'sip_ding_id': '1234563',
-  'sip_endpoints': None,
-  'sip_from': 'sip:12345@ring.com',
-  'sip_server_ip': '1.2.3.4',
-  'sip_server_port': '15063',
-  'sip_server_tls': 'false',
-  'sip_session_id': '1iaaaaaaaaaq',
-  'sip_to': 'sip:1iaaaaaaaaaq@1.2.3.4.5:15063;transport=tcp',
-  'sip_token': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab',
-  'snapshot_url': '',
-  'state': 'ringing',
-  'video_jitter_buffer_ms': 0}]
-[]
-[]
+In [17]: mydoorbell.existing_doorbell_type_enabled
+Out[17]: False
 ```
 
 ## Credits
