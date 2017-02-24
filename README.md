@@ -16,10 +16,10 @@ In [1]: from ring_doorbell import Ring
 In [2]: myring = Ring('user@email.com', 'password')
 
 In [3]: myring.devices
-Out[3]: 
+Out[3]:
 {'chimes': [<RingChime: Downstairs>],
  'doorbells': [<RingDoorBell: Front Door>]}
- 
+
 In [4]: myring.chimes
 Out[4]: [<RingChime: Downstairs>]
 
@@ -29,14 +29,14 @@ Out[5]: [<RingDoorBell: Front Door>]
 In [6]: mychime = myring.chimes[0]
 
 In [7]: mychime.
-         mychime.account_id         mychime.firmware           mychime.linked_tree        mychime.subscribed_motions 
-         mychime.address            mychime.id                 mychime.longitude          mychime.timezone           
-         mychime.debug              mychime.kind               mychime.name               mychime.update             
-         mychime.family             mychime.latitude           mychime.subscribed         mychime.volume  
+         mychime.account_id         mychime.firmware           mychime.linked_tree        mychime.subscribed_motions
+         mychime.address            mychime.id                 mychime.longitude          mychime.timezone
+         mychime.debug              mychime.kind               mychime.name               mychime.update
+         mychime.family             mychime.latitude           mychime.subscribed         mychime.volume
 
 In [7]: mychime.volume
 Out[7]: 5
-    
+
 #updating volume
 In [8]: mychime.volume = 200
 Must be within the 0-10.
@@ -46,23 +46,23 @@ In [9]: mychime.volume = 4
 In [10]: mychime.volume
 Out[10]: 4
 
-# DoorBells 
+# DoorBells
 In [11]: mydoorbell = myring.doorbells[0]
 
 In [12]: mydoorbell.
-                     mydoorbell.account_id                      mydoorbell.kind                            
-                     mydoorbell.address                         mydoorbell.last_recording_id               
-                     mydoorbell.battery_life                    mydoorbell.latitude                        
-                     mydoorbell.check_activity                  mydoorbell.live_streaming_json             
-                     mydoorbell.debug                           mydoorbell.longitude                       
-                     mydoorbell.existing_doorbell_type          mydoorbell.name                            
-                     mydoorbell.existing_doorbell_type_duration mydoorbell.recording_download              
-                     mydoorbell.existing_doorbell_type_enabled  mydoorbell.recording_url                   
-                     mydoorbell.family                          mydoorbell.timezone                        
-                     mydoorbell.firmware                        mydoorbell.update                          
-                     mydoorbell.history                         mydoorbell.volume                          
-                     mydoorbell.id                                                                
-                     
+                     mydoorbell.account_id                      mydoorbell.kind
+                     mydoorbell.address                         mydoorbell.last_recording_id
+                     mydoorbell.battery_life                    mydoorbell.latitude
+                     mydoorbell.check_activity                  mydoorbell.live_streaming_json
+                     mydoorbell.debug                           mydoorbell.longitude
+                     mydoorbell.existing_doorbell_type          mydoorbell.name
+                     mydoorbell.existing_doorbell_type_duration mydoorbell.recording_download
+                     mydoorbell.existing_doorbell_type_enabled  mydoorbell.recording_url
+                     mydoorbell.family                          mydoorbell.timezone
+                     mydoorbell.firmware                        mydoorbell.update
+                     mydoorbell.history                         mydoorbell.volume
+                     mydoorbell.id
+
 In [12]: mydoorbell.last_recording_id
 Out[12]: 2222222221
 
