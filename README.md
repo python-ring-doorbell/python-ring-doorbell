@@ -33,6 +33,7 @@ In [7]: mychime.
          mychime.address            mychime.id                 mychime.longitude          mychime.timezone
          mychime.debug              mychime.kind               mychime.name               mychime.update
          mychime.family             mychime.latitude           mychime.subscribed         mychime.volume
+                                                                                          mychime.test_sound
 
 In [7]: mychime.volume
 Out[7]: 5

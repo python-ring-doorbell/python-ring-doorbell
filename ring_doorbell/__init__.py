@@ -22,7 +22,7 @@ from ring_doorbell.const import (
     NEW_SESSION_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
     MSG_GENERIC_FAIL, MSG_VOLUME_OUTBOUNDS,
     NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
-    POST_DATA, RETRY_TOKEN)
+    POST_DATA, RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -307,6 +307,12 @@ class RingChime(RingGeneric):
         """Return doorbell data linked to chime."""
         url = API_URI + LINKED_CHIMES_ENDPOINT.format(self.account_id)
         return self._ring.query(url)
+
+    @property
+    def test_sound(self):
+        """Play chime to test sound."""
+        url = API_URI + TESTSOUND_CHIME_ENDPOINT.format(self.account_id)
+        response = self._ring.query(url, method='POST')
 
 
 class RingDoorBell(RingGeneric):

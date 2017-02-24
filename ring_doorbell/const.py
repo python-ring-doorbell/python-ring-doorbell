@@ -22,6 +22,7 @@ DOORBELLS_ENDPOINT = '/clients_api/doorbots/{0}'
 LINKED_CHIMES_ENDPOINT = CHIMES_ENDPOINT + '/linked_doorbots'
 LIVE_STREAMING_ENDPOINT = DOORBELLS_ENDPOINT + '/vod'
 NEW_SESSION_ENDPOINT = '/clients_api/session'
+TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + '/play_sound'
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + '/history'
 URL_RECORDING = '/clients_api/dings/{0}/recording'
 
