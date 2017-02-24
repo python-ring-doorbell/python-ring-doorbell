@@ -61,4 +61,4 @@ MSG_BOOLEAN_REQUIRED = "Boolean value is required."
 MSG_EXISTING_TYPE = "Integer value where {0}.".format(DOORBELL_EXISTING_TYPE)
 MSG_GENERIC_FAIL = 'Sorry.. Something went wrong...'
 FILE_EXISTS = 'The file {0} already exists.'
-MSG_VOLUME_OUTBOUNDS = 'Must be within the {0}-{1}.'
+MSG_VOL_OUTBOUND = 'Must be within the {0}-{1}.'

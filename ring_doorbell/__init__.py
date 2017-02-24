@@ -20,7 +20,7 @@ from ring_doorbell.const import (
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
     HEADERS, LINKED_CHIMES_ENDPOINT, LIVE_STREAMING_ENDPOINT,
     NEW_SESSION_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
-    MSG_GENERIC_FAIL, MSG_VOLUME_OUTBOUNDS,
+    MSG_GENERIC_FAIL, MSG_VOL_OUTBOUND,
     NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
     POST_DATA, RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
 
@@ -273,14 +273,13 @@ class RingChime(RingGeneric):
     def volume(self, value):
         if not ((isinstance(value, int)) and
                 (value >= CHIME_VOL_MIN and value <= CHIME_VOL_MAX)):
-            _LOGGER.error("%s", MSG_VOLUME_OUTBOUNDS.format(CHIME_VOL_MIN,
-                                                            CHIME_VOL_MAX))
+            _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(CHIME_VOL_MIN,
+                                                        CHIME_VOL_MAX))
             return False
 
         params = {
             'chime[description]': self.name,
             'chime[settings][volume]': str(value)}
-
         url = API_URI + CHIMES_ENDPOINT.format(self.account_id)
         self._ring.query(url, extra_params=params, method='PUT')
         self.update()
@@ -352,8 +351,11 @@ class RingDoorBell(RingGeneric):
         1: Digital
         2: Not Present
         """
-        return DOORBELL_EXISTING_TYPE[
-            self._attrs.get('settings').get('chime_settings').get('type')]
+        try:
+            return DOORBELL_EXISTING_TYPE[
+                self._attrs.get('settings').get('chime_settings').get('type')]
+        except AttributeError:
+            return None
 
     @existing_doorbell_type.setter
     def existing_doorbell_type(self, value):
@@ -370,66 +372,73 @@ class RingDoorBell(RingGeneric):
         params = {
             'doorbot[description]': self.name,
             'doorbot[settings][chime_settings][type]': value}
-
-        url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
-        self._ring.query(url, extra_params=params, method='PUT')
-        self.update()
-        return True
+        if self.existing_doorbell_type:
+            url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+            self._ring.query(url, extra_params=params, method='PUT')
+            self.update()
+            return True
+        return None
 
     @property
     def existing_doorbell_type_enabled(self):
         """Return if existing doorbell type is enabled."""
-        if self._attrs.get('settings').get('chime_settings').get('type') == 2:
-            return False
-        return self._attrs.get('settings').get('chime_settings').get('enable')
+        if self.existing_doorbell_type:
+            if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[2]:
+                return None
+            return \
+                self._attrs.get('settings').get('chime_settings').get('enable')
+        return False
 
     @existing_doorbell_type_enabled.setter
     def existing_doorbell_type_enabled(self, value):
         """Enable/disable the existing doorbell if Digital/Mechanical."""
-        if self._attrs.get('settings').\
-           get('chime_settings').get('type') == 2:
-            return False
-        if not isinstance(value, bool):
-            _LOGGER.error("%s", MSG_BOOLEAN_REQUIRED)
-            return False
+        if self.existing_doorbell_type:
 
-        params = {
-            'doorbot[description]': self.name,
-            'doorbot[settings][chime_settings][enable]': value}
+            if not isinstance(value, bool):
+                _LOGGER.error("%s", MSG_BOOLEAN_REQUIRED)
+                return None
 
-        url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
-        self._ring.query(url, extra_params=params, method='PUT')
-        self.update()
-        return True
+            if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[2]:
+                return None
+
+            params = {
+                'doorbot[description]': self.name,
+                'doorbot[settings][chime_settings][enable]': value}
+            url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+            self._ring.query(url, extra_params=params, method='PUT')
+            self.update()
+            return True
+        return False
 
     @property
     def existing_doorbell_type_duration(self):
         """Return duration for Digital chime."""
-        if self._attrs.get('settings').get('chime_settings').get('type') == 1:
-            return self._attrs.get('settings').\
-                   get('chime_settings').get('duration')
+        if self.existing_doorbell_type:
+            if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[1]:
+                return self._attrs.get('settings').\
+                       get('chime_settings').get('duration')
         return None
 
     @existing_doorbell_type_duration.setter
     def existing_doorbell_type_duration(self, value):
         """Set duration for Digital chime."""
-        if not ((isinstance(value, int)) and
-                (value >= DOORBELL_VOL_MIN and value <= DOORBELL_VOL_MAX)):
-            _LOGGER.error("%s", MSG_VOLUME_OUTBOUNDS.format(DOORBELL_VOL_MIN,
+        if self.existing_doorbell_type:
+
+            if not ((isinstance(value, int)) and
+                    (value >= DOORBELL_VOL_MIN and value <= DOORBELL_VOL_MAX)):
+                _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN,
                                                             DOORBELL_VOL_MAX))
-            return False
+                return False
 
-        if self._attrs.get('settings').get('chime_settings').get('type') != 1:
-            return None
-
-        params = {
-            'doorbot[description]': self.name,
-            'doorbot[settings][chime_settings][duration]': value}
-
-        url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
-        self._ring.query(url, extra_params=params, method='PUT')
-        self.update()
-        return True
+            if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[1]:
+                params = {
+                    'doorbot[description]': self.name,
+                    'doorbot[settings][chime_settings][duration]': value}
+                url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+                self._ring.query(url, extra_params=params, method='PUT')
+                self.update()
+                return True
+        return None
 
     def history(self, limit=30, timezone=None):
         """Return history with datetime objects."""
@@ -509,14 +518,13 @@ class RingDoorBell(RingGeneric):
     def volume(self, value):
         if not ((isinstance(value, int)) and
                 (value >= DOORBELL_VOL_MIN and value <= DOORBELL_VOL_MAX)):
-            _LOGGER.error("%s", MSG_VOLUME_OUTBOUNDS.format(DOORBELL_VOL_MIN,
-                                                            DOORBELL_VOL_MAX))
+            _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN,
+                                                        DOORBELL_VOL_MAX))
             return False
 
         params = {
             'doorbot[description]': self.name,
             'doorbot[settings][doorbell_volume]': str(value)}
-
         url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
         self._ring.query(url, extra_params=params, method='PUT')
         self.update()
