@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name='ring_doorbell',
     packages=['ring_doorbell'],
-    version='0.0.4',
+    version='0.1.0',
     description='A Python library to communicate with Ring' +
                 ' Door Bell (https://ring.com/)',
     author='Marcelo Moreira de Mello',
