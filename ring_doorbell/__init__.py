@@ -312,7 +312,8 @@ class RingChime(RingGeneric):
     def test_sound(self):
         """Play chime to test sound."""
         url = API_URI + TESTSOUND_CHIME_ENDPOINT.format(self.account_id)
-        response = self._ring.query(url, method='POST')
+        self._ring.query(url, method='POST')
+        return True
 
 
 class RingDoorBell(RingGeneric):
