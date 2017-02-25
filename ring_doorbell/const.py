@@ -14,13 +14,16 @@ NOT_FOUND = -1
 # API endpoints
 API_VERSION = '9'
 API_URI = 'https://api.ring.com'
+CHIMES_ENDPOINT = '/clients_api/chimes/{0}'
 DEVICES_ENDPOINT = '/clients_api/ring_devices'
 DINGS_ENDPOINT = '/clients_api/dings/active'
-LINKED_CHIMES_ENDPOINT = '/clients_api/chimes/{0}/linked_doorbots'
-LIVE_STREAMING_ENDPOINT = '/clients_api/doorbots/{0}/vod'
+DOORBELLS_ENDPOINT = '/clients_api/doorbots/{0}'
+
+LINKED_CHIMES_ENDPOINT = CHIMES_ENDPOINT + '/linked_doorbots'
+LIVE_STREAMING_ENDPOINT = DOORBELLS_ENDPOINT + '/vod'
 NEW_SESSION_ENDPOINT = '/clients_api/session'
-URL_HISTORY = '/clients_api/doorbots/history'
-URL_DOORBELL_HISTORY = '/clients_api/doorbots/{0}/history'
+TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + '/play_sound'
+URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + '/history'
 URL_RECORDING = '/clients_api/dings/{0}/recording'
 
 # structure acquired from reverse engineering to create auth token
@@ -39,6 +42,23 @@ POST_DATA = {
     'device[metadata][linphone_initialized]': 'true',
     'device[metadata][language]': 'en'}
 
+
+# default values
+CHIME_VOL_MIN = 0
+CHIME_VOL_MAX = 10
+
+DOORBELL_VOL_MIN = 0
+DOORBELL_VOL_MAX = 11
+
+DOORBELL_EXISTING_TYPE = {
+    0: 'Mechanical',
+    1: 'Digital',
+    2: 'Not Present'}
+
+
 # error strings
-GENERIC_FAIL = 'Sorry.. Something went wrong...'
-FILE_EXISTS = 'The file {0} already exists'
+MSG_BOOLEAN_REQUIRED = "Boolean value is required."
+MSG_EXISTING_TYPE = "Integer value where {0}.".format(DOORBELL_EXISTING_TYPE)
+MSG_GENERIC_FAIL = 'Sorry.. Something went wrong...'
+FILE_EXISTS = 'The file {0} already exists.'
+MSG_VOL_OUTBOUND = 'Must be within the {0}-{1}.'
