@@ -286,22 +286,6 @@ class RingChime(RingGeneric):
         return True
 
     @property
-    def subscribed(self):
-        """Return if chime is online."""
-        result = self._attrs.get('firmware_version')
-        if result is None:
-            return False
-        return True
-
-    @property
-    def subscribed_motions(self):
-        """Return if chime is subscribed_motions."""
-        result = self._attrs.get('subscribed_motions')
-        if result is None:
-            return False
-        return True
-
-    @property
     def linked_tree(self):
         """Return doorbell data linked to chime."""
         url = API_URI + LINKED_CHIMES_ENDPOINT.format(self.account_id)
@@ -508,6 +492,22 @@ class RingDoorBell(RingGeneric):
         if req.status_code == 200:
             return req.url
         return False
+
+    @property
+    def subscribed(self):
+        """Return if is online."""
+        result = self._attrs.get('subscribed')
+        if result is None:
+            return False
+        return True
+
+    @property
+    def subscribed_motion(self):
+        """Return if is subscribed_motion."""
+        result = self._attrs.get('subscribed_motions')
+        if result is None:
+            return False
+        return True
 
     @property
     def volume(self):
