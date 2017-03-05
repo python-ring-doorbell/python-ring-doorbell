@@ -22,7 +22,8 @@ from ring_doorbell.const import (
     NEW_SESSION_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
     MSG_GENERIC_FAIL, MSG_VOL_OUTBOUND,
     NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
-    POST_DATA, RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
+    POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA,
+    RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,13 +31,16 @@ _LOGGER = logging.getLogger(__name__)
 class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
-    def __init__(self, username, password, debug=False):
+    def __init__(self, username, password, debug=False, persist_token=False,
+                 push_token_notify_url=""):
         """Initialize the Ring object."""
         self.features = None
         self.is_connected = None
         self._id = None
         self.token = None
         self.params = None
+        self._persist_token = persist_token
+        self._push_token_notify_url = push_token_notify_url
 
         self.debug = debug
         self.username = username
@@ -67,6 +71,14 @@ class Ring(object):
                 self.token = data.get('authentication_token')
                 self.params = {'api_version': API_VERSION,
                                'auth_token': self.token}
+
+                if self._persist_token:
+                    url = API_URI + PERSIST_TOKEN_ENDPOINT
+                    PERSIST_TOKEN_DATA['auth_token'] = self.token
+                    PERSIST_TOKEN_DATA['device[push_notification_token]'] = \
+                        self._push_token_notify_url
+                    req = self.session.put((url), headers=HEADERS,
+                                           data=PERSIST_TOKEN_DATA)
                 return True
 
         self.is_connected = False
@@ -127,9 +139,9 @@ class Ring(object):
                 else:
                     if method == 'GET':
                         response = req.json()
-                return response
+                break
         _LOGGER.error("%s", MSG_GENERIC_FAIL)
-        return None
+        return response
 
     @property
     def has_subscription(self):
