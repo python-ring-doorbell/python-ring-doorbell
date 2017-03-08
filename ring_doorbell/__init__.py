@@ -199,6 +199,10 @@ class RingGeneric(object):
         self.family = None
         self.name = None
 
+        # alerts notifications
+        self.alert = None
+        self.alert_expires_at = None
+
     def __repr__(self):
         """Return __repr__."""
         return "<{0}: {1}>".format(self.__class__.__name__, self.name)
@@ -334,8 +338,6 @@ class RingDoorBell(RingGeneric):
         self.family = 'doorbots'
         self.name = name
 
-        self.alert = None
-        self.alert_expires_at = None
         self.update()
 
     @property
