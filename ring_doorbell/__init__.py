@@ -140,7 +140,9 @@ class Ring(object):
                     if method == 'GET':
                         response = req.json()
                 break
-        _LOGGER.error("%s", MSG_GENERIC_FAIL)
+
+        if self.debug:
+            _LOGGER.debug("%s", MSG_GENERIC_FAIL)
         return response
 
     @property
