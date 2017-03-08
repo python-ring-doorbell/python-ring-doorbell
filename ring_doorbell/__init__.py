@@ -72,7 +72,7 @@ class Ring(object):
                 self.params = {'api_version': API_VERSION,
                                'auth_token': self.token}
 
-                if self._persist_token:
+                if self._persist_token and self._push_token_notify_url:
                     url = API_URI + PERSIST_TOKEN_ENDPOINT
                     PERSIST_TOKEN_DATA['auth_token'] = self.token
                     PERSIST_TOKEN_DATA['device[push_notification_token]'] = \
