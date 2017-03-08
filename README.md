@@ -54,7 +54,7 @@ In [12]: mydoorbell.
                      mydoorbell.account_id                      mydoorbell.kind
                      mydoorbell.address                         mydoorbell.last_recording_id
                      mydoorbell.battery_life                    mydoorbell.latitude
-                     mydoorbell.check_activity                  mydoorbell.live_streaming_json
+                     mydoorbell.check_alerts                    mydoorbell.live_streaming_json
                      mydoorbell.debug                           mydoorbell.longitude
                      mydoorbell.existing_doorbell_type          mydoorbell.name
                      mydoorbell.existing_doorbell_type_duration mydoorbell.recording_download
