@@ -352,46 +352,16 @@ class RingDoorBell(RingGeneric):
         url = API_URI + DINGS_ENDPOINT
         self.update()
         try:
-            import time
-            R = [{
-                'audio_jitter_buffer_ms': 0,
-                'device_kind': 'lpd_v1',
-                'doorbot_description': 'Front Door',
-                'doorbot_id': 1123456,
-                'expires_in': 179,
-                'id': 12345,
-                'id_str': '123567',
-                'kind': 'motion',
-                'motion': True,
-                #'now': 1486603261.13869,
-                'now': time.time(),
-                'optimization_level': 1,
-                'protocol': 'sip',
-                'sip_ding_id': '1234567',
-                'sip_endpoints': None,
-                'sip_from': 'sip:12345@ring.com',
-                'sip_server_ip': '1.1.1.1',
-                'sip_server_port': '15063',
-                'sip_server_tls': 'false',
-                'sip_session_id': 'secret',
-                'sip_to': 'sip:user@1.1.1.11:15063;transport=tcp',
-                'sip_token': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa69b5f16',
-                'snapshot_url': '',
-                'state': 'ringing',
-                'video_jitter_buffer_ms': 0}]
-
-            #response = self._ring.query(url)[0]
-            resp = R[0]
+            resp = self._ring.query(url)[0]
+            if not resp:
+                return None
         except IndexError:
             return None
 
-        if resp:
-            timestamp = resp.get('now') + resp.get('expires_in')
-            self.alert = resp
-            self.alert_expires_at = datetime.fromtimestamp(timestamp)
-            #return self._ring.query(url)
-            return True
-        return None
+        timestamp = resp.get('now') + resp.get('expires_in')
+        self.alert = resp
+        self.alert_expires_at = datetime.fromtimestamp(timestamp)
+        return True
 
     @property
     def existing_doorbell_type(self):
