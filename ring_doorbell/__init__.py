@@ -350,7 +350,6 @@ class RingDoorBell(RingGeneric):
             value = 100
         return value
 
-    @property
     def check_alerts(self):
         """Return JSON when motion or ring is detected."""
         url = API_URI + DINGS_ENDPOINT
