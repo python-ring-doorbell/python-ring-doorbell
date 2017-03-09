@@ -32,7 +32,7 @@ class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
     def __init__(self, username, password, debug=False, persist_token=False,
-                 push_token_notify_url=""):
+                 push_token_notify_url="http://localhost/"):
         """Initialize the Ring object."""
         self.features = None
         self.is_connected = None
