@@ -13,7 +13,7 @@ import logging
 import requests
 import pytz
 
-from ring_doorbell.utils import _locator
+from ring_doorbell.utils import _locator, _save_cache, _read_cache
 from ring_doorbell.const import (
     API_VERSION, API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
     DEVICES_ENDPOINT, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
@@ -22,7 +22,8 @@ from ring_doorbell.const import (
     NEW_SESSION_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
     MSG_GENERIC_FAIL, MSG_VOL_OUTBOUND,
     NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
-    POST_DATA, RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
+    POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA,
+    RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,13 +31,16 @@ _LOGGER = logging.getLogger(__name__)
 class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
-    def __init__(self, username, password, debug=False):
+    def __init__(self, username, password, debug=False, persist_token=False,
+                 push_token_notify_url="http://localhost/"):
         """Initialize the Ring object."""
         self.features = None
         self.is_connected = None
         self._id = None
         self.token = None
         self.params = None
+        self._persist_token = persist_token
+        self._push_token_notify_url = push_token_notify_url
 
         self.debug = debug
         self.username = username
@@ -67,6 +71,14 @@ class Ring(object):
                 self.token = data.get('authentication_token')
                 self.params = {'api_version': API_VERSION,
                                'auth_token': self.token}
+
+                if self._persist_token and self._push_token_notify_url:
+                    url = API_URI + PERSIST_TOKEN_ENDPOINT
+                    PERSIST_TOKEN_DATA['auth_token'] = self.token
+                    PERSIST_TOKEN_DATA['device[push_notification_token]'] = \
+                        self._push_token_notify_url
+                    req = self.session.put((url), headers=HEADERS,
+                                           data=PERSIST_TOKEN_DATA)
                 return True
 
         self.is_connected = False
@@ -127,9 +139,11 @@ class Ring(object):
                 else:
                     if method == 'GET':
                         response = req.json()
-                return response
-        _LOGGER.error("%s", MSG_GENERIC_FAIL)
-        return None
+                break
+
+        if self.debug:
+            _LOGGER.debug("%s", MSG_GENERIC_FAIL)
+        return response
 
     @property
     def has_subscription(self):
@@ -187,6 +201,11 @@ class RingGeneric(object):
         self.family = None
         self.name = None
 
+        # alerts notifications
+        self._alert_cache = None
+        self.alert = None
+        self.alert_expires_at = None
+
     def __repr__(self):
         """Return __repr__."""
         return "<{0}: {1}>".format(self.__class__.__name__, self.name)
@@ -194,6 +213,28 @@ class RingGeneric(object):
     def update(self):
         """Refresh attributes."""
         self._get_attrs()
+        self._update_alert()
+
+    def _update_alert(self):
+        """Verify if alert received is still valid."""
+        if self.alert and self.alert_expires_at:
+            if datetime.now() >= self.alert_expires_at:
+                self.alert = None
+                self.alert_expires_at = None
+        elif self._alert_cache:
+            aux = _read_cache(self._alert_cache)
+            if ((isinstance(aux, dict)) and
+                    ('now' in aux) and
+                    ('expires_in' in aux)):
+                aux_expires_at = datetime.fromtimestamp(
+                    aux.get('now') + aux.get('expires_in'))
+
+                # verify if pickle object is still valid
+                if datetime.now() <= aux_expires_at:
+                    self.alert = aux
+                    self.alert_expires_at = aux_expires_at
+                else:
+                    _save_cache(None, self._alert_cache)
 
     def _get_attrs(self):
         """Return chime attributes."""
@@ -286,22 +327,6 @@ class RingChime(RingGeneric):
         return True
 
     @property
-    def subscribed(self):
-        """Return if chime is online."""
-        result = self._attrs.get('firmware_version')
-        if result is None:
-            return False
-        return True
-
-    @property
-    def subscribed_motions(self):
-        """Return if chime is subscribed_motions."""
-        result = self._attrs.get('subscribed_motions')
-        if result is None:
-            return False
-        return True
-
-    @property
     def linked_tree(self):
         """Return doorbell data linked to chime."""
         url = API_URI + LINKED_CHIMES_ENDPOINT.format(self.account_id)
@@ -336,11 +361,31 @@ class RingDoorBell(RingGeneric):
             value = 100
         return value
 
-    @property
-    def check_activity(self):
+    def check_alerts(self, cache=None):
         """Return JSON when motion or ring is detected."""
+        # save alerts attributes to an external pickle file
+        # when multiple resources are checking for alerts
+        if cache:
+            self._alert_cache = cache
+
         url = API_URI + DINGS_ENDPOINT
-        return self._ring.query(url)
+        self.update()
+
+        try:
+            resp = self._ring.query(url)[0]
+        except IndexError:
+            return None
+
+        if resp:
+            timestamp = resp.get('now') + resp.get('expires_in')
+            self.alert = resp
+            self.alert_expires_at = datetime.fromtimestamp(timestamp)
+
+            # save to a pickle data
+            if self._alert_cache:
+                _save_cache(self.alert, self._alert_cache)
+            return True
+        return None
 
     @property
     def existing_doorbell_type(self):
@@ -508,6 +553,22 @@ class RingDoorBell(RingGeneric):
         if req.status_code == 200:
             return req.url
         return False
+
+    @property
+    def subscribed(self):
+        """Return if is online."""
+        result = self._attrs.get('subscribed')
+        if result is None:
+            return False
+        return True
+
+    @property
+    def subscribed_motion(self):
+        """Return if is subscribed_motion."""
+        result = self._attrs.get('subscribed_motions')
+        if result is None:
+            return False
+        return True
 
     @property
     def volume(self):
