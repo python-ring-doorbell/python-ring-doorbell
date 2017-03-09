@@ -13,7 +13,7 @@ import logging
 import requests
 import pytz
 
-from ring_doorbell.utils import _locator
+from ring_doorbell.utils import _locator, _save_cache, _read_cache
 from ring_doorbell.const import (
     API_VERSION, API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
     DEVICES_ENDPOINT, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
@@ -196,6 +196,7 @@ class RingGeneric(object):
 
     def __init__(self):
         """Initialize Ring Generic."""
+        self._alert_cache = None
         self._attrs = None
         self.debug = None
         self.family = None
@@ -216,13 +217,24 @@ class RingGeneric(object):
 
     def _update_alert(self):
         """Verify if alert received is still valid."""
-        try:
-            if self.alert:
-                if datetime.now() >= self.alert_expires_at:
-                    self.alert = None
-                    self.alert_expires_at = None
-        except AttributeError:
-            pass
+        if self.alert and self.alert_expires_at:
+            if datetime.now() >= self.alert_expires_at:
+                self.alert = None
+                self.alert_expires_at = None
+        elif self._alert_cache:
+            aux = _read_cache(self._alert_cache)
+            if ((isinstance(aux, dict)) and
+                    ('now' in aux) and
+                    ('expires_in' in aux)):
+                aux_expires_at = datetime.fromtimestamp(
+                    aux.get('now') + aux.get('expires_in'))
+
+                # verify if pickle object is still valid
+                if datetime.now() <= aux_expires_at:
+                    self.alert = aux
+                    self.alert_expires_at = aux_expires_at
+                else:
+                    _save_cache(None, self._alert_cache)
 
     def _get_attrs(self):
         """Return chime attributes."""
@@ -349,20 +361,31 @@ class RingDoorBell(RingGeneric):
             value = 100
         return value
 
-    def check_alerts(self):
+    def check_alerts(self, cache=None):
         """Return JSON when motion or ring is detected."""
+        # save alerts attributes to an external pickle file
+        # when multiple resources are checking for alerts
+        if cache:
+            self._alert_cache = cache
+
         url = API_URI + DINGS_ENDPOINT
         self.update()
+
         try:
             resp = self._ring.query(url)[0]
-            if not resp:
-                return None
+        except IndexError:
+            return None
+
+        if resp:
             timestamp = resp.get('now') + resp.get('expires_in')
             self.alert = resp
             self.alert_expires_at = datetime.fromtimestamp(timestamp)
+
+            # save to a pickle data
+            if self._alert_cache:
+                _save_cache(self.alert, self._alert_cache)
             return True
-        except IndexError:
-            return None
+        return None
 
     @property
     def existing_doorbell_type(self):
