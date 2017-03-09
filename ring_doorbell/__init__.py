@@ -357,13 +357,12 @@ class RingDoorBell(RingGeneric):
             resp = self._ring.query(url)[0]
             if not resp:
                 return None
+            timestamp = resp.get('now') + resp.get('expires_in')
+            self.alert = resp
+            self.alert_expires_at = datetime.fromtimestamp(timestamp)
+            return True
         except IndexError:
             return None
-
-        timestamp = resp.get('now') + resp.get('expires_in')
-        self.alert = resp
-        self.alert_expires_at = datetime.fromtimestamp(timestamp)
-        return True
 
     @property
     def existing_doorbell_type(self):
