@@ -196,13 +196,13 @@ class RingGeneric(object):
 
     def __init__(self):
         """Initialize Ring Generic."""
-        self._alert_cache = None
         self._attrs = None
         self.debug = None
         self.family = None
         self.name = None
 
         # alerts notifications
+        self._alert_cache = None
         self.alert = None
         self.alert_expires_at = None
 
