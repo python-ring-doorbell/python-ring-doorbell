@@ -339,7 +339,6 @@ class RingDoorBell(RingGeneric):
         self.debug = self._ring.debug
         self.family = 'doorbots'
         self.name = name
-
         self.update()
 
     @property
