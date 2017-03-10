@@ -485,7 +485,7 @@ class RingDoorBell(RingGeneric):
                 return True
         return None
 
-    def history(self, limit=30, timezone=None, kind=None) :
+    def history(self, limit=30, timezone=None, kind=None):
         """Return history with datetime objects."""
         # allow modify the items to return
         params = {'limit': str(limit)}
