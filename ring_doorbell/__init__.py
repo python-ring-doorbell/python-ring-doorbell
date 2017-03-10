@@ -485,7 +485,7 @@ class RingDoorBell(RingGeneric):
                 return True
         return None
 
-    def history(self, limit=30, timezone=None):
+    def history(self, limit=30, timezone=None, kind=None):
         """Return history with datetime objects."""
         # allow modify the items to return
         params = {'limit': str(limit)}
@@ -508,6 +508,10 @@ class RingDoorBell(RingGeneric):
                 entry['created_at'] = tz_dt
             else:
                 entry['created_at'] = utc_dt
+
+        if kind:
+            return list(filter(lambda array: array['kind'] == kind, response))
+
         return response
 
     @property
