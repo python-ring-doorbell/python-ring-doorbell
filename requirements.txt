@@ -1,5 +1,2 @@
-flake8
-pylint
-requests
-tox
 pytz
+requests

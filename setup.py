@@ -14,6 +14,7 @@ setup(
     license='LGPLv3+',
     include_package_data=True,
     install_requires=['requests', 'pytz'],
+    test_suite='tests',
     keywords=[
         'ring',
         'door bell',
