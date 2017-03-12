@@ -11,5 +11,7 @@ matrix:
       env: TOXENV=py36
     - python: "3.4.2"
       env: TOXENV=lint
+install: pip install -U tox coveralls
 script: tox
 cache: pip
+after_success: coveralls

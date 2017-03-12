@@ -1,7 +1,2 @@
-flake8
-mock
-pylint
-pytest
 pytz
 requests
-tox
