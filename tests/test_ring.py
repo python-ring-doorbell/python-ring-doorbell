@@ -176,7 +176,6 @@ class TestRing(unittest.TestCase):
 class TestRingChime(unittest.TestCase):
     """Test the Ring Chime object."""
 
-
     @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
     @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
     def test_chime_attributes(self, get_mock, post_mock):
@@ -192,7 +191,6 @@ class TestRingChime(unittest.TestCase):
 class TestRingDoorBell(unittest.TestCase):
     """Test the Ring DoorBell object."""
 
-
     @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
     @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
     def test_doorbell_attributes(self, get_mock, post_mock):
@@ -203,6 +201,3 @@ class TestRingDoorBell(unittest.TestCase):
         dev = myring.doorbells[0]
 
         self.assertEqual('lpd_v1', dev.kind)
-
-if __name__ == '__main__':
-    unittest.main()
