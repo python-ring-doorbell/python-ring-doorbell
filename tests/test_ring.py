@@ -185,7 +185,13 @@ class TestRingChime(unittest.TestCase):
         myring = Ring(USERNAME, PASSWORD, persist_token=True)
         dev = myring.chimes[0]
 
+        self.assertEqual('123 Main St', dev.address)
+        self.assertNotEqual(99999, dev.account_id)
+        self.assertEqual('abcdef123', dev.id)
         self.assertEqual('chime', dev.kind)
+        self.assertIsNotNone(dev.latitude)
+        self.assertEqual('America/New_York', dev.timezone)
+        self.assertEqual(2, dev.volume)
 
 
 class TestRingDoorBell(unittest.TestCase):
@@ -200,4 +206,14 @@ class TestRingDoorBell(unittest.TestCase):
         myring = Ring(USERNAME, PASSWORD, persist_token=True)
         dev = myring.doorbells[0]
 
+        self.assertEqual(987652, dev.account_id)
+        self.assertEqual('123 Main St', dev.address)
         self.assertEqual('lpd_v1', dev.kind)
+        self.assertEqual(-70.12345, dev.longitude)
+        self.assertEqual('America/New_York', dev.timezone)
+        self.assertEqual(1, dev.volume)
+
+        self.assertIsInstance(dev.history(limit=1, kind='motion'), list)
+        self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
+
+        self.assertEqual('Mechanical', dev.existing_doorbell_type)
