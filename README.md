@@ -1,7 +1,3 @@
-.. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg?branch=dev
-:target: https://coveralls.io/github/tchellomello/python-ring-doorbell?branch=dev
-
-
 This project is a Python 2.7/3.x wrapper to access the Ring.com (http://www.ring.com) doorbell.
 
 ## Install
