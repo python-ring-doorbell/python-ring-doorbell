@@ -1,2 +1,5 @@
-[run]
-source = ring_doorbell
+[report]
+omit =
+    */python?.?/*
+    */site-packages/nose/*
+    *__init__*
