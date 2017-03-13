@@ -15,6 +15,8 @@ Python Ring Door Bell's documentation
 Python Ring Door Bell is a library written in Python 2.7/3x
 that exposes the Ring.com devices as Python objects.
 
+*Currently Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
+
 
 Initializing your Ring object
 -----------------------------
@@ -102,8 +104,6 @@ Download the last video triggerd by ding
         doorbell.history(limit=100, kind='ding')[0]['id'],
                          filename='/home/user/last_ding.mp4',
                          override=True)
-
-*Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
 
 
 Credits && Thanks
