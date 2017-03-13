@@ -123,6 +123,13 @@ Downloading the last video triggerd by ding
                          override=True)
 
 
+Displaying the last video capture URL
+-------------------------------------------
+.. code-block:: python
+
+    print(doorbell.recording_url(doorbell.last_recording_id)
+    'https://ring-transcoded-videos.s3.amazonaws.com/99999999.mp4?X-Amz-Expires=3600&X-Amz-Date=20170313T232537Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=TOKEN_SECRET/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=secret'
+
 Credits && Thanks
 -----------------
 
