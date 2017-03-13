@@ -1,6 +1,6 @@
-=================================================
-Python Ring Door Bell's documentation
-=================================================
+=====================
+Python Ring Door Bell
+=====================
 
 .. image:: https://badge.fury.io/py/ring-doorbell.svg
     :target: https://badge.fury.io/py/ring-doorbell
@@ -16,6 +16,20 @@ Python Ring Door Bell is a library written in Python 2.7/3x
 that exposes the Ring.com devices as Python objects.
 
 *Currently Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
+
+
+Installation
+------------
+
+.. code-block:: bash
+
+    # Installing from PyPi
+    $ pip install ring_doorbell  #python 2.7
+    $ pip3 install ring_doorbell #python 3.x
+
+    # Installing latest development
+    $ pip3 install \
+        git+https://github.com/tchellomello/python-ring-doorbell@dev
 
 
 Initializing your Ring object
