@@ -32,9 +32,9 @@ sys.path.insert(0, os.path.abspath('../../ring_doorbell/'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages']
+              'sphinx.ext.doctest',
+              'sphinx.ext.viewcode',
+              'sphinx.ext.githubpages']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -130,7 +130,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'PythonRingDoorBell.tex', 'Python Ring Door Bell Documentation',
+    (master_doc, 'PythonRingDoorBell.tex',
+     'Python Ring Door Bell Documentation',
      'Marcelo Moreira de Mello', 'manual'),
 ]
 
@@ -155,6 +156,3 @@ texinfo_documents = [
      author, 'PythonRingDoorBell', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-
