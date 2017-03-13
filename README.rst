@@ -103,7 +103,7 @@ Download the last video triggerd by ding
                          filename='/home/user/last_ding.mp4',
                          override=True)
 
-.. note:: Ring.com does not provide an official API. The results of this project are merely from reverse engineering.
+**Ring.com does not provide an official API. The results of this project are merely from reverse engineering.**
 
 
 Credits && Thanks
