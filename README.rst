@@ -34,8 +34,6 @@ Initializing your Ring object
     myring.has_subscription
     True
 
-    Chimes
-    ------
 
 Listing devices linked to your account
 ------------------------------------------
