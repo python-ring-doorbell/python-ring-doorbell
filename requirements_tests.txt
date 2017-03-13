@@ -1,0 +1,6 @@
+coveralls
+flake8
+mock
+pylint
+pytest
+tox
