@@ -2,6 +2,9 @@
 Python Ring Door Bell's documentation
 =================================================
 
+.. image:: https://badge.fury.io/py/ring-doorbell.svg
+    :target: https://badge.fury.io/py/ring-doorbell
+
 .. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg
     :target: https://coveralls.io/github/tchellomello/python-ring-doorbell
 
