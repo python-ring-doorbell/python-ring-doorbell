@@ -14,17 +14,17 @@ import requests
 import pytz
 
 from ring_doorbell.utils import (
-    _locator, _clean_cache, _save_cache, _read_cache)
+    _create_list_by_key, _clean_cache, _locator, _save_cache, _read_cache)
 from ring_doorbell.const import (
     API_VERSION, API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
     DEVICES_ENDPOINT, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
     HEADERS, LINKED_CHIMES_ENDPOINT, LIVE_STREAMING_ENDPOINT,
     NEW_SESSION_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
-    MSG_GENERIC_FAIL, MSG_VOL_OUTBOUND,
+    MSG_GENERIC_FAIL, MSG_NOT_FOUND, MSG_VOL_OUTBOUND,
     NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
     POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA,
-    RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
+    RETRY_TOKEN, RINGTONES_ENDPOINT, TESTSOUND_CHIME_ENDPOINT)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -332,6 +332,102 @@ class RingChime(RingGeneric):
         """Return doorbell data linked to chime."""
         url = API_URI + LINKED_CHIMES_ENDPOINT.format(self.account_id)
         return self._ring.query(url)
+
+    @property
+    def ringtone_ding(self):
+        """Return current ringtone for ding events."""
+        audio_id = self._attrs.get('settings').get('ding_audio_id')
+        tones = self.__ringtones_ding_available
+        index = _locator(tones, 'id', audio_id)
+        if index == NOT_FOUND:
+            return None
+        return tones[index].get('description')
+
+    @ringtone_ding.setter
+    def ringtone_ding(self, value):
+        """
+        Set ringtone to a ding event.
+
+        This method takes about 10 seconds to be commited on the backend.
+        So run self.update() manually to refresh the object.
+        """
+        if value not in self.ringtones_ding_available:
+            _LOGGER.error("%s", MSG_NOT_FOUND)
+            return False
+
+        tones = self.__ringtones_ding_available
+        audio = tones[_locator(tones, 'description', value)]
+
+        params = {
+            'chime[description]': self.name,
+            'chime[settings][ding_audio_id]': audio.get('id'),
+            'chime[settings][ding_audio_user_id]': audio.get('user_id')}
+        url = API_URI + CHIMES_ENDPOINT.format(self.account_id)
+        self._ring.query(url, extra_params=params, method='PUT')
+        return True
+
+    @property
+    def ringtone_motion(self):
+        """Return current ringtone for motion events."""
+        audio_id = self._attrs.get('settings').get('motion_audio_id')
+        tones = self.__ringtones_motion_available
+        index = _locator(tones, 'id', audio_id)
+        if index == NOT_FOUND:
+            return None
+        return tones[index].get('description')
+
+    @ringtone_motion.setter
+    def ringtone_motion(self, value):
+        """
+        Set ringtone to a motion event.
+
+        This method takes about 10 seconds to be commited on the backend.
+        So run self.update() manually to refresh the object.
+        """
+        if value not in self.ringtones_motion_available:
+            _LOGGER.error("%s", MSG_NOT_FOUND)
+            return False
+
+        tones = self.__ringtones_motion_available
+        audio = tones[_locator(tones, 'description', value)]
+
+        params = {
+            'chime[description]': self.name,
+            'chime[settings][motion_audio_id]': audio.get('id'),
+            'chime[settings][motion_audio_user_id]': audio.get('user_id')}
+        url = API_URI + CHIMES_ENDPOINT.format(self.account_id)
+        self._ring.query(url, extra_params=params, method='PUT')
+        return True
+
+    def __ringtones_available_by_kind(self, kind):
+        """Return a list of available ringtones to a chime by kind."""
+        url = API_URI + RINGTONES_ENDPOINT
+        response = self._ring.query(url).get('audios')
+        return list(filter(lambda array:
+                           (array.get('kind') == kind and
+                            array.get('available') is True), response))
+
+    @property
+    def __ringtones_ding_available(self):
+        """Return a list of available ding ringtones to a chime."""
+        return self.__ringtones_available_by_kind('ding')
+
+    @property
+    def ringtones_ding_available(self):
+        """Return a list of available ding ringtones to a chime."""
+        return _create_list_by_key(self.__ringtones_ding_available,
+                                   'description')
+
+    @property
+    def __ringtones_motion_available(self):
+        """Return a list of available motion ringtones to a chime."""
+        return self.__ringtones_available_by_kind('motion')
+
+    @property
+    def ringtones_motion_available(self):
+        """Return a list of available motion ringtones to a chime."""
+        return _create_list_by_key(self.__ringtones_motion_available,
+                                   'description')
 
     @property
     def test_sound(self):

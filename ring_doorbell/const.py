@@ -15,19 +15,20 @@ NOT_FOUND = -1
 
 # API endpoints
 API_VERSION = '9'
-API_URI = 'https://api.ring.com'
-CHIMES_ENDPOINT = '/clients_api/chimes/{0}'
-DEVICES_ENDPOINT = '/clients_api/ring_devices'
-DINGS_ENDPOINT = '/clients_api/dings/active'
-DOORBELLS_ENDPOINT = '/clients_api/doorbots/{0}'
-PERSIST_TOKEN_ENDPOINT = '/clients_api/device'
+API_URI = 'https://api.ring.com/clients_api'
+CHIMES_ENDPOINT = '/chimes/{0}'
+DEVICES_ENDPOINT = '/ring_devices'
+DINGS_ENDPOINT = '/dings/active'
+DOORBELLS_ENDPOINT = '/doorbots/{0}'
+NEW_SESSION_ENDPOINT = '/session'
+PERSIST_TOKEN_ENDPOINT = '/device'
+RINGTONES_ENDPOINT = '/ringtones'
+URL_RECORDING = '/dings/{0}/recording'
 
 LINKED_CHIMES_ENDPOINT = CHIMES_ENDPOINT + '/linked_doorbots'
 LIVE_STREAMING_ENDPOINT = DOORBELLS_ENDPOINT + '/vod'
-NEW_SESSION_ENDPOINT = '/clients_api/session'
 TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + '/play_sound'
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + '/history'
-URL_RECORDING = '/clients_api/dings/{0}/recording'
 
 # default values
 CHIME_VOL_MIN = 0
@@ -42,9 +43,10 @@ DOORBELL_EXISTING_TYPE = {
     2: 'Not Present'}
 
 # error strings
-MSG_BOOLEAN_REQUIRED = "Boolean value is required."
-MSG_EXISTING_TYPE = "Integer value where {0}.".format(DOORBELL_EXISTING_TYPE)
+MSG_BOOLEAN_REQUIRED = 'Boolean value is required.'
+MSG_EXISTING_TYPE = 'Integer value where {0}.'.format(DOORBELL_EXISTING_TYPE)
 MSG_GENERIC_FAIL = 'Sorry.. Something went wrong...'
+MSG_NOT_FOUND = 'Not found.'
 FILE_EXISTS = 'The file {0} already exists.'
 MSG_VOL_OUTBOUND = 'Must be within the {0}-{1}.'
 

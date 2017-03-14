@@ -10,6 +10,16 @@ except ImportError:
     import pickle
 
 
+def _create_list_by_key(lst, key, sort=True):
+    """Return a filtered list by parsing a dictionary by key."""
+    aux = []
+    for member in lst:
+        aux.append(member.get(key))
+    if sort:
+        aux.sort()
+    return aux
+
+
 def _locator(lst, key, value):
     """Return the position of a match item in list."""
     try:
