@@ -13,7 +13,8 @@ import logging
 import requests
 import pytz
 
-from ring_doorbell.utils import _locator, _save_cache, _read_cache
+from ring_doorbell.utils import (
+    _locator, _clean_cache, _save_cache, _read_cache)
 from ring_doorbell.const import (
     API_VERSION, API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
     DEVICES_ENDPOINT, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
@@ -366,6 +367,7 @@ class RingDoorBell(RingGeneric):
         # save alerts attributes to an external pickle file
         # when multiple resources are checking for alerts
         if cache:
+            _clean_cache(cache)
             self._alert_cache = cache
 
         url = API_URI + DINGS_ENDPOINT
