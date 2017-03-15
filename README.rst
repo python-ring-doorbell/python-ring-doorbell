@@ -123,7 +123,7 @@ Showing door bell events
         events = doorbell.history(kind='motion')
 
 
-Downloading the last video triggerd by ding
+Downloading the last video triggered by ding
 -------------------------------------------
 .. code-block:: python
 
