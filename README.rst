@@ -89,9 +89,7 @@ Playing with the attributes
         dev.volume = 5
         print('Volume:     %s' % dev.volume)
 
-        # play dev test sound
         if dev.family == 'chimes':
-
             # play chime
             dev.test_sound
 
