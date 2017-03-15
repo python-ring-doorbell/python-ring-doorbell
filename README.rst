@@ -89,9 +89,22 @@ Playing with the attributes
         dev.volume = 5
         print('Volume:     %s' % dev.volume)
 
-        # play dev test shound
-        if dev.family == 'chimes'
+        # play dev test sound
+        if dev.family == 'chimes':
+
+            # play chime
             dev.test_sound
+
+            print("Ringtone ding: %s" % dev.ringtone_ding)
+            print("Ringtone motion: %s" % dev.ringtone_motion)
+
+            # printing available ringtones for motion detection
+            for chime in dev.ringtones_motion_available:
+                print(chime)
+
+            # change ringtone for motion detection
+            dev.ringtone_motion = 'Ding-Dong'
+
 
 
 Showing door bell events
