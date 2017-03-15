@@ -89,10 +89,10 @@ def mocked_requests_get(*args, **kwargs):
                         "id": 999999,
                         "last_name": "Bar"},
                     "settings": {
-                        "ding_audio_id": None,
-                        "ding_audio_user_id": None,
-                        "motion_audio_id": None,
-                        "motion_audio_user_id": None,
+                        "ding_audio_id": "00053e86-c08f",
+                        "ding_audio_user_id": "ring",
+                        "motion_audio_id": "00053e86-f43b",
+                        "motion_audio_user_id": "ring",
                         "volume": 2},
                     "time_zone": "America/New_York"}],
             "doorbots": [
@@ -185,6 +185,30 @@ def mocked_requests_get(*args, **kwargs):
             "state": "ringing",
             "video_jitter_buffer_ms": 0
         }], 200)
+    elif str(args[0]).startswith("https://api.ring.com/clients_api/ringtones"):
+        return MockResponse({
+            "audios": [
+                {"available": True,
+                 "checksum": 27149358,
+                 "description": "Ring Default",
+                 "id": "00053e86-c08f",
+                 "kind": "ding",
+                 "url":
+                 "https://ringtones.ring.com/ring/ding/00053e86-c08f.wav",
+                 "user_id": "ring"},
+                {"available": True,
+                 "checksum": 25273352,
+                 "description": "Default Motion",
+                 "id": "00053e86-f43b",
+                 "kind": "motion",
+                 "url":
+                 "https://ringtones.ring.com/ring/motion/00053e86-f43b.wav",
+                 "user_id": "ring"}],
+            "default_ding_id": "00053e86-c08f",
+            "default_ding_user_id": "ring",
+            "default_motion_id": "00053e86-f43b",
+            "default_motion_user_id": "ring"
+        }, 200)
 
 
 class TestRing(unittest.TestCase):
@@ -194,16 +218,17 @@ class TestRing(unittest.TestCase):
     @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
     def test_basic_attributes(self, get_mock, post_mock):
         """Test the Ring class and methods."""
-        from ring_doorbell import Ring
 
+        from ring_doorbell import Ring
         myring = Ring(USERNAME, PASSWORD, persist_token=True)
+
         self.assertTrue(myring.is_connected)
         self.assertIsInstance(myring.features, dict)
         self.assertFalse(myring.debug)
         self.assertEqual(1, len(myring.chimes))
         self.assertNotEqual(2, len(myring.doorbells))
         self.assertTrue(myring._persist_token)
-        self.assertEquals('http://localhost/', myring._push_token_notify_url)
+        self.assertEqual('http://localhost/', myring._push_token_notify_url)
 
 
 class TestRingChime(unittest.TestCase):
@@ -225,6 +250,12 @@ class TestRingChime(unittest.TestCase):
         self.assertIsNotNone(dev.latitude)
         self.assertEqual('America/New_York', dev.timezone)
         self.assertEqual(2, dev.volume)
+
+        # test ringtones
+        self.assertEqual("Ring Default", dev.ringtone_ding)
+        self.assertEqual(1, len(dev.ringtones_ding_available))
+        self.assertEqual("Default Motion", dev.ringtone_motion)
+        self.assertTrue(len(dev.ringtones_motion_available) >= 1)
 
 
 class TestRingDoorBell(unittest.TestCase):
@@ -249,7 +280,11 @@ class TestRingDoorBell(unittest.TestCase):
         self.assertIsInstance(dev.history(limit=1, kind='motion'), list)
         self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
 
+        # test existing doorbell
         self.assertEqual('Mechanical', dev.existing_doorbell_type)
+
+        # test ringtones
+        self.assertFalse(hasattr(dev, 'ringtone_ding'))
 
 
 class TestRingDoorBellAlerts(unittest.TestCase):
