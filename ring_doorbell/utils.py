@@ -19,6 +19,16 @@ def _locator(lst, key, value):
         return NOT_FOUND
 
 
+def _clean_cache(filename):
+    """Remove filename if pickle version mismatch."""
+    try:
+        if os.path.isfile(filename):
+            _read_cache(filename)
+    except ValueError:
+        os.remove(filename)
+    return True
+
+
 def _save_cache(data, filename):
     """Dump data into a pickle file."""
     try:
@@ -36,4 +46,3 @@ def _read_cache(filename):
             return pickle.load(open(filename, 'rb'))
     except:
         raise
-    return None

@@ -1,4 +1,8 @@
 """The tests for the Ring platform."""
+from datetime import datetime
+
+import os
+import time
 import unittest
 try:
     import mock
@@ -7,6 +11,7 @@ except ImportError:
 
 USERNAME = 'foo'
 PASSWORD = 'bar'
+ALERT_CACHE_DB = 'tests/cache.db'
 
 
 def mocked_requests_get(*args, **kwargs):
@@ -152,6 +157,34 @@ def mocked_requests_get(*args, **kwargs):
             "recording": {"status": "ready"},
             "snapshot_url": ""
         }], 200)
+    elif str(args[0])\
+            .startswith("https://api.ring.com/clients_api/dings/active"):
+        return MockResponse([{
+            "audio_jitter_buffer_ms": 0,
+            "device_kind": "lpd_v1",
+            "doorbot_description": "Front Door",
+            "doorbot_id": 12345,
+            "expires_in": 180,
+            "id": 123456789,
+            "id_str": "123456789",
+            "kind": "ding",
+            "motion": False,
+            "now": time.time(),
+            "optimization_level": 1,
+            "protocol": "sip",
+            "sip_ding_id": "123456789",
+            "sip_endpoints": None,
+            "sip_from": "sip:abc123@ring.com",
+            "sip_server_ip": "192.168.0.1",
+            "sip_server_port": "15063",
+            "sip_server_tls": "false",
+            "sip_session_id": "28qdvjh-2043",
+            "sip_to": "sip:28qdvjh-2043@192.168.0.1:15063;transport=tcp",
+            "sip_token": "adecc24a428ed704b2d80adb621b5775755915529639e",
+            "snapshot_url": "",
+            "state": "ringing",
+            "video_jitter_buffer_ms": 0
+        }], 200)
 
 
 class TestRing(unittest.TestCase):
@@ -217,3 +250,27 @@ class TestRingDoorBell(unittest.TestCase):
         self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
 
         self.assertEqual('Mechanical', dev.existing_doorbell_type)
+
+
+class TestRingDoorBellAlerts(unittest.TestCase):
+    """Test the Ring DoorBell alerts."""
+
+    @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
+    @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
+    def test_doorbell_attributes(self, get_mock, post_mock):
+        """Test the Ring DoorBell class and methods."""
+        from ring_doorbell import Ring
+
+        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        dev = myring.doorbells[0]
+        self.assertEqual('Front Door', dev.name)
+
+        # call alerts
+        dev.check_alerts(cache=ALERT_CACHE_DB)
+
+        self.assertIsInstance(dev.alert, dict)
+        self.assertIsInstance(dev.alert_expires_at, datetime)
+        self.assertTrue(datetime.now() <= dev.alert_expires_at)
+        self.assertIsNotNone(dev._alert_cache)
+
+        os.remove(ALERT_CACHE_DB)
