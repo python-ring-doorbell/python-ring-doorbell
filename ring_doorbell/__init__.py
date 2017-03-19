@@ -179,9 +179,8 @@ class Ring(object):
 
                 # get shared doorbells, however device is read-only
                 req = self.query(url).get('authorized_doorbots')
-                if req:
-                    for member in list((obj['description'] for obj in req)):
-                        lst.append(RingDoorBell(self, member, shared=True))
+                for member in list((obj['description'] for obj in req)):
+                    lst.append(RingDoorBell(self, member, shared=True))
 
         except AttributeError:
             pass
