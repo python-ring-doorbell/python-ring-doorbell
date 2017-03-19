@@ -36,6 +36,7 @@ class Ring(object):
                  push_token_notify_url="http://localhost/"):
         """Initialize the Ring object."""
         self.features = None
+        self.shared = False
         self.is_connected = None
         self._id = None
         self.token = None
@@ -177,6 +178,13 @@ class Ring(object):
                 for member in list((obj['description'] for obj in req)):
                     lst.append(RingDoorBell(self, member))
 
+                # get shared doorbells, however device is read-only
+                req = self.query(url).get('authorized_doorbots')
+                if req:
+                    self.shared = True
+                    for member in list((obj['description'] for obj in req)):
+                        lst.append(RingDoorBell(self, member))
+
         except AttributeError:
             pass
         return lst
@@ -242,6 +250,10 @@ class RingGeneric(object):
         url = API_URI + DEVICES_ENDPOINT
         try:
             lst = self._ring.query(url).get(self.family)
+
+            # check if has any shared doobell on this account
+            if not bool(lst) and self._ring.shared:
+                lst = self._ring.query(url).get('authorized_doorbots')
             index = _locator(lst, 'description', self.name)
             if index == NOT_FOUND:
                 return None
