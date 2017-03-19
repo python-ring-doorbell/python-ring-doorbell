@@ -245,13 +245,13 @@ class TestRing(unittest.TestCase):
         """Test the Ring class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        myring = Ring(USERNAME, PASSWORD)
         self.assertTrue(myring.is_connected)
         self.assertIsInstance(myring.features, dict)
         self.assertFalse(myring.debug)
         self.assertEqual(1, len(myring.chimes))
         self.assertEqual(2, len(myring.doorbells))
-        self.assertTrue(myring._persist_token)
+        self.assertFalse(myring._persist_token)
         self.assertEquals('http://localhost/', myring._push_token_notify_url)
 
 
@@ -264,7 +264,7 @@ class TestRingChime(unittest.TestCase):
         """Test the Ring Chime class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        myring = Ring(USERNAME, PASSWORD)
         dev = myring.chimes[0]
 
         self.assertEqual('123 Main St', dev.address)
@@ -301,6 +301,7 @@ class TestRingDoorBell(unittest.TestCase):
                 self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
 
                 self.assertEqual('Mechanical', dev.existing_doorbell_type)
+                self.assertTrue(myring._persist_token)
 
     @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
     @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
