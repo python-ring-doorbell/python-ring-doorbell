@@ -36,7 +36,6 @@ class Ring(object):
                  push_token_notify_url="http://localhost/"):
         """Initialize the Ring object."""
         self.features = None
-        self.shared = False
         self.is_connected = None
         self._id = None
         self.token = None
@@ -181,9 +180,8 @@ class Ring(object):
                 # get shared doorbells, however device is read-only
                 req = self.query(url).get('authorized_doorbots')
                 if req:
-                    self.shared = True
                     for member in list((obj['description'] for obj in req)):
-                        lst.append(RingDoorBell(self, member))
+                        lst.append(RingDoorBell(self, member, shared=True))
 
         except AttributeError:
             pass
@@ -246,14 +244,13 @@ class RingGeneric(object):
                     _save_cache(None, self._alert_cache)
 
     def _get_attrs(self):
-        """Return chime attributes."""
+        """Return attributes."""
         url = API_URI + DEVICES_ENDPOINT
         try:
-            lst = self._ring.query(url).get(self.family)
-
-            # check if has any shared doobell on this account
-            if not bool(lst) and self._ring.shared:
+            if self.family == 'doorbots' and self.shared:
                 lst = self._ring.query(url).get('authorized_doorbots')
+            else:
+                lst = self._ring.query(url).get(self.family)
             index = _locator(lst, 'description', self.name)
             if index == NOT_FOUND:
                 return None
@@ -356,11 +353,12 @@ class RingChime(RingGeneric):
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
-    def __init__(self, ring, name):
+    def __init__(self, ring, name, shared=False):
         """Initilize Ring doorbell object."""
         super(RingDoorBell, self).__init__()
         self._attrs = None
         self._ring = ring
+        self.shared = shared
         self.debug = self._ring.debug
         self.family = 'doorbots'
         self.name = name
