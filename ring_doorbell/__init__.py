@@ -375,7 +375,7 @@ class RingDoorBell(RingGeneric):
 
         try:
             resp = self._ring.query(url)[0]
-        except IndexError:
+        except (IndexError, TypeError):
             return None
 
         if resp:
@@ -519,7 +519,10 @@ class RingDoorBell(RingGeneric):
     @property
     def last_recording_id(self):
         """Return the last recording ID."""
-        return self.history(limit=1)[0]['id']
+        try:
+            return self.history(limit=1)[0]['id']
+        except (IndexError, TypeError):
+            return None
 
     @property
     def live_streaming_json(self):
@@ -528,7 +531,10 @@ class RingDoorBell(RingGeneric):
         req = self._ring.query((url), method='POST', raw=True)
         if req.status_code == 204:
             url = API_URI + DINGS_ENDPOINT
-            return self._ring.query(url)[0]
+            try:
+                return self._ring.query(url)[0]
+            except (IndexError, TypeError):
+                pass
         return None
 
     def recording_download(self, recording_id, filename=None, override=False):
