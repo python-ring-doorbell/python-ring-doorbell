@@ -13,7 +13,8 @@ import logging
 import requests
 import pytz
 
-from ring_doorbell.utils import _locator, _save_cache, _read_cache
+from ring_doorbell.utils import (
+    _locator, _clean_cache, _save_cache, _read_cache)
 from ring_doorbell.const import (
     API_VERSION, API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
     DEVICES_ENDPOINT, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
@@ -176,6 +177,11 @@ class Ring(object):
                 for member in list((obj['description'] for obj in req)):
                     lst.append(RingDoorBell(self, member))
 
+                # get shared doorbells, however device is read-only
+                req = self.query(url).get('authorized_doorbots')
+                for member in list((obj['description'] for obj in req)):
+                    lst.append(RingDoorBell(self, member, shared=True))
+
         except AttributeError:
             pass
         return lst
@@ -237,10 +243,13 @@ class RingGeneric(object):
                     _save_cache(None, self._alert_cache)
 
     def _get_attrs(self):
-        """Return chime attributes."""
+        """Return attributes."""
         url = API_URI + DEVICES_ENDPOINT
         try:
-            lst = self._ring.query(url).get(self.family)
+            if self.family == 'doorbots' and self.shared:
+                lst = self._ring.query(url).get('authorized_doorbots')
+            else:
+                lst = self._ring.query(url).get(self.family)
             index = _locator(lst, 'description', self.name)
             if index == NOT_FOUND:
                 return None
@@ -343,11 +352,12 @@ class RingChime(RingGeneric):
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
-    def __init__(self, ring, name):
+    def __init__(self, ring, name, shared=False):
         """Initilize Ring doorbell object."""
         super(RingDoorBell, self).__init__()
         self._attrs = None
         self._ring = ring
+        self.shared = shared
         self.debug = self._ring.debug
         self.family = 'doorbots'
         self.name = name
@@ -366,6 +376,7 @@ class RingDoorBell(RingGeneric):
         # save alerts attributes to an external pickle file
         # when multiple resources are checking for alerts
         if cache:
+            _clean_cache(cache)
             self._alert_cache = cache
 
         url = API_URI + DINGS_ENDPOINT
@@ -373,7 +384,7 @@ class RingDoorBell(RingGeneric):
 
         try:
             resp = self._ring.query(url)[0]
-        except IndexError:
+        except (IndexError, TypeError):
             return None
 
         if resp:
@@ -517,7 +528,10 @@ class RingDoorBell(RingGeneric):
     @property
     def last_recording_id(self):
         """Return the last recording ID."""
-        return self.history(limit=1)[0]['id']
+        try:
+            return self.history(limit=1)[0]['id']
+        except (IndexError, TypeError):
+            return None
 
     @property
     def live_streaming_json(self):
@@ -526,7 +540,10 @@ class RingDoorBell(RingGeneric):
         req = self._ring.query((url), method='POST', raw=True)
         if req.status_code == 204:
             url = API_URI + DINGS_ENDPOINT
-            return self._ring.query(url)[0]
+            try:
+                return self._ring.query(url)[0]
+            except (IndexError, TypeError):
+                pass
         return None
 
     def recording_download(self, recording_id, filename=None, override=False):

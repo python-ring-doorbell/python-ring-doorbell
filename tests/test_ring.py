@@ -1,4 +1,8 @@
 """The tests for the Ring platform."""
+from datetime import datetime
+
+import os
+import time
 import unittest
 try:
     import mock
@@ -7,6 +11,7 @@ except ImportError:
 
 USERNAME = 'foo'
 PASSWORD = 'bar'
+ALERT_CACHE_DB = 'tests/cache.db'
 
 
 def mocked_requests_get(*args, **kwargs):
@@ -63,7 +68,56 @@ def mocked_requests_get(*args, **kwargs):
     elif str(args[0])\
             .startswith("https://api.ring.com/clients_api/ring_devices"):
         return MockResponse({
-            "authorized_doorbots": [],
+            "authorized_doorbots": [
+                {
+                    "address": "123 Second St",
+                    "alerts": {"connection": "online"},
+                    "battery_life": 51,
+                    "description": "Back Door",
+                    "device_id": "aacdef124",
+                    "external_connection": False,
+                    "features": {
+                        "advanced_motion_enabled": False,
+                        "motion_message_enabled": False,
+                        "motions_enabled": True,
+                        "people_only_enabled": False,
+                        "shadow_correction_enabled": False,
+                        "show_recordings": True},
+                    "firmware_version": "1.4.26",
+                    "id": 987653,
+                    "kind": "lpd_v1",
+                    "latitude": 12.000000,
+                    "longitude": -70.12345,
+                    "motion_snooze": None,
+                    "owned": True,
+                    "owner": {
+                        "email": "foo@bar.org",
+                        "first_name": "Foo",
+                        "id": 999999,
+                        "last_name": "Bar"},
+                    "settings": {
+                        "chime_settings": {
+                            "duration": 3,
+                            "enable": True,
+                            "type": 1},
+                        "doorbell_volume": 5,
+                        "enable_vod": True,
+                        "live_view_preset_profile": "highest",
+                        "live_view_presets": [
+                            "low",
+                            "middle",
+                            "high",
+                            "highest"],
+                        "motion_announcement": False,
+                        "motion_snooze_preset_profile": "low",
+                        "motion_snooze_presets": [
+                            "none",
+                            "low",
+                            "medium",
+                            "high"]},
+                    "subscribed": True,
+                    "subscribed_motions": True,
+                    "time_zone": "America/New_York"}],
             "chimes": [
                 {
                     "address": "123 Main St",
@@ -152,6 +206,34 @@ def mocked_requests_get(*args, **kwargs):
             "recording": {"status": "ready"},
             "snapshot_url": ""
         }], 200)
+    elif str(args[0])\
+            .startswith("https://api.ring.com/clients_api/dings/active"):
+        return MockResponse([{
+            "audio_jitter_buffer_ms": 0,
+            "device_kind": "lpd_v1",
+            "doorbot_description": "Front Door",
+            "doorbot_id": 12345,
+            "expires_in": 180,
+            "id": 123456789,
+            "id_str": "123456789",
+            "kind": "ding",
+            "motion": False,
+            "now": time.time(),
+            "optimization_level": 1,
+            "protocol": "sip",
+            "sip_ding_id": "123456789",
+            "sip_endpoints": None,
+            "sip_from": "sip:abc123@ring.com",
+            "sip_server_ip": "192.168.0.1",
+            "sip_server_port": "15063",
+            "sip_server_tls": "false",
+            "sip_session_id": "28qdvjh-2043",
+            "sip_to": "sip:28qdvjh-2043@192.168.0.1:15063;transport=tcp",
+            "sip_token": "adecc24a428ed704b2d80adb621b5775755915529639e",
+            "snapshot_url": "",
+            "state": "ringing",
+            "video_jitter_buffer_ms": 0
+        }], 200)
 
 
 class TestRing(unittest.TestCase):
@@ -163,13 +245,13 @@ class TestRing(unittest.TestCase):
         """Test the Ring class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        myring = Ring(USERNAME, PASSWORD)
         self.assertTrue(myring.is_connected)
         self.assertIsInstance(myring.features, dict)
         self.assertFalse(myring.debug)
         self.assertEqual(1, len(myring.chimes))
-        self.assertNotEqual(2, len(myring.doorbells))
-        self.assertTrue(myring._persist_token)
+        self.assertEqual(2, len(myring.doorbells))
+        self.assertFalse(myring._persist_token)
         self.assertEquals('http://localhost/', myring._push_token_notify_url)
 
 
@@ -182,7 +264,7 @@ class TestRingChime(unittest.TestCase):
         """Test the Ring Chime class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        myring = Ring(USERNAME, PASSWORD)
         dev = myring.chimes[0]
 
         self.assertEqual('123 Main St', dev.address)
@@ -204,16 +286,61 @@ class TestRingDoorBell(unittest.TestCase):
         from ring_doorbell import Ring
 
         myring = Ring(USERNAME, PASSWORD, persist_token=True)
-        dev = myring.doorbells[0]
+        for dev in myring.doorbells:
+            if not dev.shared:
+                self.assertEqual('Front Door', dev.name)
+                self.assertEqual(987652, dev.account_id)
+                self.assertEqual('123 Main St', dev.address)
+                self.assertEqual('lpd_v1', dev.kind)
+                self.assertEqual(-70.12345, dev.longitude)
+                self.assertEqual('America/New_York', dev.timezone)
+                self.assertEqual(1, dev.volume)
 
-        self.assertEqual(987652, dev.account_id)
-        self.assertEqual('123 Main St', dev.address)
-        self.assertEqual('lpd_v1', dev.kind)
-        self.assertEqual(-70.12345, dev.longitude)
-        self.assertEqual('America/New_York', dev.timezone)
-        self.assertEqual(1, dev.volume)
+                self.assertIsInstance(dev.history(limit=1, kind='motion'),
+                                      list)
+                self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
 
-        self.assertIsInstance(dev.history(limit=1, kind='motion'), list)
-        self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
+                self.assertEqual('Mechanical', dev.existing_doorbell_type)
+                self.assertTrue(myring._persist_token)
 
-        self.assertEqual('Mechanical', dev.existing_doorbell_type)
+    @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
+    @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
+    def test_shared_doorbell_attributes(self, get_mock, post_mock):
+        """Test the Ring Shared DoorBell class and methods."""
+        from ring_doorbell import Ring
+
+        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        for dev in myring.doorbells:
+            if dev.shared:
+                self.assertEqual(987653, dev.account_id)
+                self.assertEqual(51, dev.battery_life)
+                self.assertEqual('123 Second St', dev.address)
+                self.assertEqual('lpd_v1', dev.kind)
+                self.assertEqual(-70.12345, dev.longitude)
+                self.assertEqual('America/New_York', dev.timezone)
+                self.assertEqual(5, dev.volume)
+                self.assertEqual('Digital', dev.existing_doorbell_type)
+
+
+class TestRingDoorBellAlerts(unittest.TestCase):
+    """Test the Ring DoorBell alerts."""
+
+    @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
+    @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
+    def test_doorbell_alerts(self, get_mock, post_mock):
+        """Test the Ring DoorBell alerts."""
+        from ring_doorbell import Ring
+
+        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        for dev in myring.doorbells:
+            self.assertEqual('America/New_York', dev.timezone)
+
+            # call alerts
+            dev.check_alerts(cache=ALERT_CACHE_DB)
+
+            self.assertIsInstance(dev.alert, dict)
+            self.assertIsInstance(dev.alert_expires_at, datetime)
+            self.assertTrue(datetime.now() <= dev.alert_expires_at)
+            self.assertIsNotNone(dev._alert_cache)
+
+        os.remove(ALERT_CACHE_DB)
