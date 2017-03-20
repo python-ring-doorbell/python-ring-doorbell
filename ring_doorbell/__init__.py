@@ -177,6 +177,11 @@ class Ring(object):
                 for member in list((obj['description'] for obj in req)):
                     lst.append(RingDoorBell(self, member))
 
+                # get shared doorbells, however device is read-only
+                req = self.query(url).get('authorized_doorbots')
+                for member in list((obj['description'] for obj in req)):
+                    lst.append(RingDoorBell(self, member, shared=True))
+
         except AttributeError:
             pass
         return lst
@@ -238,10 +243,13 @@ class RingGeneric(object):
                     _save_cache(None, self._alert_cache)
 
     def _get_attrs(self):
-        """Return chime attributes."""
+        """Return attributes."""
         url = API_URI + DEVICES_ENDPOINT
         try:
-            lst = self._ring.query(url).get(self.family)
+            if self.family == 'doorbots' and self.shared:
+                lst = self._ring.query(url).get('authorized_doorbots')
+            else:
+                lst = self._ring.query(url).get(self.family)
             index = _locator(lst, 'description', self.name)
             if index == NOT_FOUND:
                 return None
@@ -344,11 +352,12 @@ class RingChime(RingGeneric):
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
-    def __init__(self, ring, name):
+    def __init__(self, ring, name, shared=False):
         """Initilize Ring doorbell object."""
         super(RingDoorBell, self).__init__()
         self._attrs = None
         self._ring = ring
+        self.shared = shared
         self.debug = self._ring.debug
         self.family = 'doorbots'
         self.name = name
