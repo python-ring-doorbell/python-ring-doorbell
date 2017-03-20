@@ -1,5 +1,4 @@
 """The tests for the Ring platform."""
-<<<<<<< HEAD
 from datetime import datetime
 
 import os
@@ -207,7 +206,6 @@ def mocked_requests_get(*args, **kwargs):
             "recording": {"status": "ready"},
             "snapshot_url": ""
         }], 200)
-<<<<<<< HEAD
     elif str(args[0])\
             .startswith("https://api.ring.com/clients_api/dings/active"):
         return MockResponse([{
