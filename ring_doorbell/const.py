@@ -1,6 +1,7 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Constants."""
+import os
 from uuid import uuid4 as uuid
 
 HEADERS = {'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
@@ -9,6 +10,14 @@ HEADERS = {'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
 
 # number of attempts to refresh token
 RETRY_TOKEN = 3
+
+# default suffix for session cache file
+CACHE_ATTRS = {'token': None, 'alerts': None}
+
+HOMEDIR = os.getenv("HOME")
+if not HOMEDIR:
+    HOMEDIR = ''
+CACHE_FILE = os.path.join(HOMEDIR, '.ring_doorbell-session.cache')
 
 # code when item was not found
 NOT_FOUND = -1
