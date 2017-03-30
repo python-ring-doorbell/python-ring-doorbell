@@ -14,10 +14,12 @@ RETRY_TOKEN = 3
 # default suffix for session cache file
 CACHE_ATTRS = {'token': None, 'alerts': None}
 
-HOMEDIR = os.getenv("HOME")
-if not HOMEDIR:
-    HOMEDIR = ''
-CACHE_FILE = os.path.join(HOMEDIR, '.ring_doorbell-session.cache')
+try:
+    CACHE_FILE = os.path.join(os.getenv("HOME"),
+                              '.ring_doorbell-session.cache')
+except (AttributeError, TypeError):
+    CACHE_FILE = os.path.join('.', '.ring_doorbell-session.cache')
+
 
 # code when item was not found
 NOT_FOUND = -1
