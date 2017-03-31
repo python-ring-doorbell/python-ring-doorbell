@@ -3,6 +3,7 @@ import os
 import unittest
 from ring_doorbell.utils import (
     _locator, _clean_cache, _exists_cache, _save_cache, _read_cache)
+from ring_doorbell.const import CACHE_ATTRS
 
 CACHE = 'tests/cache.db'
 FAKE = 'tests/fake.db'
@@ -38,5 +39,11 @@ class TestUtils(unittest.TestCase):
     def test_read_cache_eoferror(self):
         """Test _read_cache method."""
         open(CACHE, 'a').close()
+        self.assertIsInstance(_read_cache(CACHE), dict)
+        os.remove(CACHE)
+
+    def test_read_cache_dict(self):
+        """Test _read_cache with expected dict."""
+        self.assertTrue(_save_cache(CACHE_ATTRS, CACHE))
         self.assertIsInstance(_read_cache(CACHE), dict)
         os.remove(CACHE)

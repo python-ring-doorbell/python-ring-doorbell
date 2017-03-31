@@ -12,7 +12,7 @@ HEADERS = {'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
 RETRY_TOKEN = 3
 
 # default suffix for session cache file
-CACHE_ATTRS = {'token': None, 'alerts': None}
+CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None}
 
 try:
     CACHE_FILE = os.path.join(os.getenv("HOME"),

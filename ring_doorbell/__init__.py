@@ -50,6 +50,7 @@ class Ring(object):
         self.session.auth = (self.username, self.password)
 
         self.cache = CACHE_ATTRS
+        self.cache['account'] = self.username
         self.cache_file = cache_file
         self._reuse_session = reuse_session
 
@@ -66,8 +67,11 @@ class Ring(object):
             self.cache = _read_cache(self.cache_file)
 
             # if self.cache['token'] is None, the cache file was corrupted.
-            # In this case, a new auth token is required.
-            if self.cache['token'] is None:
+            # of if self.cache['account'] does not match with self.username
+            # In both cases, a new auth token is required.
+            if (self.cache['token'] is None) or \
+               (self.cache['account'] is None) or \
+               (self.cache['account'] != self.username):
                 self._authenticate()
             else:
                 # we need to set the self.token and self.params
@@ -128,6 +132,7 @@ class Ring(object):
 
                 # update token if reuse_session is True
                 if self._reuse_session:
+                    self.cache['account'] = self.username
                     self.cache['token'] = self.token
 
                 _save_cache(self.cache, self.cache_file)

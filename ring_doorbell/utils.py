@@ -52,7 +52,13 @@ def _read_cache(filename):
     """Read data from a pickle file."""
     try:
         if os.path.isfile(filename):
-            return pickle.load(open(filename, 'rb'))
+            data = pickle.load(open(filename, 'rb'))
+
+            # make sure pickle obj has the expected defined keys
+            # if not reinitialize cache
+            if data.keys() != CACHE_ATTRS.keys():
+                raise EOFError
+            return data
     except EOFError:
         return _clean_cache(filename)
     except:
