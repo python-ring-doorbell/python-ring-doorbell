@@ -2,7 +2,7 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell utils."""
 import os
-from ring_doorbell.const import NOT_FOUND
+from ring_doorbell.const import CACHE_ATTRS, NOT_FOUND
 
 try:
     import cPickle as pickle
@@ -23,10 +23,19 @@ def _clean_cache(filename):
     """Remove filename if pickle version mismatch."""
     try:
         if os.path.isfile(filename):
-            _read_cache(filename)
-    except ValueError:
-        os.remove(filename)
-    return True
+            os.remove(filename)
+    except:
+        raise
+
+    # initialize cache since file was removed
+    initial_cache_data = CACHE_ATTRS
+    _save_cache(initial_cache_data, filename)
+    return initial_cache_data
+
+
+def _exists_cache(filename):
+    """Check if filename exists and if is pickle object."""
+    return bool(os.path.isfile(filename))
 
 
 def _save_cache(data, filename):
@@ -43,6 +52,14 @@ def _read_cache(filename):
     """Read data from a pickle file."""
     try:
         if os.path.isfile(filename):
-            return pickle.load(open(filename, 'rb'))
+            data = pickle.load(open(filename, 'rb'))
+
+            # make sure pickle obj has the expected defined keys
+            # if not reinitialize cache
+            if data.keys() != CACHE_ATTRS.keys():
+                raise EOFError
+            return data
+    except EOFError:
+        return _clean_cache(filename)
     except:
         raise

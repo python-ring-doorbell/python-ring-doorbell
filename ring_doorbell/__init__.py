@@ -14,9 +14,10 @@ import requests
 import pytz
 
 from ring_doorbell.utils import (
-    _locator, _clean_cache, _save_cache, _read_cache)
+    _locator, _exists_cache, _save_cache, _read_cache)
 from ring_doorbell.const import (
-    API_VERSION, API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
+    API_VERSION, API_URI, CACHE_ATTRS, CACHE_FILE, CHIMES_ENDPOINT,
+    CHIME_VOL_MIN, CHIME_VOL_MAX,
     DEVICES_ENDPOINT, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
     HEADERS, LINKED_CHIMES_ENDPOINT, LIVE_STREAMING_ENDPOINT,
@@ -33,11 +34,10 @@ class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
     def __init__(self, username, password, debug=False, persist_token=False,
-                 push_token_notify_url="http://localhost/"):
+                 push_token_notify_url="http://localhost/", reuse_session=True,
+                 cache_file=CACHE_FILE):
         """Initialize the Ring object."""
-        self.features = None
         self.is_connected = None
-        self._id = None
         self.token = None
         self.params = None
         self._persist_token = persist_token
@@ -49,9 +49,50 @@ class Ring(object):
         self.session = requests.Session()
         self.session.auth = (self.username, self.password)
 
-        self._authenticate()
+        self.cache = CACHE_ATTRS
+        self.cache['account'] = self.username
+        self.cache_file = cache_file
+        self._reuse_session = reuse_session
 
-    def _authenticate(self, attempts=RETRY_TOKEN):
+        # tries to re-use old session
+        if self._reuse_session:
+            self.cache['token'] = self.token
+            self._process_cached_session()
+        else:
+            self._authenticate()
+
+    def _process_cached_session(self):
+        """Process cache_file to reuse token instead."""
+        if _exists_cache(self.cache_file):
+            self.cache = _read_cache(self.cache_file)
+
+            # if self.cache['token'] is None, the cache file was corrupted.
+            # of if self.cache['account'] does not match with self.username
+            # In both cases, a new auth token is required.
+            if (self.cache['token'] is None) or \
+               (self.cache['account'] is None) or \
+               (self.cache['account'] != self.username):
+                self._authenticate()
+            else:
+                # we need to set the self.token and self.params
+                # to make use of the self.query() method
+                self.token = self.cache['token']
+                self.params = {'api_version': API_VERSION,
+                               'auth_token': self.token}
+
+                # test if token from cache_file is still valid and functional
+                # if not, it should continue to get a new auth token
+                url = API_URI + DEVICES_ENDPOINT
+                req = self.query(url, raw=True)
+                if req.status_code == 200:
+                    self._authenticate(session=req)
+                else:
+                    self._authenticate()
+        else:
+            # first time executing, so we have to create a cache file
+            self._authenticate()
+
+    def _authenticate(self, attempts=RETRY_TOKEN, session=None):
         """Authenticate user against Ring API."""
         url = API_URI + NEW_SESSION_ENDPOINT
 
@@ -59,17 +100,25 @@ class Ring(object):
         while loop <= attempts:
             loop += 1
             try:
-                req = self.session.post((url), data=POST_DATA, headers=HEADERS)
+                if session is None:
+                    req = self.session.post((url),
+                                            data=POST_DATA,
+                                            headers=HEADERS)
+                else:
+                    req = session
             except:
                 raise
 
             # if token is expired, refresh credentials and try again
-            if req.status_code == 201:
-                data = req.json().get('profile')
-                self.features = data.get('features')
-                self._id = data.get('id')
+            if req.status_code == 200 or req.status_code == 201:
+
+                # the only way to get a JSON with token is via POST,
+                # so we need a special conditional for 201 code
+                if req.status_code == 201:
+                    data = req.json().get('profile')
+                    self.token = data.get('authentication_token')
+
                 self.is_connected = True
-                self.token = data.get('authentication_token')
                 self.params = {'api_version': API_VERSION,
                                'auth_token': self.token}
 
@@ -80,6 +129,13 @@ class Ring(object):
                         self._push_token_notify_url
                     req = self.session.put((url), headers=HEADERS,
                                            data=PERSIST_TOKEN_DATA)
+
+                # update token if reuse_session is True
+                if self._reuse_session:
+                    self.cache['account'] = self.username
+                    self.cache['token'] = self.token
+
+                _save_cache(self.cache, self.cache_file)
                 return True
 
         self.is_connected = False
@@ -147,14 +203,6 @@ class Ring(object):
         return response
 
     @property
-    def has_subscription(self):
-        """Return if account has subscription."""
-        try:
-            return self.features.get('subscriptions_enabled')
-        except AttributeError:
-            return NOT_FOUND
-
-    @property
     def devices(self):
         """Return all devices."""
         devs = {}
@@ -203,13 +251,12 @@ class RingGeneric(object):
     def __init__(self):
         """Initialize Ring Generic."""
         self._attrs = None
+        self._ring = None
         self.debug = None
         self.family = None
         self.name = None
 
         # alerts notifications
-        self._alert_cache = None
-        self.alert = None
         self.alert_expires_at = None
 
     def __repr__(self):
@@ -221,26 +268,26 @@ class RingGeneric(object):
         self._get_attrs()
         self._update_alert()
 
+    @property
+    def alert(self):
+        """Return alert attribute."""
+        return self._ring.cache['alerts']
+
+    @alert.setter
+    def alert(self, value):
+        """Set attribute to alert."""
+        self._ring.cache['alerts'] = value
+        _save_cache(self._ring.cache, self._ring.cache_file)
+        return True
+
     def _update_alert(self):
         """Verify if alert received is still valid."""
+        # alert is no longer valid
         if self.alert and self.alert_expires_at:
             if datetime.now() >= self.alert_expires_at:
                 self.alert = None
                 self.alert_expires_at = None
-        elif self._alert_cache:
-            aux = _read_cache(self._alert_cache)
-            if ((isinstance(aux, dict)) and
-                    ('now' in aux) and
-                    ('expires_in' in aux)):
-                aux_expires_at = datetime.fromtimestamp(
-                    aux.get('now') + aux.get('expires_in'))
-
-                # verify if pickle object is still valid
-                if datetime.now() <= aux_expires_at:
-                    self.alert = aux
-                    self.alert_expires_at = aux_expires_at
-                else:
-                    _save_cache(None, self._alert_cache)
+                _save_cache(self._ring.cache, self._ring.cache_file)
 
     def _get_attrs(self):
         """Return attributes."""
@@ -371,14 +418,8 @@ class RingDoorBell(RingGeneric):
             value = 100
         return value
 
-    def check_alerts(self, cache=None):
+    def check_alerts(self):
         """Return JSON when motion or ring is detected."""
-        # save alerts attributes to an external pickle file
-        # when multiple resources are checking for alerts
-        if cache:
-            _clean_cache(cache)
-            self._alert_cache = cache
-
         url = API_URI + DINGS_ENDPOINT
         self.update()
 
@@ -393,8 +434,8 @@ class RingDoorBell(RingGeneric):
             self.alert_expires_at = datetime.fromtimestamp(timestamp)
 
             # save to a pickle data
-            if self._alert_cache:
-                _save_cache(self.alert, self._alert_cache)
+            if self.alert:
+                _save_cache(self._ring.cache, self._ring.cache_file)
             return True
         return None
 

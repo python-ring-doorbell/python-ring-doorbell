@@ -11,7 +11,7 @@ except ImportError:
 
 USERNAME = 'foo'
 PASSWORD = 'bar'
-ALERT_CACHE_DB = 'tests/cache.db'
+CACHE = 'tests/cache.db'
 
 
 def mocked_requests_get(*args, **kwargs):
@@ -245,9 +245,9 @@ class TestRing(unittest.TestCase):
         """Test the Ring class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD)
+        myring = Ring(USERNAME, PASSWORD, cache_file=CACHE)
         self.assertTrue(myring.is_connected)
-        self.assertIsInstance(myring.features, dict)
+        self.assertIsInstance(myring.cache, dict)
         self.assertFalse(myring.debug)
         self.assertEqual(1, len(myring.chimes))
         self.assertEqual(2, len(myring.doorbells))
@@ -264,7 +264,7 @@ class TestRingChime(unittest.TestCase):
         """Test the Ring Chime class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD)
+        myring = Ring(USERNAME, PASSWORD, cache_file=CACHE)
         dev = myring.chimes[0]
 
         self.assertEqual('123 Main St', dev.address)
@@ -285,7 +285,7 @@ class TestRingDoorBell(unittest.TestCase):
         """Test the Ring DoorBell class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        myring = Ring(USERNAME, PASSWORD, cache_file=CACHE, persist_token=True)
         for dev in myring.doorbells:
             if not dev.shared:
                 self.assertEqual('Front Door', dev.name)
@@ -309,7 +309,7 @@ class TestRingDoorBell(unittest.TestCase):
         """Test the Ring Shared DoorBell class and methods."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        myring = Ring(USERNAME, PASSWORD, cache_file=CACHE, persist_token=True)
         for dev in myring.doorbells:
             if dev.shared:
                 self.assertEqual(987653, dev.account_id)
@@ -321,6 +321,8 @@ class TestRingDoorBell(unittest.TestCase):
                 self.assertEqual(5, dev.volume)
                 self.assertEqual('Digital', dev.existing_doorbell_type)
 
+        os.remove(CACHE)
+
 
 class TestRingDoorBellAlerts(unittest.TestCase):
     """Test the Ring DoorBell alerts."""
@@ -331,16 +333,16 @@ class TestRingDoorBellAlerts(unittest.TestCase):
         """Test the Ring DoorBell alerts."""
         from ring_doorbell import Ring
 
-        myring = Ring(USERNAME, PASSWORD, persist_token=True)
+        myring = Ring(USERNAME, PASSWORD, cache_file=CACHE, persist_token=True)
         for dev in myring.doorbells:
             self.assertEqual('America/New_York', dev.timezone)
 
             # call alerts
-            dev.check_alerts(cache=ALERT_CACHE_DB)
+            dev.check_alerts()
 
             self.assertIsInstance(dev.alert, dict)
             self.assertIsInstance(dev.alert_expires_at, datetime)
             self.assertTrue(datetime.now() <= dev.alert_expires_at)
-            self.assertIsNotNone(dev._alert_cache)
+            self.assertIsNotNone(dev._ring.cache_file)
 
-        os.remove(ALERT_CACHE_DB)
+        os.remove(CACHE)
