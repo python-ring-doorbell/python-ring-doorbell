@@ -51,7 +51,7 @@ Initializing your Ring object
 
 
 Listing devices linked to your account
-------------------------------------------
+--------------------------------------
 
 .. code-block:: python
 
@@ -69,7 +69,7 @@ Listing devices linked to your account
     [<RingDoorBell: Front Door>]
 
 Playing with the attributes
---------------------------------
+---------------------------
 .. code-block:: python
 
     for dev in list(myring.chimes + myring.doorbells):
@@ -113,7 +113,7 @@ Showing door bell events
 
 
 Downloading the last video triggered by ding
--------------------------------------------
+--------------------------------------------
 .. code-block:: python
 
     doorbell = myring.doorbells[0]
@@ -124,11 +124,17 @@ Downloading the last video triggered by ding
 
 
 Displaying the last video capture URL
--------------------------------------------
+-------------------------------------
 .. code-block:: python
 
     print(doorbell.recording_url(doorbell.last_recording_id))
     'https://ring-transcoded-videos.s3.amazonaws.com/99999999.mp4?X-Amz-Expires=3600&X-Amz-Date=20170313T232537Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=TOKEN_SECRET/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=secret'
+
+
+How to contribute
+-----------------
+See CONTRIBUTING.rst
+
 
 Credits && Thanks
 -----------------
