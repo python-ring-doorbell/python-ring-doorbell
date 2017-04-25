@@ -279,6 +279,15 @@ class TestRingChime(unittest.TestCase):
 class TestRingDoorBell(unittest.TestCase):
     """Test the Ring DoorBell object."""
 
+    def cleanup(self):
+        """Cleanup any data created from the tests."""
+        if os.path.isfile(CACHE):
+            os.remove(CACHE)
+
+    def tearDown(self):
+        """Stop everything started."""
+        self.cleanup()
+
     @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
     @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
     def test_doorbell_attributes(self, get_mock, post_mock):
@@ -321,11 +330,18 @@ class TestRingDoorBell(unittest.TestCase):
                 self.assertEqual(5, dev.volume)
                 self.assertEqual('Digital', dev.existing_doorbell_type)
 
-        os.remove(CACHE)
-
 
 class TestRingDoorBellAlerts(unittest.TestCase):
     """Test the Ring DoorBell alerts."""
+
+    def cleanup(self):
+        """Cleanup any data created from the tests."""
+        if os.path.isfile(CACHE):
+            os.remove(CACHE)
+
+    def tearDown(self):
+        """Stop everything started."""
+        self.cleanup()
 
     @mock.patch('requests.Session.get', side_effect=mocked_requests_get)
     @mock.patch('requests.Session.post', side_effect=mocked_requests_get)
@@ -344,5 +360,3 @@ class TestRingDoorBellAlerts(unittest.TestCase):
             self.assertIsInstance(dev.alert_expires_at, datetime)
             self.assertTrue(datetime.now() <= dev.alert_expires_at)
             self.assertIsNotNone(dev._ring.cache_file)
-
-        os.remove(CACHE)
