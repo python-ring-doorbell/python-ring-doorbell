@@ -61,5 +61,3 @@ def _read_cache(filename):
             return data
     except EOFError:
         return _clean_cache(filename)
-    except:
-        raise
