@@ -45,10 +45,6 @@ Initializing your Ring object
     myring.is_connected
     True
 
-    myring.has_subscription
-    True
-
-
 Listing devices linked to your account
 --------------------------------------
 
