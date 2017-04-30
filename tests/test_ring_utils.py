@@ -65,4 +65,3 @@ class TestUtils(unittest.TestCase):
             self.assertRaises(TypeError, _read_cache, True)
         else:
             self.assertRaises(OSError, _read_cache, True)
- 
