@@ -59,5 +59,6 @@ def _read_cache(filename):
             if data.keys() != CACHE_ATTRS.keys():
                 raise EOFError
             return data
+
     except (EOFError, ValueError):
         return _clean_cache(filename)

@@ -330,6 +330,8 @@ class TestRingDoorBell(unittest.TestCase):
                 self.assertEqual(5, dev.volume)
                 self.assertEqual('Digital', dev.existing_doorbell_type)
 
+        os.remove(CACHE)
+
 
 class TestRingDoorBellAlerts(unittest.TestCase):
     """Test the Ring DoorBell alerts."""
