@@ -32,7 +32,7 @@ Installation
     $ pip install ring_doorbell
 
     # Installing latest development
-    $ pip3 install \
+    $ pip install \
         git+https://github.com/tchellomello/python-ring-doorbell@dev
 
 
