@@ -663,6 +663,7 @@ class RingDoorBell(RingGeneric):
         self.update()
         return True
 
+
 class RingStickUpCam(RingDoorBell):
     """Implementation for Ring RingStickUpCam."""
 
