@@ -65,11 +65,15 @@ Listing devices linked to your account
     myring.doorbells
     [<RingDoorBell: Front Door>]
 
+    # All stickup cams
+    myring.stickup_cams
+    [<RingStickUpCam: Driveway>]
+
 Playing with the attributes
 ---------------------------
 .. code-block:: python
 
-    for dev in list(myring.chimes + myring.doorbells):
+    for dev in list(myring.stickup_cams + myring.chimes + myring.doorbells):
 
         # refresh data
         dev.update()

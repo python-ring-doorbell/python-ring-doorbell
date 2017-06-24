@@ -207,6 +207,7 @@ class Ring(object):
         """Return all devices."""
         devs = {}
         devs['chimes'] = self.chimes
+        devs['stickup_cams'] = self.stickup_cams
         devs['doorbells'] = self.doorbells
         return devs
 
@@ -215,6 +216,11 @@ class Ring(object):
         lst = []
         url = API_URI + DEVICES_ENDPOINT
         try:
+            if device_type == 'stickup_cams':
+                req = self.query(url).get('stickup_cams')
+                for member in list((obj['description'] for obj in req)):
+                    lst.append(RingStickUpCam(self, member))
+
             if device_type == 'chime':
                 req = self.query(url).get('chimes')
                 for member in list((obj['description'] for obj in req)):
@@ -238,6 +244,11 @@ class Ring(object):
     def chimes(self):
         """Return a list of RingDoorChime objects."""
         return self.__devices('chime')
+
+    @property
+    def stickup_cams(self):
+        """Return a list of RingStickUpCam objects."""
+        return self.__devices('stickup_cams')
 
     @property
     def doorbells(self):
@@ -394,7 +405,6 @@ class RingChime(RingGeneric):
         url = API_URI + TESTSOUND_CHIME_ENDPOINT.format(self.account_id)
         self._ring.query(url, method='POST')
         return True
-
 
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
@@ -652,3 +662,15 @@ class RingDoorBell(RingGeneric):
         self._ring.query(url, extra_params=params, method='PUT')
         self.update()
         return True
+
+class RingStickUpCam(RingDoorBell):
+    """Implementation for Ring RingStickUpCam."""
+
+    def __init__(self, ring, name):
+        super(RingDoorBell, self).__init__()
+        self._attrs = None
+        self._ring = ring
+        self.debug = self._ring.debug
+        self.family = 'stickup_cams'
+        self.name = name
+        self.update()
