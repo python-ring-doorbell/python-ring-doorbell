@@ -8,8 +8,8 @@ Python Ring Door Bell
 .. image:: https://travis-ci.org/tchellomello/python-ring-doorbell.svg?branch=master
     :target: https://travis-ci.org/tchellomello/python-ring-doorbell
 
-.. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg
-    :target: https://coveralls.io/github/tchellomello/python-ring-doorbell
+.. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg?branch=master
+    :target: https://coveralls.io/github/tchellomello/python-ring-doorbell?branch=master
 
 .. image:: https://img.shields.io/pypi/pyversions/ring-doorbell.svg
     :target: https://pypi.python.org/pypi/ring-doorbell
