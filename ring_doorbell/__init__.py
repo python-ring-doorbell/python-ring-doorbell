@@ -25,7 +25,7 @@ from ring_doorbell.const import (
     MSG_GENERIC_FAIL, MSG_VOL_OUTBOUND,
     NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
     POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA,
-    RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT)
+    RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT, CHIME_TEST_SOUND_KINDS, KIND_DING)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -388,11 +388,12 @@ class RingChime(RingGeneric):
         url = API_URI + LINKED_CHIMES_ENDPOINT.format(self.account_id)
         return self._ring.query(url)
 
-    @property
-    def test_sound(self):
+    def test_sound(self, kind=KIND_DING):
         """Play chime to test sound."""
+        if kind not in CHIME_TEST_SOUND_KINDS:
+            return False
         url = API_URI + TESTSOUND_CHIME_ENDPOINT.format(self.account_id)
-        self._ring.query(url, method='POST')
+        self._ring.query(url, method='POST', extra_params={"kind": kind})
         return True
 
 
