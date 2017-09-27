@@ -653,3 +653,8 @@ class RingDoorBell(RingGeneric):
         self._ring.query(url, extra_params=params, method='PUT')
         self.update()
         return True
+
+    @property
+    def connection_status(self):
+        """Return connection status."""
+        return self._attrs.get('alerts').get('connection')
