@@ -40,6 +40,11 @@ TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + '/play_sound'
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + '/history'
 URL_RECORDING = '/clients_api/dings/{0}/recording'
 
+# chime test sound kinds
+KIND_DING = 'ding'
+KIND_MOTION = 'motion'
+CHIME_TEST_SOUND_KINDS = (KIND_DING, KIND_MOTION)
+
 # default values
 CHIME_VOL_MIN = 0
 CHIME_VOL_MAX = 10

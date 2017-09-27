@@ -65,8 +65,8 @@ Listing devices linked to your account
     myring.doorbells
     [<RingDoorBell: Front Door>]
 
-Playing with the attributes
----------------------------
+Playing with the attributes and functions
+-----------------------------------------
 .. code-block:: python
 
     for dev in list(myring.chimes + myring.doorbells):
@@ -88,7 +88,8 @@ Playing with the attributes
 
         # play dev test shound
         if dev.family == 'chimes'
-            dev.test_sound
+            dev.test_sound(kind = 'ding')
+            dev.test_sound(kind = 'motion')
 
 
 Showing door bell events
