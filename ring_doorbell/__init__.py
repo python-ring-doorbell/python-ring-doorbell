@@ -407,6 +407,7 @@ class RingChime(RingGeneric):
         self._ring.query(url, method='POST', extra_params={"kind": kind})
         return True
 
+
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
@@ -663,7 +664,7 @@ class RingDoorBell(RingGeneric):
         self._ring.query(url, extra_params=params, method='PUT')
         self.update()
         return True
-      
+
     @property
     def connection_status(self):
         """Return connection status."""
@@ -674,7 +675,7 @@ class RingStickUpCam(RingDoorBell):
     """Implementation for Ring RingStickUpCam."""
 
     def __init__(self, ring, name):
-        super(RingDoorBell, self).__init__()
+        super(RingStickUpCam, self).__init__()
         self._attrs = None
         self._ring = ring
         self.debug = self._ring.debug
