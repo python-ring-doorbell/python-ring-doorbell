@@ -4,4 +4,5 @@ mock
 pylint
 pytest
 pytest-cov
+requests_mock
 tox
