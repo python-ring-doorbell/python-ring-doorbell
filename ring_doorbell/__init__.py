@@ -20,10 +20,10 @@ from ring_doorbell.const import (
     CHIME_VOL_MIN, CHIME_VOL_MAX,
     DEVICES_ENDPOINT, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
-    HEADERS, LINKED_CHIMES_ENDPOINT, LIVE_STREAMING_ENDPOINT,
-    NEW_SESSION_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
-    MSG_GENERIC_FAIL, MSG_VOL_OUTBOUND,
-    NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
+    HEADERS, HEALTH_CHIMES_ENDPOINT, HEALTH_DOORBELL_ENDPOINT,
+    LINKED_CHIMES_ENDPOINT, LIVE_STREAMING_ENDPOINT, NEW_SESSION_ENDPOINT,
+    MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE, MSG_GENERIC_FAIL,
+    MSG_VOL_OUTBOUND, NOT_FOUND, URL_DOORBELL_HISTORY, URL_RECORDING,
     POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA,
     RETRY_TOKEN, TESTSOUND_CHIME_ENDPOINT, CHIME_TEST_SOUND_KINDS, KIND_DING)
 
@@ -266,6 +266,7 @@ class RingGeneric(object):
         self.name = name
         self.shared = shared
         self._attrs = None
+        self._health_attrs = None
 
         # alerts notifications
         self.alert_expires_at = None
@@ -285,6 +286,7 @@ class RingGeneric(object):
     def update(self):
         """Refresh attributes."""
         self._get_attrs()
+        self._get_health_attrs()
         self._update_alert()
 
     @property
@@ -324,6 +326,14 @@ class RingGeneric(object):
 
         self._attrs = lst[index]
         return True
+
+    def _get_health_attrs(self):
+        """Return health attributes."""
+        if self.family == 'doorbots' or self.family == 'stickup_cams':
+            url = API_URI + HEALTH_DOORBELL_ENDPOINT.format(self.account_id)
+        elif self.family == 'chimes':
+            url = API_URI + HEALTH_CHIMES_ENDPOINT.format(self.account_id)
+        self._health_attrs = self._ring.query(url).get('device_health')
 
     @property
     def account_id(self):
@@ -366,6 +376,21 @@ class RingGeneric(object):
         """Return timezone."""
         return self._attrs.get('time_zone')
 
+    @property
+    def wifi_name(self):
+        """Return wifi ESSID name."""
+        return self._health_attrs.get('wifi_name')
+
+    @property
+    def wifi_signal_strength(self):
+        """Return wifi RSSI."""
+        return self._health_attrs.get('latest_signal_strength')
+
+    @property
+    def wifi_signal_category(self):
+        """Return wifi signal category."""
+        return self._health_attrs.get('latest_signal_category')
+
 
 class RingChime(RingGeneric):
     """Implementation for Ring Chime."""
@@ -374,6 +399,11 @@ class RingChime(RingGeneric):
     def family(self):
         """Return Ring device family type."""
         return 'chimes'
+
+    @property
+    def battery_life(self):
+        """Return battery life."""
+        return self._health_attrs.get('battery_percentage')
 
     @property
     def volume(self):

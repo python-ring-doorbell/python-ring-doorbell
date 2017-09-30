@@ -84,6 +84,8 @@ Playing with the attributes and functions
         print('ID:         %s' % dev.id)
         print('Name:       %s' % dev.name)
         print('Timezone:   %s' % dev.timezone)
+        print('Wifi Name:  %s' % dev.wifi_name)
+        print('Wifi RSSI:  %s' % dev.wifi_signal_strength)
 
         # setting dev volume
         print('Volume:     %s' % dev.volume)
