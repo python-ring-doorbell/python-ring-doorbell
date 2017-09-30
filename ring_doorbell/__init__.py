@@ -221,12 +221,12 @@ class Ring(object):
                 for member in list((obj['description'] for obj in req)):
                     lst.append(RingStickUpCam(self, member))
 
-            if device_type == 'chime':
+            if device_type == 'chimes':
                 req = self.query(url).get('chimes')
                 for member in list((obj['description'] for obj in req)):
                     lst.append(RingChime(self, member))
 
-            if device_type == 'doorbell':
+            if device_type == 'doorbells':
                 req = self.query(url).get('doorbots')
                 for member in list((obj['description'] for obj in req)):
                     lst.append(RingDoorBell(self, member))
@@ -243,7 +243,7 @@ class Ring(object):
     @property
     def chimes(self):
         """Return a list of RingDoorChime objects."""
-        return self.__devices('chime')
+        return self.__devices('chimes')
 
     @property
     def stickup_cams(self):
@@ -253,26 +253,34 @@ class Ring(object):
     @property
     def doorbells(self):
         """Return a list of RingDoorBell objects."""
-        return self.__devices('doorbell')
+        return self.__devices('doorbells')
 
 
 class RingGeneric(object):
     """Generic Implementation for Ring Chime/Doorbell."""
 
-    def __init__(self):
+    def __init__(self, ring, name, shared=False):
         """Initialize Ring Generic."""
+        self._ring = ring
+        self.debug = self._ring.debug
+        self.name = name
+        self.shared = shared
         self._attrs = None
-        self._ring = None
-        self.debug = None
-        self.family = None
-        self.name = None
 
         # alerts notifications
         self.alert_expires_at = None
 
+        # force update
+        self.update()
+
     def __repr__(self):
         """Return __repr__."""
         return "<{0}: {1}>".format(self.__class__.__name__, self.name)
+
+    @property
+    def family(self):
+        """Return Ring device family type."""
+        return None
 
     def update(self):
         """Refresh attributes."""
@@ -362,15 +370,10 @@ class RingGeneric(object):
 class RingChime(RingGeneric):
     """Implementation for Ring Chime."""
 
-    def __init__(self, ring, name):
-        """Initilize Ring chime object."""
-        super(RingChime, self).__init__()
-        self._attrs = None
-        self._ring = ring
-        self.debug = self._ring.debug
-        self.family = 'chimes'
-        self.name = name
-        self.update()
+    @property
+    def family(self):
+        """Return Ring device family type."""
+        return 'chimes'
 
     @property
     def volume(self):
@@ -411,16 +414,10 @@ class RingChime(RingGeneric):
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
-    def __init__(self, ring, name, shared=False):
-        """Initilize Ring doorbell object."""
-        super(RingDoorBell, self).__init__()
-        self._attrs = None
-        self._ring = ring
-        self.shared = shared
-        self.debug = self._ring.debug
-        self.family = 'doorbots'
-        self.name = name
-        self.update()
+    @property
+    def family(self):
+        """Return Ring device family type."""
+        return 'doorbots'
 
     @property
     def battery_life(self):
@@ -674,11 +671,7 @@ class RingDoorBell(RingGeneric):
 class RingStickUpCam(RingDoorBell):
     """Implementation for Ring RingStickUpCam."""
 
-    def __init__(self, ring, name):
-        super(RingStickUpCam, self).__init__()
-        self._attrs = None
-        self._ring = ring
-        self.debug = self._ring.debug
-        self.family = 'stickup_cams'
-        self.name = name
-        self.update()
+    @property
+    def family(self):
+        """Return Ring device family type."""
+        return 'stickup_cams'
