@@ -56,11 +56,16 @@ Listing devices linked to your account
     myring.doorbells
     [<RingDoorBell: Front Door>]
 
+    # All stickup cams
+    myring.stickup_cams
+    [<RingStickUpCam: Driveway>]
+
+
 Playing with the attributes
 ---------------------------
 .. code-block:: python
 
-    for dev in list(myring.chimes + myring.doorbells):
+    for dev in list(myring.stickup_cams + myring.chimes + myring.doorbells):
 
         # refresh data
         dev.update()
@@ -71,6 +76,8 @@ Playing with the attributes
         print('ID:         %s' % dev.id)
         print('Name:       %s' % dev.name)
         print('Timezone:   %s' % dev.timezone)
+        print('Wifi Name:  %s' % dev.wifi_name)
+        print('Wifi RSSI:  %s' % dev.wifi_signal_strength)
 
         # setting dev volume
         print('Volume:     %s' % dev.volume)
