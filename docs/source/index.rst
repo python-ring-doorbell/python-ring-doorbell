@@ -134,17 +134,23 @@ Developing
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: ring_doorbell.RingGeneric
+.. autoclass:: ring_doorbell.generic.RingGeneric
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: ring_doorbell.RingChime
+.. autoclass:: ring_doorbell.chime.RingChime
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: ring_doorbell.RingDoorBell
+.. autoclass:: ring_doorbell.doorbot.RingDoorBell
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :inherited-members:
+
+.. autoclass:: ring_doorbell.stickup_cam.RingStickUpCam
     :members:
     :undoc-members:
     :show-inheritance:
