@@ -154,32 +154,70 @@ class RingDoorBell(RingGeneric):
                 return True
         return None
 
-    def history(self, limit=30, timezone=None, kind=None):
-        """Return history with datetime objects."""
-        # allow modify the items to return
-        params = {'limit': str(limit)}
+    def history(self, limit=30, timezone=None, kind=None,
+                enforce_limit=False, retry=8):
+        """
+        Return history with datetime objects.
 
-        url = API_URI + URL_DOORBELL_HISTORY.format(self.account_id)
-        response = self._ring.query(url, extra_params=params)
+        :param limit: specify number of objects to be returned
+        :param timezone: determine which timezone to convert data objects
+        :param kind: filter by kind (ding, motion, on_demand)
+        :param enforce_limit: when True, this will enforce the limit and kind
+        :param retry: determine the max number of attempts to archive the limit
+        """
+        queries = 0
+        original_limit = limit
 
-        # convert for specific timezone
-        utc = pytz.utc
-        if timezone:
-            mytz = pytz.timezone(timezone)
+        # set cap for max queries
+        if retry > 10:
+            retry = 10
 
-        for entry in response:
-            dt_at = datetime.strptime(entry['created_at'],
-                                      '%Y-%m-%dT%H:%M:%S.000Z')
-            utc_dt = datetime(dt_at.year, dt_at.month, dt_at.day, dt_at.hour,
-                              dt_at.minute, dt_at.second, tzinfo=utc)
+        while True:
+            params = {'limit': str(limit)}
+
+            url = API_URI + URL_DOORBELL_HISTORY.format(self.account_id)
+            response = self._ring.query(url, extra_params=params)
+
+            # cherrypick only the selected kind events
+            if kind:
+                response = list(filter(
+                    lambda array: array['kind'] == kind, response))
+
+            # convert for specific timezone
+            utc = pytz.utc
             if timezone:
-                tz_dt = utc_dt.astimezone(mytz)
-                entry['created_at'] = tz_dt
-            else:
-                entry['created_at'] = utc_dt
+                mytz = pytz.timezone(timezone)
 
-        if kind:
-            return list(filter(lambda array: array['kind'] == kind, response))
+            for entry in response:
+                dt_at = datetime.strptime(entry['created_at'],
+                                          '%Y-%m-%dT%H:%M:%S.000Z')
+                utc_dt = datetime(dt_at.year, dt_at.month, dt_at.day,
+                                  dt_at.hour, dt_at.minute, dt_at.second,
+                                  tzinfo=utc)
+                if timezone:
+                    tz_dt = utc_dt.astimezone(mytz)
+                    entry['created_at'] = tz_dt
+                else:
+                    entry['created_at'] = utc_dt
+
+            if enforce_limit:
+                # return because already matched the number
+                # of events by kind
+                if len(response) >= original_limit:
+                    return response[:original_limit]
+
+                # ensure the loop will exit after max queries
+                queries += 1
+                if queries == retry:
+                    _LOGGER.warning("Could not find total of %s of kind %s",
+                                    original_limit, kind)
+                    break
+
+                # ensure the kind objects returned to match limit
+                limit = limit * 2
+
+            else:
+                break
 
         return response
 
