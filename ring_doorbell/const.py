@@ -33,12 +33,20 @@ DINGS_ENDPOINT = '/clients_api/dings/active'
 DOORBELLS_ENDPOINT = '/clients_api/doorbots/{0}'
 PERSIST_TOKEN_ENDPOINT = '/clients_api/device'
 
+HEALTH_DOORBELL_ENDPOINT = DOORBELLS_ENDPOINT + '/health'
+HEALTH_CHIMES_ENDPOINT = CHIMES_ENDPOINT + '/health'
 LINKED_CHIMES_ENDPOINT = CHIMES_ENDPOINT + '/linked_doorbots'
 LIVE_STREAMING_ENDPOINT = DOORBELLS_ENDPOINT + '/vod'
 NEW_SESSION_ENDPOINT = '/clients_api/session'
+RINGTONES_ENDPOINT = '/ringtones'
 TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + '/play_sound'
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + '/history'
 URL_RECORDING = '/clients_api/dings/{0}/recording'
+
+# chime test sound kinds
+KIND_DING = 'ding'
+KIND_MOTION = 'motion'
+CHIME_TEST_SOUND_KINDS = (KIND_DING, KIND_MOTION)
 
 # default values
 CHIME_VOL_MIN = 0

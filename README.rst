@@ -8,8 +8,8 @@ Python Ring Door Bell
 .. image:: https://travis-ci.org/tchellomello/python-ring-doorbell.svg?branch=master
     :target: https://travis-ci.org/tchellomello/python-ring-doorbell
 
-.. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg
-    :target: https://coveralls.io/github/tchellomello/python-ring-doorbell
+.. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg?branch=master
+    :target: https://coveralls.io/github/tchellomello/python-ring-doorbell?branch=master
 
 .. image:: https://img.shields.io/pypi/pyversions/ring-doorbell.svg
     :target: https://pypi.python.org/pypi/ring-doorbell
@@ -19,6 +19,8 @@ Python Ring Door Bell is a library written in Python 2.7/3x
 that exposes the Ring.com devices as Python objects.
 
 *Currently Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
+
+Documentation: `http://python-ring-doorbell.readthedocs.io/ <http://python-ring-doorbell.readthedocs.io/>`_
 
 
 Installation
@@ -30,7 +32,7 @@ Installation
     $ pip install ring_doorbell
 
     # Installing latest development
-    $ pip3 install \
+    $ pip install \
         git+https://github.com/tchellomello/python-ring-doorbell@dev
 
 
@@ -63,11 +65,15 @@ Listing devices linked to your account
     myring.doorbells
     [<RingDoorBell: Front Door>]
 
-Playing with the attributes
----------------------------
+    # All stickup cams
+    myring.stickup_cams
+    [<RingStickUpCam: Driveway>]
+
+Playing with the attributes and functions
+-----------------------------------------
 .. code-block:: python
 
-    for dev in list(myring.chimes + myring.doorbells):
+    for dev in list(myring.stickup_cams + myring.chimes + myring.doorbells):
 
         # refresh data
         dev.update()
@@ -78,6 +84,8 @@ Playing with the attributes
         print('ID:         %s' % dev.id)
         print('Name:       %s' % dev.name)
         print('Timezone:   %s' % dev.timezone)
+        print('Wifi Name:  %s' % dev.wifi_name)
+        print('Wifi RSSI:  %s' % dev.wifi_signal_strength)
 
         # setting dev volume
         print('Volume:     %s' % dev.volume)
@@ -86,7 +94,8 @@ Playing with the attributes
 
         # play dev test shound
         if dev.family == 'chimes'
-            dev.test_sound
+            dev.test_sound(kind = 'ding')
+            dev.test_sound(kind = 'motion')
 
 
 Showing door bell events
