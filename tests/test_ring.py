@@ -78,6 +78,10 @@ class TestRing(RingUnitTestBase):
                 self.assertIsInstance(dev.history(limit=1, kind='motion'),
                                       list)
                 self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
+                self.assertEqual(0, len(dev.history(limit=1,
+                                                    kind='ding',
+                                                    enforce_limit=True,
+                                                    retry=50)))
 
                 self.assertEqual('Mechanical', dev.existing_doorbell_type)
                 self.assertTrue(data._persist_token)
