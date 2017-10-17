@@ -27,6 +27,7 @@ class TestRing(RingUnitTestBase):
         self.assertFalse(data.debug)
         self.assertEqual(1, len(data.chimes))
         self.assertEqual(2, len(data.doorbells))
+        self.assertEqual(1, len(data.stickup_cams))
         self.assertFalse(data._persist_token)
         self.assertEquals('http://localhost/', data._push_token_notify_url)
 
@@ -134,3 +135,47 @@ class TestRing(RingUnitTestBase):
             self.assertIsInstance(dev.alert_expires_at, datetime)
             self.assertTrue(datetime.now() >= dev.alert_expires_at)
             self.assertIsNotNone(dev._ring.cache_file)
+
+    @requests_mock.Mocker()
+    def test_stickup_cam_attributes(self, mock):
+        mock.get('https://api.ring.com/clients_api/ring_devices',
+                 text=load_fixture('ring_devices.json'))
+        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
+                 text=load_fixture('ring_doorboot_health_attrs.json'))
+
+        data = self.ring_persistent
+        for dev in data.stickup_cams:
+            self.assertEqual('off', dev.lights)
+            self.assertEqual(0, dev.siren)
+
+    @requests_mock.Mocker()
+    def test_stickup_cam_controls(self, mock):
+        mock.get('https://api.ring.com/clients_api/ring_devices',
+                 text=load_fixture('ring_devices.json'))
+        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
+                 text=load_fixture('ring_doorboot_health_attrs.json'))
+        mock.put(requests_mock.ANY, text='ok')
+
+        data = self.ring_persistent
+        for dev in data.stickup_cams:
+            dev.lights = 'off'
+            dev.lights = 'on'
+            dev.siren = 0
+            dev.siren = 30
+
+            history = list(filter(lambda x: x.method == 'PUT',
+                                  mock.request_history))
+            self.assertEqual(
+                '/clients_api/doorbots/987652/floodlight_light_off',
+                history[0].path)
+            self.assertEqual(
+                '/clients_api/doorbots/987652/floodlight_light_on',
+                history[1].path)
+            self.assertEqual(
+                '/clients_api/doorbots/987652/siren_off',
+                history[2].path)
+            self.assertNotIn('duration', history[2].qs)
+            self.assertEqual(
+                '/clients_api/doorbots/987652/siren_on',
+                history[3].path)
+            self.assertEqual('30', history[3].qs['duration'][0])
