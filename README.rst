@@ -93,9 +93,13 @@ Playing with the attributes and functions
         print('Volume:     %s' % dev.volume)
 
         # play dev test shound
-        if dev.family == 'chimes'
+        if dev.family == 'chimes':
             dev.test_sound(kind = 'ding')
             dev.test_sound(kind = 'motion')
+
+        # turn on lights on floodlight cam
+        if dev.family == 'stickup_cams' and dev.lights:
+            dev.lights = 'on'
 
 
 Showing door bell events
