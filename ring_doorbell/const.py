@@ -35,10 +35,12 @@ PERSIST_TOKEN_ENDPOINT = '/clients_api/device'
 
 HEALTH_DOORBELL_ENDPOINT = DOORBELLS_ENDPOINT + '/health'
 HEALTH_CHIMES_ENDPOINT = CHIMES_ENDPOINT + '/health'
+LIGHTS_ENDPOINT = DOORBELLS_ENDPOINT + '/floodlight_light_{1}'
 LINKED_CHIMES_ENDPOINT = CHIMES_ENDPOINT + '/linked_doorbots'
 LIVE_STREAMING_ENDPOINT = DOORBELLS_ENDPOINT + '/vod'
 NEW_SESSION_ENDPOINT = '/clients_api/session'
 RINGTONES_ENDPOINT = '/ringtones'
+SIREN_ENDPOINT = DOORBELLS_ENDPOINT + '/siren_{1}'
 TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + '/play_sound'
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + '/history'
 URL_RECORDING = '/clients_api/dings/{0}/recording'
@@ -60,12 +62,16 @@ DOORBELL_EXISTING_TYPE = {
     1: 'Digital',
     2: 'Not Present'}
 
+SIREN_DURATION_MIN = 0
+SIREN_DURATION_MAX = 120
+
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."
 MSG_EXISTING_TYPE = "Integer value where {0}.".format(DOORBELL_EXISTING_TYPE)
 MSG_GENERIC_FAIL = 'Sorry.. Something went wrong...'
 FILE_EXISTS = 'The file {0} already exists.'
 MSG_VOL_OUTBOUND = 'Must be within the {0}-{1}.'
+MSG_ALLOWED_VALUES = 'Only the following values are allowed: {0}.'
 
 # structure acquired from reverse engineering to create auth token
 POST_DATA = {
