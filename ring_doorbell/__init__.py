@@ -99,7 +99,8 @@ class Ring(object):
                                             headers=HEADERS)
                 else:
                     req = session
-            except:
+            except requests.exceptions.RequestException as err_msg:
+                _LOGGER.error("Error!! %s", err_msg)
                 raise
 
             # if token is expired, refresh credentials and try again
@@ -173,7 +174,9 @@ class Ring(object):
 
                 if self.debug:
                     _LOGGER.debug("_query %s ret %s", loop, req.status_code)
-            except:
+
+            except requests.exceptions.RequestException as err_msg:
+                _LOGGER.error("Error!! %s", err_msg)
                 raise
 
             # if token is expired, refresh credentials and try again
