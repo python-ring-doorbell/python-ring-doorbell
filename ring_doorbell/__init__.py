@@ -77,7 +77,7 @@ class Ring(object):
                 # if not, it should continue to get a new auth token
                 url = API_URI + DEVICES_ENDPOINT
                 req = self.query(url, raw=True)
-                if req.status_code == 200:
+                if req and req.status_code == 200:
                     self._authenticate(session=req)
                 else:
                     self._authenticate()
