@@ -21,11 +21,8 @@ def _locator(lst, key, value):
 
 def _clean_cache(filename):
     """Remove filename if pickle version mismatch."""
-    try:
-        if os.path.isfile(filename):
-            os.remove(filename)
-    except:
-        raise
+    if os.path.isfile(filename):
+        os.remove(filename)
 
     # initialize cache since file was removed
     initial_cache_data = CACHE_ATTRS
@@ -40,12 +37,9 @@ def _exists_cache(filename):
 
 def _save_cache(data, filename):
     """Dump data into a pickle file."""
-    try:
-        with open(filename, 'wb') as pickle_db:
-            pickle.dump(data, pickle_db)
-        return True
-    except:
-        raise
+    with open(filename, 'wb') as pickle_db:
+        pickle.dump(data, pickle_db)
+    return True
 
 
 def _read_cache(filename):
