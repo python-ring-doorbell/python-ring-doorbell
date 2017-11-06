@@ -33,7 +33,7 @@ Installation
 
     # Installing latest development
     $ pip install \
-        git+https://github.com/tchellomello/python-ring-doorbell@dev
+        git+https://github.com/tchellomello/python-ring-doorbell@master
 
 
 Initializing your Ring object
