@@ -210,7 +210,7 @@ class RingDoorBell(RingGeneric):
                 queries += 1
                 if queries == retry:
                     _LOGGER.debug("Could not find total of %s of kind %s",
-                                    original_limit, kind)
+                                  original_limit, kind)
                     break
 
                 # ensure the kind objects returned to match limit
