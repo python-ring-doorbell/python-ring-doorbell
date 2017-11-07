@@ -209,8 +209,8 @@ class RingDoorBell(RingGeneric):
                 # ensure the loop will exit after max queries
                 queries += 1
                 if queries == retry:
-                    _LOGGER.warning("Could not find total of %s of kind %s",
-                                    original_limit, kind)
+                    _LOGGER.debug("Could not find total of %s of kind %s",
+                                  original_limit, kind)
                     break
 
                 # ensure the kind objects returned to match limit
