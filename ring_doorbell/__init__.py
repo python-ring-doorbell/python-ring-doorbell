@@ -103,6 +103,9 @@ class Ring(object):
                 _LOGGER.error("Error!! %s", err_msg)
                 raise
 
+            if not req:
+                continue
+
             # if token is expired, refresh credentials and try again
             if req.status_code == 200 or req.status_code == 201:
 
