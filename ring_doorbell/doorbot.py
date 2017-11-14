@@ -155,7 +155,7 @@ class RingDoorBell(RingGeneric):
         return None
 
     def history(self, limit=30, timezone=None, kind=None,
-                enforce_limit=False, retry=8):
+                enforce_limit=False, older_than=None, retry=8):
         """
         Return history with datetime objects.
 
@@ -163,6 +163,7 @@ class RingDoorBell(RingGeneric):
         :param timezone: determine which timezone to convert data objects
         :param kind: filter by kind (ding, motion, on_demand)
         :param enforce_limit: when True, this will enforce the limit and kind
+        :param older_than: return older objects than the passed event_id
         :param retry: determine the max number of attempts to archive the limit
         """
         queries = 0
@@ -174,6 +175,8 @@ class RingDoorBell(RingGeneric):
 
         while True:
             params = {'limit': str(limit)}
+            if older_than:
+                params['older_than'] = older_than
 
             url = API_URI + URL_DOORBELL_HISTORY.format(self.account_id)
             response = self._ring.query(url, extra_params=params)
