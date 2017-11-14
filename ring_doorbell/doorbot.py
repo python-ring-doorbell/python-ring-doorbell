@@ -155,7 +155,7 @@ class RingDoorBell(RingGeneric):
         return None
 
     def history(self, limit=30, timezone=None, kind=None,
-                enforce_limit=False, retry=8):
+                enforce_limit=False, older_than=None, retry=8):
         """
         Return history with datetime objects.
 
@@ -163,6 +163,7 @@ class RingDoorBell(RingGeneric):
         :param timezone: determine which timezone to convert data objects
         :param kind: filter by kind (ding, motion, on_demand)
         :param enforce_limit: when True, this will enforce the limit and kind
+        :param older_than: return older objects than the passed event_id
         :param retry: determine the max number of attempts to archive the limit
         """
         queries = 0
@@ -174,6 +175,8 @@ class RingDoorBell(RingGeneric):
 
         while True:
             params = {'limit': str(limit)}
+            if older_than:
+                params['older_than'] = older_than
 
             url = API_URI + URL_DOORBELL_HISTORY.format(self.account_id)
             response = self._ring.query(url, extra_params=params)
@@ -209,8 +212,8 @@ class RingDoorBell(RingGeneric):
                 # ensure the loop will exit after max queries
                 queries += 1
                 if queries == retry:
-                    _LOGGER.warning("Could not find total of %s of kind %s",
-                                    original_limit, kind)
+                    _LOGGER.debug("Could not find total of %s of kind %s",
+                                  original_limit, kind)
                     break
 
                 # ensure the kind objects returned to match limit
@@ -234,7 +237,7 @@ class RingDoorBell(RingGeneric):
         """Return JSON for live streaming."""
         url = API_URI + LIVE_STREAMING_ENDPOINT.format(self.account_id)
         req = self._ring.query((url), method='POST', raw=True)
-        if req.status_code == 204:
+        if req and req.status_code == 204:
             url = API_URI + DINGS_ENDPOINT
             try:
                 return self._ring.query(url)[0]
@@ -247,7 +250,7 @@ class RingDoorBell(RingGeneric):
         url = API_URI + URL_RECORDING.format(recording_id)
         try:
             req = self._ring.query(url, raw=True)
-            if req.status_code == 200:
+            if req and req.status_code == 200:
 
                 if filename:
                     if os.path.isfile(filename) and not override:
@@ -267,7 +270,7 @@ class RingDoorBell(RingGeneric):
         """Return HTTPS recording URL."""
         url = API_URI + URL_RECORDING.format(recording_id)
         req = self._ring.query(url, raw=True)
-        if req.status_code == 200:
+        if req and req.status_code == 200:
             return req.url
         return False
 

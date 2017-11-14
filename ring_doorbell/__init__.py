@@ -77,7 +77,7 @@ class Ring(object):
                 # if not, it should continue to get a new auth token
                 url = API_URI + DEVICES_ENDPOINT
                 req = self.query(url, raw=True)
-                if req.status_code == 200:
+                if req and req.status_code == 200:
                     self._authenticate(session=req)
                 else:
                     self._authenticate()
@@ -99,8 +99,12 @@ class Ring(object):
                                             headers=HEADERS)
                 else:
                     req = session
-            except:
+            except requests.exceptions.RequestException as err_msg:
+                _LOGGER.error("Error!! %s", err_msg)
                 raise
+
+            if not req:
+                continue
 
             # if token is expired, refresh credentials and try again
             if req.status_code == 200 or req.status_code == 201:
@@ -173,7 +177,9 @@ class Ring(object):
 
                 if self.debug:
                     _LOGGER.debug("_query %s ret %s", loop, req.status_code)
-            except:
+
+            except requests.exceptions.RequestException as err_msg:
+                _LOGGER.error("Error!! %s", err_msg)
                 raise
 
             # if token is expired, refresh credentials and try again
