@@ -247,6 +247,11 @@ class RingDoorBell(RingGeneric):
 
     def recording_download(self, recording_id, filename=None, override=False):
         """Save a recording in MP4 format to a file or return raw."""
+        if not self.has_subscription:
+            _LOGGER.warning("Your Ring account does not have" +
+                            " an active subscription.")
+            return False
+
         url = API_URI + URL_RECORDING.format(recording_id)
         try:
             req = self._ring.query(url, raw=True)
@@ -268,6 +273,11 @@ class RingDoorBell(RingGeneric):
 
     def recording_url(self, recording_id):
         """Return HTTPS recording URL."""
+        if not self.has_subscription:
+            _LOGGER.warning("Your Ring account does not have" +
+                            " an active subscription.")
+            return False
+
         url = API_URI + URL_RECORDING.format(recording_id)
         req = self._ring.query(url, raw=True)
         if req and req.status_code == 200:
@@ -289,6 +299,11 @@ class RingDoorBell(RingGeneric):
         if result is None:
             return False
         return True
+
+    @property
+    def has_subscription(self):
+        """Return boolean if the account has subscription."""
+        return self._attrs.get('features').get('show_recordings')
 
     @property
     def volume(self):
