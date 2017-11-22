@@ -74,6 +74,7 @@ class TestRing(RingUnitTestBase):
                 self.assertEqual(-70.12345, dev.longitude)
                 self.assertEqual('America/New_York', dev.timezone)
                 self.assertEqual(1, dev.volume)
+                self.assertTrue(dev.has_subscription)
                 self.assertEqual('online', dev.connection_status)
 
                 self.assertIsInstance(dev.history(limit=1, kind='motion'),
