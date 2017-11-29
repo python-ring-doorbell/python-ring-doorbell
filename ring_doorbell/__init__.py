@@ -253,3 +253,12 @@ class Ring(object):
     def doorbells(self):
         """Return a list of RingDoorBell objects."""
         return self.__devices('doorbells')
+
+    def update(self):
+        """Refreshes attributes for all linked devices."""
+        for device_lst in self.devices.values():
+            for device in device_lst:
+                if hasattr(device, "update"):
+                    _LOGGER.debug("Updating attributes from %s", device.name)
+                    getattr(device, "update")
+        return True
