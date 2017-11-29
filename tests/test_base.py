@@ -28,6 +28,8 @@ class RingUnitTestBase(unittest.TestCase):
         self.ring_persistent = \
             Ring(USERNAME, PASSWORD, cache_file=CACHE, persist_token=True)
 
+        self.assertTrue(hasattr(self.ring, "update"))
+
     def cleanup(self):
         """Cleanup any data created from the tests."""
         self.ring = None
