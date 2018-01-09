@@ -131,8 +131,8 @@ class Ring(object):
                 if self._reuse_session:
                     self.cache['account'] = self.username
                     self.cache['token'] = self.token
+                   _save_cache(self.cache, self.cache_file)
 
-                _save_cache(self.cache, self.cache_file)
                 return True
 
         self.is_connected = False
