@@ -30,8 +30,8 @@ class RingDoorBell(RingGeneric):
     @property
     def battery_life(self):
         """Return battery life."""
-        value = int(self._attrs.get('battery_life'))
-        if value > 100:
+        value = self._attrs.get('battery_life')
+        if value and value > 100:
             value = 100
         return value
 
@@ -270,6 +270,7 @@ class RingDoorBell(RingGeneric):
         except IOError as error:
             _LOGGER.error("%s", error)
             raise
+        return False
 
     def recording_url(self, recording_id):
         """Return HTTPS recording URL."""
