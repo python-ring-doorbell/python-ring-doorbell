@@ -137,6 +137,7 @@ class Ring(object):
 
         self.is_connected = False
         req.raise_for_status()
+        return True
 
     def query(self,
               url,

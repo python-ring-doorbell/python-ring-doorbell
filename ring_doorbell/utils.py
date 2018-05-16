@@ -55,4 +55,5 @@ def _read_cache(filename):
             return data
 
     except (EOFError, ValueError):
-        return _clean_cache(filename)
+        pass
+    return _clean_cache(filename)

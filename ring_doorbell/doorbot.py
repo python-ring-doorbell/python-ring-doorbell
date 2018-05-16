@@ -270,6 +270,7 @@ class RingDoorBell(RingGeneric):
         except IOError as error:
             _LOGGER.error("%s", error)
             raise
+        return False
 
     def recording_url(self, recording_id):
         """Return HTTPS recording URL."""
