@@ -30,7 +30,7 @@ class RingDoorBell(RingGeneric):
     @property
     def battery_life(self):
         """Return battery life."""
-        value = self._attrs.get('battery_life')
+        value = int(self._attrs.get('battery_life'))
         if value and value > 100:
             value = 100
         return value

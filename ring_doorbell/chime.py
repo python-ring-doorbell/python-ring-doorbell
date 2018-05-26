@@ -23,7 +23,7 @@ class RingChime(RingGeneric):
     @property
     def battery_life(self):
         """Return battery life."""
-        return self._health_attrs.get('battery_percentage')
+        return int(self._health_attrs.get('battery_percentage'))
 
     @property
     def volume(self):
