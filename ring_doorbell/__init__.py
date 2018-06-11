@@ -1,6 +1,7 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell wrapper."""
+import sys
 try:
     from urllib.parse import urlencode
 except ImportError:
@@ -14,7 +15,8 @@ from ring_doorbell.utils import _exists_cache, _save_cache, _read_cache
 from ring_doorbell.const import (
     API_VERSION, API_URI, CACHE_ATTRS, CACHE_FILE,
     DEVICES_ENDPOINT, HEADERS, NEW_SESSION_ENDPOINT, MSG_GENERIC_FAIL,
-    POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA, RETRY_TOKEN)
+    POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA, RETRY_TOKEN,
+    OAUTH_ENDPOINT, OAUTH_DATA, OAUTH_HEADERS)
 
 from ring_doorbell.doorbot import RingDoorBell
 from ring_doorbell.chime import RingChime
@@ -87,7 +89,21 @@ class Ring(object):
 
     def _authenticate(self, attempts=RETRY_TOKEN, session=None):
         """Authenticate user against Ring API."""
-        url = API_URI + NEW_SESSION_ENDPOINT
+        # get access_token
+        OAUTH_DATA['username'] = self.username
+        OAUTH_DATA['password'] = self.password
+        OAUTH_HEADERS['content-length'] = str(sys.getsizeof(OAUTH_HEADERS))
+
+        import rpdb; rpdb.set_trace()
+        req = self.session.post((OAUTH_ENDPOINT),
+                                data=OAUTH_DATA,
+                                headers=OAUTH_HEADERS)
+
+
+
+
+
+        #url = API_URI + NEW_SESSION_ENDPOINT
 
         loop = 0
         while loop <= attempts:
