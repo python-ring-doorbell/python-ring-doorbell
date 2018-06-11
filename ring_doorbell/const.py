@@ -3,11 +3,6 @@
 """Constants."""
 import os
 from uuid import uuid4 as uuid
-
-OAUTH_HEADERS = {
-    'content-type': 'application/json',
-}
-
 HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
     'User-Agent': 'Dalvik/1.6.0 (Linux; Android 4.4.4; Build/KTU84Q)',
