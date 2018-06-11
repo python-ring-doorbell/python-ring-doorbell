@@ -91,12 +91,12 @@ class Ring(object):
         oauth_data['username'] = self.username
         oauth_data['password'] = self.password
 
-        req = self.session.post(OAUTH_ENDPOINT,
-                                data=oauth_data,
-                                headers=HEADERS)
+        response = self.session.post(OAUTH_ENDPOINT,
+                                     data=oauth_data,
+                                     headers=HEADERS)
         oauth_token = None
-        if req.status_code == 200:
-            oauth_token = req.json().get('access_token')
+        if response.status_code == 200:
+            oauth_token = response.json().get('access_token')
         return oauth_token
 
     def _authenticate(self, attempts=RETRY_TOKEN, session=None):
