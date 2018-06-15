@@ -11,7 +11,7 @@ def readme():
 setup(
     name='ring_doorbell',
     packages=['ring_doorbell'],
-    version='0.2.1',
+    version='0.2.2',
     description='A Python library to communicate with Ring' +
                 ' Door Bell (https://ring.com/)',
     long_description=readme(),
