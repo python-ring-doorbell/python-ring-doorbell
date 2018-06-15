@@ -2,14 +2,19 @@
 """Python Ring Door Bell setup script."""
 from setuptools import setup
 
+
+def readme():
+    with open('README.rst') as desc:
+        return desc.read()
+
+
 setup(
     name='ring_doorbell',
     packages=['ring_doorbell'],
     version='0.2.1',
     description='A Python library to communicate with Ring' +
                 ' Door Bell (https://ring.com/)',
-    long_description='A Python library to communicate with Ring' +
-                ' Door Bell (https://ring.com/)',
+    long_description=readme(),
     author='Marcelo Moreira de Mello',
     author_email='tchello.mello@gmail.com',
     url='https://github.com/tchellomello/python-ring-doorbell',
