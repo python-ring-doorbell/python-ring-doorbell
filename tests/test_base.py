@@ -17,6 +17,8 @@ class RingUnitTestBase(unittest.TestCase):
     def setUp(self, mock):
         """Setup unit test and load mock."""
         from ring_doorbell import Ring
+        mock.post('https://oauth.ring.com/oauth/token',
+                  text=load_fixture('ring_oauth.json'))
         mock.get('https://api.ring.com/clients_api/ring_devices',
                  text=load_fixture('ring_devices.json'))
         mock.post('https://api.ring.com/clients_api/session',
