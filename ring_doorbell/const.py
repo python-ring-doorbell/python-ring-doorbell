@@ -3,10 +3,11 @@
 """Constants."""
 import os
 from uuid import uuid4 as uuid
-
-HEADERS = {'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
-           'User-Agent': 'Dalvik/1.6.0 (Linux; Android 4.4.4; Build/KTU84Q)',
-           'Accept-Encoding': 'gzip, deflate'}
+HEADERS = {
+    'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
+    'User-Agent': 'Dalvik/1.6.0 (Linux; Android 4.4.4; Build/KTU84Q)',
+    'Accept-Encoding': 'gzip, deflate'
+}
 
 # number of attempts to refresh token
 RETRY_TOKEN = 3
@@ -25,6 +26,7 @@ except (AttributeError, TypeError):
 NOT_FOUND = -1
 
 # API endpoints
+OAUTH_ENDPOINT = 'https://oauth.ring.com/oauth/token'
 API_VERSION = '9'
 API_URI = 'https://api.ring.com'
 CHIMES_ENDPOINT = '/clients_api/chimes/{0}'
@@ -74,6 +76,14 @@ MSG_VOL_OUTBOUND = 'Must be within the {0}-{1}.'
 MSG_ALLOWED_VALUES = 'Only the following values are allowed: {0}.'
 
 # structure acquired from reverse engineering to create auth token
+OAUTH_DATA = {
+    "client_id": "ring_official_android",
+    "grant_type": "password",
+    "scope": "client",
+    "username": None,
+    "password": None,
+}
+
 POST_DATA = {
     'api_version': API_VERSION,
     'device[hardware_id]': str(uuid()),
