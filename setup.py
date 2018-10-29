@@ -2,6 +2,8 @@
 """Python Ring Door Bell setup script."""
 from setuptools import setup
 
+_VERSION = '0.2.3'
+
 
 def readme():
     with open('README.rst') as desc:
@@ -11,7 +13,7 @@ def readme():
 setup(
     name='ring_doorbell',
     packages=['ring_doorbell'],
-    version='0.2.2',
+    version=_VERSION,
     description='A Python library to communicate with Ring' +
                 ' Door Bell (https://ring.com/)',
     long_description=readme(),
