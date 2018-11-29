@@ -159,7 +159,8 @@ class Ring(object):
               attempts=RETRY_TOKEN,
               method='GET',
               raw=False,
-              extra_params=None):
+              extra_params=None,
+              json=None):
         """Query data from Ring API."""
         if self.debug:
             _LOGGER.debug("Querying %s", url)
@@ -189,7 +190,7 @@ class Ring(object):
                 elif method == 'PUT':
                     req = self.session.put((url), params=urlencode(params))
                 elif method == 'POST':
-                    req = self.session.post((url), params=urlencode(params))
+                    req = self.session.post((url), params=urlencode(params), json=json)
 
                 if self.debug:
                     _LOGGER.debug("_query %s ret %s", loop, req.status_code)
