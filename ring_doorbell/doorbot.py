@@ -344,15 +344,15 @@ class RingDoorBell(RingGeneric):
         """Return connection status."""
         return self._attrs.get('alerts').get('connection')
 
-    def get_snapshot(self, retries=3, delay=2):
+    def get_snapshot(self, retries=3, delay=1):
         """Take a snapshot and download it"""
         url = API_URI + SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get('id')]}
         self._ring.query(url, json=payload)
         request_time = time.time()
-        for _ in range(3):
+        for _ in range(retries):
             time.sleep(delay)
             response = self._ring.query(url, method="POST", json=payload, raw=1).json()
-            if response["timestamps"][0]["timestamp"] / 100 > request_time:
+            if response["timestamps"][0]["timestamp"] / 1000 > request_time:
                 return self._ring.query(API_URI + SNAPSHOT_ENDPOINT.format(self._attrs.get('id')), raw=True).content
         return False
