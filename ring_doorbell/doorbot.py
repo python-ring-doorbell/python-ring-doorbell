@@ -15,7 +15,8 @@ from ring_doorbell.const import (
     API_URI, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
     LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
-    MSG_VOL_OUTBOUND, SNAPSHOT_ENDPOINT, SNAPSHOT_TIMESTAMP_ENDPOINT, URL_DOORBELL_HISTORY, URL_RECORDING)
+    MSG_VOL_OUTBOUND, SNAPSHOT_ENDPOINT, SNAPSHOT_TIMESTAMP_ENDPOINT,
+    URL_DOORBELL_HISTORY, URL_RECORDING)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -352,7 +353,9 @@ class RingDoorBell(RingGeneric):
         request_time = time.time()
         for _ in range(retries):
             time.sleep(delay)
-            response = self._ring.query(url, method="POST", json=payload, raw=1).json()
+            response = self._ring.query(url, method="POST", json=payload,
+                                                            raw=1).json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
-                return self._ring.query(API_URI + SNAPSHOT_ENDPOINT.format(self._attrs.get('id')), raw=True).content
+                return self._ring.query(API_URI + SNAPSHOT_ENDPOINT.format(
+                                  self._attrs.get('id')), raw=True).content
         return False
