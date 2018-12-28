@@ -12,6 +12,7 @@ from ring_doorbell.const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+# pylint: disable=useless-object-inheritance
 class RingGeneric(object):
     """Generic Implementation for Ring Chime/Doorbell."""
 

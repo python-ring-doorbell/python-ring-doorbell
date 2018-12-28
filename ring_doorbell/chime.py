@@ -33,7 +33,7 @@ class RingChime(RingGeneric):
     @volume.setter
     def volume(self, value):
         if not ((isinstance(value, int)) and
-                (value >= CHIME_VOL_MIN and value <= CHIME_VOL_MAX)):
+                (CHIME_VOL_MIN <= value <= CHIME_VOL_MAX)):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(CHIME_VOL_MIN,
                                                         CHIME_VOL_MAX))
             return False

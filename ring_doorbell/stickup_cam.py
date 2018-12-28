@@ -48,8 +48,7 @@ class RingStickUpCam(RingDoorBell):
     def siren(self, duration):
         """Control the siren."""
         if not ((isinstance(duration, int)) and
-                (duration >= SIREN_DURATION_MIN and
-                 duration <= SIREN_DURATION_MAX)):
+                (SIREN_DURATION_MIN <= duration <= SIREN_DURATION_MAX)):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(SIREN_DURATION_MIN,
                                                         SIREN_DURATION_MAX))
             return False

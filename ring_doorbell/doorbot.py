@@ -152,7 +152,7 @@ class RingDoorBell(RingGeneric):
         if self.existing_doorbell_type:
 
             if not ((isinstance(value, int)) and
-                    (value >= DOORBELL_VOL_MIN and value <= DOORBELL_VOL_MAX)):
+                    (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)):
                 _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN,
                                                             DOORBELL_VOL_MAX))
                 return False
@@ -261,8 +261,8 @@ class RingDoorBell(RingGeneric):
     def recording_download(self, recording_id, filename=None, override=False):
         """Save a recording in MP4 format to a file or return raw."""
         if not self.has_subscription:
-            _LOGGER.warning("Your Ring account does not have" +
-                            " an active subscription.")
+            msg = "Your Ring account does not have an active subscription."
+            _LOGGER.warning(msg)
             return False
 
         url = API_URI + URL_RECORDING.format(recording_id)
@@ -288,8 +288,8 @@ class RingDoorBell(RingGeneric):
     def recording_url(self, recording_id):
         """Return HTTPS recording URL."""
         if not self.has_subscription:
-            _LOGGER.warning("Your Ring account does not have" +
-                            " an active subscription.")
+            msg = "Your Ring account does not have an active subscription."
+            _LOGGER.warning(msg)
             return False
 
         url = API_URI + URL_RECORDING.format(recording_id)
@@ -327,7 +327,7 @@ class RingDoorBell(RingGeneric):
     @volume.setter
     def volume(self, value):
         if not ((isinstance(value, int)) and
-                (value >= DOORBELL_VOL_MIN and value <= DOORBELL_VOL_MAX)):
+                (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN,
                                                         DOORBELL_VOL_MAX))
             return False

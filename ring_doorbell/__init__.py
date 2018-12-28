@@ -24,6 +24,7 @@ from ring_doorbell.stickup_cam import RingStickUpCam
 _LOGGER = logging.getLogger(__name__)
 
 
+# pylint: disable=useless-object-inheritance
 class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
