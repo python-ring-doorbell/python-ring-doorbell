@@ -67,6 +67,13 @@ DOORBELL_EXISTING_TYPE = {
 SIREN_DURATION_MIN = 0
 SIREN_DURATION_MAX = 120
 
+# doorbell motion zones
+DOORBELL_MOTION_ZONES = ('zone1', 'zone2', 'zone3')
+DOORBELL_MOTION_ZONE_STATE = {
+    0: 'Undefined',   # setting to 0 effectively deletes the motion zone
+    1: 'Inactive',
+    2: 'Active'}
+
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."
 MSG_EXISTING_TYPE = "Integer value where {0}.".format(DOORBELL_EXISTING_TYPE)

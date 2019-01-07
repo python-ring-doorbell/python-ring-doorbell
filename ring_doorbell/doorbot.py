@@ -12,9 +12,10 @@ from ring_doorbell.generic import RingGeneric
 from ring_doorbell.utils import _save_cache
 from ring_doorbell.const import (
     API_URI, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
+    DOORBELL_MOTION_ZONES, DOORBELL_MOTION_ZONE_STATE,
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
     LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
-    MSG_VOL_OUTBOUND, URL_DOORBELL_HISTORY, URL_RECORDING)
+    MSG_VOL_OUTBOUND, MSG_ALLOWED_VALUES, URL_DOORBELL_HISTORY, URL_RECORDING)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -335,6 +336,33 @@ class RingDoorBell(RingGeneric):
         params = {
             'doorbot[description]': self.name,
             'doorbot[settings][doorbell_volume]': str(value)}
+        url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+        self._ring.query(url, extra_params=params, method='PUT')
+        self.update()
+        return True
+
+    @property
+    def motion_zones(self):
+        return self._attrs.get('settings').get('motion_zones')
+
+    def motion_zone_state(self, zone_id, value):
+        """Set a motion zone to one of the allowed states. See
+        `const.DOORBELL_MOTION_ZONE_STATE`"""
+
+        if not zone_id in DOORBELL_MOTION_ZONES:
+            _LOGGER.error(MSG_ALLOWED_VALUES.format(DOORBELL_MOTION_ZONES))
+            return False
+
+        if value not in DOORBELL_MOTION_ZONE_STATE:
+            _LOGGER.error(
+                MSG_ALLOWED_VALUES.format(list(DOORBELL_MOTION_ZONE_STATE)))
+            return False
+
+        params = {
+            'doorbot[description]': self.name,
+            'doorbot[settings][motion_zones][{0}][state]'.format(zone_id): value
+        }
+
         url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
         self._ring.query(url, extra_params=params, method='PUT')
         self.update()
