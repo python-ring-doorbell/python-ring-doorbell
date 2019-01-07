@@ -349,7 +349,7 @@ class RingDoorBell(RingGeneric):
         """Set a motion zone to one of the allowed states. See
         `const.DOORBELL_MOTION_ZONE_STATE`"""
 
-        if not zone_id in DOORBELL_MOTION_ZONES:
+        if zone_id not in DOORBELL_MOTION_ZONES:
             _LOGGER.error(MSG_ALLOWED_VALUES.format(DOORBELL_MOTION_ZONES))
             return False
 
@@ -360,8 +360,8 @@ class RingDoorBell(RingGeneric):
 
         params = {
             'doorbot[description]': self.name,
-            'doorbot[settings][motion_zones][{0}][state]'.format(zone_id): value
-        }
+            'doorbot[settings][motion_zones][{0}][state]'.format(zone_id):
+                value}
 
         url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
         self._ring.query(url, extra_params=params, method='PUT')

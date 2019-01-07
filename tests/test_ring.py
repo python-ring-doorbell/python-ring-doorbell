@@ -92,6 +92,24 @@ class TestRing(RingUnitTestBase):
                 self.assertEqual(-58, dev.wifi_signal_strength)
 
     @requests_mock.Mocker()
+    def test_doorbell_motion_zones(self, mock):
+        mock.get('https://api.ring.com/clients_api/ring_devices',
+                 text=load_fixture('ring_devices.json'))
+        data = self.ring_persistent
+        for dev in data.doorbells:
+            zones = dev.motion_zones
+            for z in (1, 2, 3):
+                zone = 'zone{0}'.format(z)
+                self.assertIn(zone, zones)
+
+                self.assertTrue(dev.motion_zone_state(zone, 0))
+                self.assertTrue(dev.motion_zone_state(zone, 1))
+                self.assertTrue(dev.motion_zone_state(zone, 2))
+                self.assertFalse(dev.motion_zone_state(zone, -1))
+                self.assertFalse(dev.motion_zone_state(zone, 3))
+
+
+    @requests_mock.Mocker()
     def test_shared_doorbell_attributes(self, mock):
         mock.get('https://api.ring.com/clients_api/ring_devices',
                  text=load_fixture('ring_devices.json'))
@@ -113,6 +131,7 @@ class TestRing(RingUnitTestBase):
                 self.assertEqual('America/New_York', dev.timezone)
                 self.assertEqual(5, dev.volume)
                 self.assertEqual('Digital', dev.existing_doorbell_type)
+
 
     @requests_mock.Mocker()
     def test_doorbell_alerts(self, mock):
