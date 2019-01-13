@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """The tests for the Ring platform."""
-#import wingdbstub
 from datetime import datetime
 from tests.test_base import RingUnitTestBase
 from tests.helpers import load_fixture
@@ -104,7 +103,6 @@ class TestRing(RingUnitTestBase):
 
         data = self.ring_persistent
         for dev in data.doorbells:
-            zones = dev.motion_zones
             for z in (1, 2, 3):
                 zone = 'zone{0}'.format(z)
                 self.assertTrue(dev.motion_zone_state(zone, 0))
