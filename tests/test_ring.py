@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """The tests for the Ring platform."""
+#import wingdbstub
 from datetime import datetime
 from tests.test_base import RingUnitTestBase
 from tests.helpers import load_fixture
@@ -95,20 +96,17 @@ class TestRing(RingUnitTestBase):
     def test_doorbell_motion_zones(self, mock):
         mock.get('https://api.ring.com/clients_api/ring_devices',
                  text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/history',
-                 text=load_fixture('ring_doorbots.json'))
         mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
                  text=load_fixture('ring_doorboot_health_attrs.json'))
         mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
                  text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
+        mock.put(requests_mock.ANY, text='ok')
 
         data = self.ring_persistent
         for dev in data.doorbells:
             zones = dev.motion_zones
             for z in (1, 2, 3):
                 zone = 'zone{0}'.format(z)
-                self.assertIn(zone, zones)
-
                 self.assertTrue(dev.motion_zone_state(zone, 0))
                 self.assertTrue(dev.motion_zone_state(zone, 1))
                 self.assertTrue(dev.motion_zone_state(zone, 2))
