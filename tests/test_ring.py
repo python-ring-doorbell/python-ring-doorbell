@@ -29,7 +29,7 @@ class TestRing(RingUnitTestBase):
         self.assertEqual(2, len(data.doorbells))
         self.assertEqual(1, len(data.stickup_cams))
         self.assertFalse(data._persist_token)
-        self.assertEquals('http://localhost/', data._push_token_notify_url)
+        self.assertEqual('http://localhost/', data._push_token_notify_url)
 
     @requests_mock.Mocker()
     def test_chime_attributes(self, mock):
