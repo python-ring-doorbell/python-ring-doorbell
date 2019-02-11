@@ -25,8 +25,8 @@ class TestUtils(unittest.TestCase):
 
     def test_locator(self):
         """Test _locator method."""
-        self.assertEquals(-1, _locator([DATA], 'key', 'bar'))
-        self.assertEquals(0, _locator([DATA], 'key', 'value'))
+        self.assertEqual(-1, _locator([DATA], 'key', 'bar'))
+        self.assertEqual(0, _locator([DATA], 'key', 'value'))
 
     def test_initiliaze_clean_cache(self):
         """Test _clean_cache method."""

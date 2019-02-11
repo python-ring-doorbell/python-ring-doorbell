@@ -191,7 +191,8 @@ class Ring(object):
                 elif method == 'PUT':
                     req = self.session.put((url), params=urlencode(params))
                 elif method == 'POST':
-                    req = self.session.post((url), params=urlencode(params), json=json)
+                    req = self.session.post(
+                        (url), params=urlencode(params), json=json)
 
                 if self.debug:
                     _LOGGER.debug("_query %s ret %s", loop, req.status_code)
