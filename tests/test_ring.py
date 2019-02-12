@@ -46,6 +46,7 @@ class TestRing(RingUnitTestBase):
         self.assertNotEqual(99999, dev.account_id)
         self.assertEqual('abcdef123', dev.id)
         self.assertEqual('chime', dev.kind)
+        self.assertEqual('Chime', dev.model)
         self.assertIsNotNone(dev.latitude)
         self.assertEqual('America/New_York', dev.timezone)
         self.assertEqual(2, dev.volume)
@@ -71,6 +72,7 @@ class TestRing(RingUnitTestBase):
                 self.assertEqual(987652, dev.account_id)
                 self.assertEqual('123 Main St', dev.address)
                 self.assertEqual('lpd_v1', dev.kind)
+                self.assertEqual('Doorbell Pro', dev.model)
                 self.assertEqual(-70.12345, dev.longitude)
                 self.assertEqual('America/New_York', dev.timezone)
                 self.assertEqual(1, dev.volume)
@@ -109,6 +111,7 @@ class TestRing(RingUnitTestBase):
                 self.assertEqual(51, dev.battery_life)
                 self.assertEqual('123 Second St', dev.address)
                 self.assertEqual('lpd_v1', dev.kind)
+                self.assertEqual('Doorbell Pro', dev.model)
                 self.assertEqual(-70.12345, dev.longitude)
                 self.assertEqual('America/New_York', dev.timezone)
                 self.assertEqual(5, dev.volume)
@@ -146,6 +149,8 @@ class TestRing(RingUnitTestBase):
 
         data = self.ring_persistent
         for dev in data.stickup_cams:
+            self.assertEqual('hp_cam_v1', dev.kind)
+            self.assertEqual('Floodlight Cam', dev.model)
             self.assertEqual('off', dev.lights)
             self.assertEqual(0, dev.siren)
 

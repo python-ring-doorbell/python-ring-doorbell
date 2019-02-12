@@ -13,10 +13,12 @@ from ring_doorbell.generic import RingGeneric
 from ring_doorbell.utils import _save_cache
 from ring_doorbell.const import (
     API_URI, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
-    DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
-    LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
-    MSG_VOL_OUTBOUND, SNAPSHOT_ENDPOINT, SNAPSHOT_TIMESTAMP_ENDPOINT,
-    URL_DOORBELL_HISTORY, URL_RECORDING)
+    DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, DOORBELL_KINDS,
+    DOORBELL_2_KINDS, DOORBELL_PRO_KINDS, DOORBELL_ELITE_KINDS,
+    FILE_EXISTS, LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED,
+    MSG_EXISTING_TYPE, MSG_VOL_OUTBOUND, SNAPSHOT_ENDPOINT,
+    SNAPSHOT_TIMESTAMP_ENDPOINT, URL_DOORBELL_HISTORY,
+    URL_RECORDING)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +30,19 @@ class RingDoorBell(RingGeneric):
     def family(self):
         """Return Ring device family type."""
         return 'doorbots'
+
+    @property
+    def model(self):
+        """Return Ring device model name."""
+        if self.kind in DOORBELL_KINDS:
+            return 'Doorbell'
+        elif self.kind in DOORBELL_2_KINDS:
+            return 'Doorbell 2'
+        elif self.kind in DOORBELL_PRO_KINDS:
+            return 'Doorbell Pro'
+        elif self.kind in DOORBELL_ELITE_KINDS:
+            return 'Doorbell Elite'
+        return None
 
     @property
     def battery_life(self):

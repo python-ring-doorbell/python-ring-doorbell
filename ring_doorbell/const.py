@@ -69,6 +69,22 @@ DOORBELL_EXISTING_TYPE = {
 SIREN_DURATION_MIN = 0
 SIREN_DURATION_MAX = 120
 
+# device model kinds
+CHIME_KINDS = ['chime']
+CHIME_PRO_KINDS = ['chime_pro']
+
+DOORBELL_KINDS = ['doorbot', 'doorbell', 'doorbell_v3']
+DOORBELL_2_KINDS = ['doorbell_v4', 'doorbell_v5']
+DOORBELL_PRO_KINDS = ['lpd_v1', 'lpd_v2']
+DOORBELL_ELITE_KINDS = ['jbox_v1']
+
+FLOODLIGHT_CAM_KINDS = ['hp_cam_v1']
+SPOTLIGHT_CAM_BATTERY_KINDS = ['stickup_cam_v4']
+SPOTLIGHT_CAM_WIRED_KINDS = ['hp_cam_v2']
+STICKUP_CAM_KINDS = ['stickup_cam', 'stickup_cam_v3']
+STICKUP_CAM_BATTERY_KINDS = ['stickup_cam_lunar']
+STICKUP_CAM_WIRED_KINDS = ['stickup_cam_elite']
+
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."
 MSG_EXISTING_TYPE = "Integer value where {0}.".format(DOORBELL_EXISTING_TYPE)
