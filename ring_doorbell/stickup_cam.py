@@ -41,6 +41,24 @@ class RingStickUpCam(RingDoorBell):
             return 'Stick Up Cam Wired'
         return None
 
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        if capability == 'battery':
+            return self.kind in (SPOTLIGHT_CAM_BATTERY_KINDS +
+                                 STICKUP_CAM_KINDS +
+                                 STICKUP_CAM_BATTERY_KINDS)
+        elif capability == 'light':
+            return self.kind in (FLOODLIGHT_CAM_KINDS +
+                                 SPOTLIGHT_CAM_BATTERY_KINDS +
+                                 SPOTLIGHT_CAM_WIRED_KINDS)
+        elif capability == 'siren':
+            return self.kind in (FLOODLIGHT_CAM_KINDS +
+                                 SPOTLIGHT_CAM_BATTERY_KINDS +
+                                 SPOTLIGHT_CAM_WIRED_KINDS +
+                                 STICKUP_CAM_BATTERY_KINDS +
+                                 STICKUP_CAM_WIRED_KINDS)
+        return False
+
     @property
     def lights(self):
         """Return lights status."""

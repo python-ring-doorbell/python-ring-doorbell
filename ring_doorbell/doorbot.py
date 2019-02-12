@@ -44,6 +44,15 @@ class RingDoorBell(RingGeneric):
             return 'Doorbell Elite'
         return None
 
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        if capability == 'battery':
+            return self.kind in (DOORBELL_KINDS +
+                                 DOORBELL_2_KINDS)
+        elif capability == 'volume':
+            return True
+        return False
+
     @property
     def battery_life(self):
         """Return battery life."""

@@ -29,9 +29,11 @@ class RingChime(RingGeneric):
             return 'Chime Pro'
         return None
 
-    def battery_life(self):
-        """Return battery life."""
-        return int(self._health_attrs.get('battery_percentage'))
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        if capability == 'volume':
+            return True
+        return False
 
     @property
     def volume(self):
