@@ -343,6 +343,7 @@ class RingDoorBell(RingGeneric):
 
     @property
     def motion_zones(self):
+        """Return all motion zone settings"""
         return self._attrs.get('settings').get('motion_zones')
 
     def motion_zone_state(self, zone_id, value):
@@ -350,12 +351,13 @@ class RingDoorBell(RingGeneric):
         `const.DOORBELL_MOTION_ZONE_STATE`"""
 
         if zone_id not in DOORBELL_MOTION_ZONES:
-            _LOGGER.error(MSG_ALLOWED_VALUES.format(DOORBELL_MOTION_ZONES))
+            _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(
+                DOORBELL_MOTION_ZONES))
             return False
 
         if value not in DOORBELL_MOTION_ZONE_STATE:
-            _LOGGER.error(
-                MSG_ALLOWED_VALUES.format(list(DOORBELL_MOTION_ZONE_STATE)))
+            _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(
+                list(DOORBELL_MOTION_ZONE_STATE)))
             return False
 
         params = {
