@@ -7,7 +7,7 @@ from ring_doorbell.generic import RingGeneric
 from ring_doorbell.const import (
     API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
     LINKED_CHIMES_ENDPOINT, MSG_VOL_OUTBOUND, TESTSOUND_CHIME_ENDPOINT,
-    CHIME_TEST_SOUND_KINDS, KIND_DING)
+    CHIME_TEST_SOUND_KINDS, KIND_DING, CHIME_KINDS, CHIME_PRO_KINDS)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,9 +21,19 @@ class RingChime(RingGeneric):
         return 'chimes'
 
     @property
-    def battery_life(self):
-        """Return battery life."""
-        return int(self._health_attrs.get('battery_percentage'))
+    def model(self):
+        """Return Ring device model name."""
+        if self.kind in CHIME_KINDS:
+            return 'Chime'
+        elif self.kind in CHIME_PRO_KINDS:
+            return 'Chime Pro'
+        return None
+
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        if capability == 'volume':
+            return True
+        return False
 
     @property
     def volume(self):

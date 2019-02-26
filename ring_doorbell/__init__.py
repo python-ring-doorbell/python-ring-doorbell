@@ -216,7 +216,7 @@ class Ring(object):
                         response = req.json()
                 break
 
-        if self.debug:
+        if self.debug and response is None:
             _LOGGER.debug("%s", MSG_GENERIC_FAIL)
         return response
 

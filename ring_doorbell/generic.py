@@ -40,6 +40,15 @@ class RingGeneric(object):
         """Return Ring device family type."""
         return None
 
+    @property
+    def model(self):
+        """Return Ring device model name."""
+        return None
+
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        return False
+
     def update(self):
         """Refresh attributes."""
         self._get_attrs()

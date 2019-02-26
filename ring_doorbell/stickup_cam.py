@@ -6,6 +6,9 @@ import logging
 from ring_doorbell import RingDoorBell
 from ring_doorbell.const import (
     API_URI, LIGHTS_ENDPOINT, MSG_ALLOWED_VALUES, MSG_VOL_OUTBOUND,
+    FLOODLIGHT_CAM_KINDS, SPOTLIGHT_CAM_BATTERY_KINDS,
+    SPOTLIGHT_CAM_WIRED_KINDS, STICKUP_CAM_KINDS,
+    STICKUP_CAM_BATTERY_KINDS, STICKUP_CAM_WIRED_KINDS,
     SIREN_DURATION_MIN, SIREN_DURATION_MAX, SIREN_ENDPOINT)
 
 _LOGGER = logging.getLogger(__name__)
@@ -18,6 +21,43 @@ class RingStickUpCam(RingDoorBell):
     def family(self):
         """Return Ring device family type."""
         return 'stickup_cams'
+
+    @property
+    def model(self):
+        """Return Ring device model name."""
+        if self.kind in FLOODLIGHT_CAM_KINDS:
+            return 'Floodlight Cam'
+        elif self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
+            return 'Spotlight Cam {}'.format(
+                self._attrs.get('ring_cam_setup_flow', 'battery').title())
+        elif self.kind in SPOTLIGHT_CAM_WIRED_KINDS:
+            return 'Spotlight Cam {}'.format(
+                self._attrs.get('ring_cam_setup_flow', 'wired').title())
+        elif self.kind in STICKUP_CAM_KINDS:
+            return 'Stick Up Cam'
+        elif self.kind in STICKUP_CAM_BATTERY_KINDS:
+            return 'Stick Up Cam Battery'
+        elif self.kind in STICKUP_CAM_WIRED_KINDS:
+            return 'Stick Up Cam Wired'
+        return None
+
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        if capability == 'battery':
+            return self.kind in (SPOTLIGHT_CAM_BATTERY_KINDS +
+                                 STICKUP_CAM_KINDS +
+                                 STICKUP_CAM_BATTERY_KINDS)
+        elif capability == 'light':
+            return self.kind in (FLOODLIGHT_CAM_KINDS +
+                                 SPOTLIGHT_CAM_BATTERY_KINDS +
+                                 SPOTLIGHT_CAM_WIRED_KINDS)
+        elif capability == 'siren':
+            return self.kind in (FLOODLIGHT_CAM_KINDS +
+                                 SPOTLIGHT_CAM_BATTERY_KINDS +
+                                 SPOTLIGHT_CAM_WIRED_KINDS +
+                                 STICKUP_CAM_BATTERY_KINDS +
+                                 STICKUP_CAM_WIRED_KINDS)
+        return False
 
     @property
     def lights(self):
