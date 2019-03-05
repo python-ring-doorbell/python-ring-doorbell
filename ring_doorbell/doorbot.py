@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime
 import os
+import time
 import pytz
 
 
@@ -12,9 +13,12 @@ from ring_doorbell.generic import RingGeneric
 from ring_doorbell.utils import _save_cache
 from ring_doorbell.const import (
     API_URI, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
-    DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, FILE_EXISTS,
-    LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED, MSG_EXISTING_TYPE,
-    MSG_VOL_OUTBOUND, URL_DOORBELL_HISTORY, URL_RECORDING)
+    DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, DOORBELL_KINDS,
+    DOORBELL_2_KINDS, DOORBELL_PRO_KINDS, DOORBELL_ELITE_KINDS,
+    FILE_EXISTS, LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED,
+    MSG_EXISTING_TYPE, MSG_VOL_OUTBOUND, SNAPSHOT_ENDPOINT,
+    SNAPSHOT_TIMESTAMP_ENDPOINT, URL_DOORBELL_HISTORY,
+    URL_RECORDING)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,11 +32,33 @@ class RingDoorBell(RingGeneric):
         return 'doorbots'
 
     @property
+    def model(self):
+        """Return Ring device model name."""
+        if self.kind in DOORBELL_KINDS:
+            return 'Doorbell'
+        elif self.kind in DOORBELL_2_KINDS:
+            return 'Doorbell 2'
+        elif self.kind in DOORBELL_PRO_KINDS:
+            return 'Doorbell Pro'
+        elif self.kind in DOORBELL_ELITE_KINDS:
+            return 'Doorbell Elite'
+        return None
+
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        if capability == 'battery':
+            return self.kind in (DOORBELL_KINDS +
+                                 DOORBELL_2_KINDS)
+        elif capability == 'volume':
+            return True
+        return False
+
+    @property
     def battery_life(self):
         """Return battery life."""
+        value = 0
         if 'battery_life_2' in self._attrs:
             # Camera has two battery bays
-            value = 0
             if self._attrs.get('battery_life') is not None:
                 # Bay 1
                 value += int(self._attrs.get('battery_life'))
@@ -41,9 +67,11 @@ class RingDoorBell(RingGeneric):
                 value += int(self._attrs.get('battery_life_2'))
             return value
         # Camera has a single battery bay
-        value = int(self._attrs.get('battery_life'))
-        if value and value > 100:
-            value = 100
+        # Latest stickup cam can be externally powered
+        if self._attrs.get('battery_life') is not None:
+            value = int(self._attrs.get('battery_life'))
+            if value and value > 100:
+                value = 100
         return value
 
     def check_alerts(self):
@@ -150,7 +178,7 @@ class RingDoorBell(RingGeneric):
         if self.existing_doorbell_type:
 
             if not ((isinstance(value, int)) and
-                    (value >= DOORBELL_VOL_MIN and value <= DOORBELL_VOL_MAX)):
+                    (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)):
                 _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN,
                                                             DOORBELL_VOL_MAX))
                 return False
@@ -259,8 +287,8 @@ class RingDoorBell(RingGeneric):
     def recording_download(self, recording_id, filename=None, override=False):
         """Save a recording in MP4 format to a file or return raw."""
         if not self.has_subscription:
-            _LOGGER.warning("Your Ring account does not have" +
-                            " an active subscription.")
+            msg = "Your Ring account does not have an active subscription."
+            _LOGGER.warning(msg)
             return False
 
         url = API_URI + URL_RECORDING.format(recording_id)
@@ -286,8 +314,8 @@ class RingDoorBell(RingGeneric):
     def recording_url(self, recording_id):
         """Return HTTPS recording URL."""
         if not self.has_subscription:
-            _LOGGER.warning("Your Ring account does not have" +
-                            " an active subscription.")
+            msg = "Your Ring account does not have an active subscription."
+            _LOGGER.warning(msg)
             return False
 
         url = API_URI + URL_RECORDING.format(recording_id)
@@ -325,7 +353,7 @@ class RingDoorBell(RingGeneric):
     @volume.setter
     def volume(self, value):
         if not ((isinstance(value, int)) and
-                (value >= DOORBELL_VOL_MIN and value <= DOORBELL_VOL_MAX)):
+                (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN,
                                                         DOORBELL_VOL_MAX))
             return False
@@ -342,3 +370,18 @@ class RingDoorBell(RingGeneric):
     def connection_status(self):
         """Return connection status."""
         return self._attrs.get('alerts').get('connection')
+
+    def get_snapshot(self, retries=3, delay=1):
+        """Take a snapshot and download it"""
+        url = API_URI + SNAPSHOT_TIMESTAMP_ENDPOINT
+        payload = {"doorbot_ids": [self._attrs.get('id')]}
+        self._ring.query(url, json=payload)
+        request_time = time.time()
+        for _ in range(retries):
+            time.sleep(delay)
+            response = self._ring.query(
+                url, method="POST", json=payload, raw=1).json()
+            if response["timestamps"][0]["timestamp"] / 1000 > request_time:
+                return self._ring.query(API_URI + SNAPSHOT_ENDPOINT.format(
+                    self._attrs.get('id')), raw=True).content
+        return False

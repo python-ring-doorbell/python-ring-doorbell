@@ -12,6 +12,7 @@ from ring_doorbell.const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+# pylint: disable=useless-object-inheritance
 class RingGeneric(object):
     """Generic Implementation for Ring Chime/Doorbell."""
 
@@ -38,6 +39,15 @@ class RingGeneric(object):
     def family(self):
         """Return Ring device family type."""
         return None
+
+    @property
+    def model(self):
+        """Return Ring device model name."""
+        return None
+
+    def has_capability(self, capability):
+        """Return if device has specific capability."""
+        return False
 
     def update(self):
         """Refresh attributes."""
