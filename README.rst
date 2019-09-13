@@ -147,7 +147,7 @@ To get this to work, do the following:
 1. install node (version 10+), npm (version 6.9+), typescript (version 3.6+) and ffmpeg:
     - ``sudo apt install nodejs npm ffmpeg``
     - ``npm install typescript``
-2. ``git clone https://github.com/dgreif/ring/``
+2. Clone the Ring repository: ``git clone https://github.com/dgreif/ring/``.
 3. Copy `livestream-param.ts` from this repo into the directory you just cloned: ``cp livestream-param.ts` ring/examples``
 4  Install the NPM solution you just cloned: ``cd ring``, ``npm install``
 4. Run ``tsc /ring/examples/livestream-param.ts --target es5 -esModuleInterop``. This should return without any error and create ``livestream-param.js`` in the ``ring/examples`` directory. Check that file exists before continuing.
