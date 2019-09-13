@@ -155,10 +155,10 @@ To get this to work, do the following:
 7. Finally you are ready to get the livestream to work:
 
 .. code-block:: python
-    js_file = [path to where your livestream-param.js file is. for example: /home/user/ring/examples/livestream-param.js]
+    js_file = '/path/to/livestream-param.js'
     doorbell = myring.doorbells[0]
     doorbell.get_livestream(js_file, outputdir)
-
+    
 
 How to contribute
 -----------------
