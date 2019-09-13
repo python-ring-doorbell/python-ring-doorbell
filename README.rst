@@ -138,6 +138,12 @@ Displaying the last video capture URL
     print(doorbell.recording_url(doorbell.last_recording_id))
     'https://ring-transcoded-videos.s3.amazonaws.com/99999999.mp4?X-Amz-Expires=3600&X-Amz-Date=20170313T232537Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=TOKEN_SECRET/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=secret'
 
+Streaming live video to disk
+----------------------------
+This is a very hacky solution and it depends on https://github.com/dgreif/ring/, a Node-based package by @dgreif.
+In time we might be able to convert this to a full Python solution.
+.. code-block:: python
+    doorbell.get_livestream(js_file, outputdir)
 
 How to contribute
 -----------------
