@@ -154,6 +154,7 @@ To get this to work, do the following:
 6. make sure you have Naked (https://pypi.org/project/Naked/) installed: ``pip install naked`` (or pip3) or run ``pip install -r requirements.txt`` (or pip3)
 7. Finally you are ready to get the livestream to work:
 
+
 .. code-block:: python
     js_file = '/path/to/livestream-param.js'
     doorbell = myring.doorbells[0]
