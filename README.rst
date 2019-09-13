@@ -144,6 +144,7 @@ This is a very hacky solution and it depends on https://github.com/dgreif/ring/,
 In time we might be able to convert this to a full Python solution.
 .. code-block:: python
 
+
     doorbell = myring.doorbells[0]
     doorbell.get_livestream(js_file, outputdir)
 
