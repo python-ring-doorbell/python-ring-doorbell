@@ -1,2 +1,4 @@
 pytz
 requests
+Naked
+shutil
