@@ -397,7 +397,8 @@ class RingDoorBell(RingGeneric):
             if os.path.isdir(outputdir):
                 rmtree(outputdir)
             os.mkdir(outputdir)
-            params = self._ring.username+' '+self._ring.password+' '+outputdir+' '+str(duration_seconds)
+            params = self._ring.username+' '+self._ring.password+' '+\
+                     outputdir+' '+str(duration_seconds)
             execute_js(js_file, params)
         except Exception as e:
             raise e
