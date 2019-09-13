@@ -147,6 +147,7 @@ In time we might be able to convert this to a full Python solution.
     doorbell = myring.doorbells[0]
     doorbell.get_livestream(js_file, outputdir)
 
+
 How to contribute
 -----------------
 See CONTRIBUTING.rst
