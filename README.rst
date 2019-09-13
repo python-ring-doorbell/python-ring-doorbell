@@ -157,9 +157,11 @@ To get this to work, do the following:
 .. code-block:: python
 
     js_file = '/path/to/livestream-param.js'
+    outputdir = '/path/to/outputdir'
     doorbell = myring.doorbells[0]
     doorbell.get_livestream(js_file, outputdir)
 
+8. This will output a livestream from your Ring doorbell in MP4 format chunked in pieces of 10 seconds.
 
 
 How to contribute
