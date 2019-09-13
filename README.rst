@@ -152,14 +152,15 @@ To get this to work, do the following:
 4.  Install the NPM solution you just cloned: ``cd ring``, ``npm install``
 5. Run ``tsc /ring/examples/livestream-param.ts --target es5 -esModuleInterop``. This should return without any error and create ``livestream-param.js`` in the ``ring/examples`` directory. Check that file exists before continuing.
 6. make sure you have Naked (https://pypi.org/project/Naked/) installed: ``pip install naked`` (or pip3) or run ``pip install -r requirements.txt`` (or pip3)
-7. Finally you are ready to get the livestream to work:
+7. Finally you are ready to get the livestream to work.
 
 
 .. code-block:: python
     js_file = '/path/to/livestream-param.js'
     doorbell = myring.doorbells[0]
     doorbell.get_livestream(js_file, outputdir)
-    
+
+
 
 How to contribute
 -----------------
