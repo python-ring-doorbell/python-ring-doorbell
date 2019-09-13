@@ -143,6 +143,7 @@ Streaming live video to disk
 This is a very hacky solution and it depends on https://github.com/dgreif/ring/, a Node-based package by @dgreif.
 In time we might be able to convert this to a full Python solution.
 To get this to work, do the following:
+
 1. install node (version 10+), npm (version 6.9+), typescript (version 3.6+) and ffmpeg:
     - `sudo apt install nodejs npm ffmpeg`
     - `npm install typescript`
