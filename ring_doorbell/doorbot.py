@@ -385,3 +385,19 @@ class RingDoorBell(RingGeneric):
                 return self._ring.query(API_URI + SNAPSHOT_ENDPOINT.format(
                     self._attrs.get('id')), raw=True).content
         return False
+
+    def get_livestream(self, js_file, outputdir, duration_seconds=60):
+        """Get a livestream for a minute and save it in outputdir in chunks."""
+        from Naked.toolshed.shell import execute_js
+        import os
+        from shutil import rmtree
+
+        try:
+            outputdir = os.path.abspath(outputdir)
+            if os.path.isdir(outputdir):
+                rmtree(outputdir)
+            os.mkdir(outputdir)
+            params = self._ring.username+' '+self._ring.password+' '+outputdir+' '+str(duration_seconds)
+            execute_js(js_file, params)
+        except Exception as e:
+            raise e
