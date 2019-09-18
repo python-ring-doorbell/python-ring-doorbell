@@ -78,11 +78,11 @@ DOORBELL_2_KINDS = ['doorbell_v4', 'doorbell_v5']
 DOORBELL_PRO_KINDS = ['lpd_v1', 'lpd_v2']
 DOORBELL_ELITE_KINDS = ['jbox_v1']
 
-FLOODLIGHT_CAM_KINDS = ['hp_cam_v1']
+FLOODLIGHT_CAM_KINDS = ['hp_cam_v1', 'floodlight_v2']
 SPOTLIGHT_CAM_BATTERY_KINDS = ['stickup_cam_v4']
 SPOTLIGHT_CAM_WIRED_KINDS = ['hp_cam_v2']
 STICKUP_CAM_KINDS = ['stickup_cam', 'stickup_cam_v3']
-STICKUP_CAM_BATTERY_KINDS = ['stickup_cam_lunar']
+STICKUP_CAM_BATTERY_KINDS = ['cocoa_camera', 'stickup_cam_lunar']
 STICKUP_CAM_WIRED_KINDS = ['stickup_cam_elite']
 
 # error strings
