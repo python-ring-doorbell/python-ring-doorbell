@@ -6,7 +6,7 @@ import logging
 from ring_doorbell import RingDoorBell
 from ring_doorbell.const import (
     API_URI, LIGHTS_ENDPOINT, MSG_ALLOWED_VALUES, MSG_VOL_OUTBOUND,
-    FLOODLIGHT_CAM_KINDS, SPOTLIGHT_CAM_BATTERY_KINDS,
+    FLOODLIGHT_CAM_KINDS, INDOOR_CAM_KINDS, SPOTLIGHT_CAM_BATTERY_KINDS,
     SPOTLIGHT_CAM_WIRED_KINDS, STICKUP_CAM_KINDS,
     STICKUP_CAM_BATTERY_KINDS, STICKUP_CAM_WIRED_KINDS,
     SIREN_DURATION_MIN, SIREN_DURATION_MAX, SIREN_ENDPOINT)
@@ -27,6 +27,8 @@ class RingStickUpCam(RingDoorBell):
         """Return Ring device model name."""
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return 'Floodlight Cam'
+        elif self.kind in INDOOR_CAM_KINDS:
+            return 'Indoor Cam'
         elif self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
             return 'Spotlight Cam {}'.format(
                 self._attrs.get('ring_cam_setup_flow', 'battery').title())
@@ -53,6 +55,7 @@ class RingStickUpCam(RingDoorBell):
                                  SPOTLIGHT_CAM_WIRED_KINDS)
         elif capability == 'siren':
             return self.kind in (FLOODLIGHT_CAM_KINDS +
+                                 INDOOR_CAM_KINDS +
                                  SPOTLIGHT_CAM_BATTERY_KINDS +
                                  SPOTLIGHT_CAM_WIRED_KINDS +
                                  STICKUP_CAM_BATTERY_KINDS +
