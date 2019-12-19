@@ -8,6 +8,7 @@ except ImportError:
 
 import logging
 import requests
+import time
 
 from ring_doorbell.utils import _exists_cache, _save_cache, _read_cache
 
@@ -91,7 +92,6 @@ class Ring(object):
         oauth_data = OAUTH_DATA.copy()
         oauth_data['username'] = self.username
         oauth_data['password'] = self.password
-
         response = self.session.post(OAUTH_ENDPOINT,
                                      data=oauth_data,
                                      headers=HEADERS)
@@ -104,15 +104,20 @@ class Ring(object):
         """Authenticate user against Ring API."""
         url = API_URI + NEW_SESSION_ENDPOINT
         loop = 0
+        # make a copy as we're mutating headers in the loop below
+        # which would cause issues with _get_oauth_token()
+        # which expects a non mutated HEADERS copy
+        modified_headers = HEADERS.copy() 
         while loop <= attempts:
-            HEADERS['Authorization'] = \
+            modified_headers['Authorization'] = \
                 'Bearer {}'.format(self._get_oauth_token())
             loop += 1
+
             try:
                 if session is None:
                     req = self.session.post((url),
                                             data=POST_DATA,
-                                            headers=HEADERS)
+                                            headers=modified_headers)
                 else:
                     req = session
             except requests.exceptions.RequestException as err_msg:
@@ -120,6 +125,7 @@ class Ring(object):
                 raise
 
             if not req:
+                time.sleep(5) # add a pause or you'll get rate limited (429)
                 continue
 
             # if token is expired, refresh credentials and try again
@@ -140,7 +146,7 @@ class Ring(object):
                     PERSIST_TOKEN_DATA['auth_token'] = self.token
                     PERSIST_TOKEN_DATA['device[push_notification_token]'] = \
                         self._push_token_notify_url
-                    req = self.session.put((url), headers=HEADERS,
+                    req = self.session.put((url), headers=modified_headers,
                                            data=PERSIST_TOKEN_DATA)
 
                 # update token if reuse_session is True
