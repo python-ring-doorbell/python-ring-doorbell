@@ -27,17 +27,17 @@ class RingStickUpCam(RingDoorBell):
         """Return Ring device model name."""
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return 'Floodlight Cam'
-        elif self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
+        if self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
             return 'Spotlight Cam {}'.format(
                 self._attrs.get('ring_cam_setup_flow', 'battery').title())
-        elif self.kind in SPOTLIGHT_CAM_WIRED_KINDS:
+        if self.kind in SPOTLIGHT_CAM_WIRED_KINDS:
             return 'Spotlight Cam {}'.format(
                 self._attrs.get('ring_cam_setup_flow', 'wired').title())
-        elif self.kind in STICKUP_CAM_KINDS:
+        if self.kind in STICKUP_CAM_KINDS:
             return 'Stick Up Cam'
-        elif self.kind in STICKUP_CAM_BATTERY_KINDS:
+        if self.kind in STICKUP_CAM_BATTERY_KINDS:
             return 'Stick Up Cam Battery'
-        elif self.kind in STICKUP_CAM_WIRED_KINDS:
+        if self.kind in STICKUP_CAM_WIRED_KINDS:
             return 'Stick Up Cam Wired'
         return None
 
@@ -47,11 +47,11 @@ class RingStickUpCam(RingDoorBell):
             return self.kind in (SPOTLIGHT_CAM_BATTERY_KINDS +
                                  STICKUP_CAM_KINDS +
                                  STICKUP_CAM_BATTERY_KINDS)
-        elif capability == 'light':
+        if capability == 'light':
             return self.kind in (FLOODLIGHT_CAM_KINDS +
                                  SPOTLIGHT_CAM_BATTERY_KINDS +
                                  SPOTLIGHT_CAM_WIRED_KINDS)
-        elif capability == 'siren':
+        if capability == 'siren':
             return self.kind in (FLOODLIGHT_CAM_KINDS +
                                  SPOTLIGHT_CAM_BATTERY_KINDS +
                                  SPOTLIGHT_CAM_WIRED_KINDS +

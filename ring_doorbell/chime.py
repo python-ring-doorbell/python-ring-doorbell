@@ -25,7 +25,7 @@ class RingChime(RingGeneric):
         """Return Ring device model name."""
         if self.kind in CHIME_KINDS:
             return 'Chime'
-        elif self.kind in CHIME_PRO_KINDS:
+        if self.kind in CHIME_PRO_KINDS:
             return 'Chime Pro'
         return None
 

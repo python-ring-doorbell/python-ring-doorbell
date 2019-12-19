@@ -36,11 +36,11 @@ class RingDoorBell(RingGeneric):
         """Return Ring device model name."""
         if self.kind in DOORBELL_KINDS:
             return 'Doorbell'
-        elif self.kind in DOORBELL_2_KINDS:
+        if self.kind in DOORBELL_2_KINDS:
             return 'Doorbell 2'
-        elif self.kind in DOORBELL_PRO_KINDS:
+        if self.kind in DOORBELL_PRO_KINDS:
             return 'Doorbell Pro'
-        elif self.kind in DOORBELL_ELITE_KINDS:
+        if self.kind in DOORBELL_ELITE_KINDS:
             return 'Doorbell Elite'
         return None
 
@@ -49,7 +49,7 @@ class RingDoorBell(RingGeneric):
         if capability == 'battery':
             return self.kind in (DOORBELL_KINDS +
                                  DOORBELL_2_KINDS)
-        elif capability == 'volume':
+        if capability == 'volume':
             return True
         return False
 

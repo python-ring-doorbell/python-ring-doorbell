@@ -7,8 +7,8 @@ except ImportError:
     from urllib import urlencode
 
 import logging
-import requests
 import time
+import requests
 
 from ring_doorbell.utils import _exists_cache, _save_cache, _read_cache
 
@@ -107,7 +107,7 @@ class Ring(object):
         # make a copy as we're mutating headers in the loop below
         # which would cause issues with _get_oauth_token()
         # which expects a non mutated HEADERS copy
-        modified_headers = HEADERS.copy() 
+        modified_headers = HEADERS.copy()
         while loop <= attempts:
             modified_headers['Authorization'] = \
                 'Bearer {}'.format(self._get_oauth_token())
@@ -125,7 +125,7 @@ class Ring(object):
                 raise
 
             if not req:
-                time.sleep(5) # add a pause or you'll get rate limited (429)
+                time.sleep(5)  # add a pause or you'll get rate limited (429)
                 continue
 
             # if token is expired, refresh credentials and try again
