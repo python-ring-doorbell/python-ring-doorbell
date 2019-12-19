@@ -89,6 +89,7 @@ class Ring(object):
 
     def _get_oauth_token(self):
         """Return Oauth Bearer token."""
+        # this token should be cached / saved for later
         oauth_data = OAUTH_DATA.copy()
         oauth_data['username'] = self.username
         oauth_data['password'] = self.password
