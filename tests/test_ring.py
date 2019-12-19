@@ -134,7 +134,7 @@ class TestRing(RingUnitTestBase):
     @requests_mock.Mocker()
     def test_doorbell_alerts(self, mock):
         mock.post('https://oauth.ring.com/oauth/token',
-                 text=load_fixture('ring_oauth.json'))
+                  text=load_fixture('ring_oauth.json'))
         mock.get('https://api.ring.com/clients_api/ring_devices',
                  text=load_fixture('ring_devices.json'))
         mock.get('https://api.ring.com/clients_api/dings/active',

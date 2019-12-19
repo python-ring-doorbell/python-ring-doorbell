@@ -200,10 +200,10 @@ class Ring(object):
             try:
                 if method == 'GET':
                     req = self.session.get((url), params=urlencode(params),
-                        headers=auth_header)
+                              headers=auth_header)
                 elif method == 'PUT':
                     req = self.session.put((url), params=urlencode(params),
-                        headers=auth_header)
+                              headers=auth_header)
                 elif method == 'POST':
                     req = self.session.post(
                         (url), params=urlencode(params), json=json,
