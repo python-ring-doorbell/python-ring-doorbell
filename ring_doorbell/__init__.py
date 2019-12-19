@@ -180,7 +180,7 @@ class Ring(object):
         # queries now need a bearer token or you'll get 401s
         auth_header = {}
         auth_header['Authorization'] = \
-                'Bearer {}'.format(self._get_oauth_token())
+            'Bearer {}'.format(self._get_oauth_token())
 
         response = None
         loop = 0
@@ -199,12 +199,15 @@ class Ring(object):
             loop += 1
             try:
                 if method == 'GET':
-                    req = self.session.get((url), params=urlencode(params), headers=auth_header)
+                    req = self.session.get((url), params=urlencode(params),
+                        headers=auth_header)
                 elif method == 'PUT':
-                    req = self.session.put((url), params=urlencode(params), headers=auth_header)
+                    req = self.session.put((url), params=urlencode(params),
+                        headers=auth_header)
                 elif method == 'POST':
                     req = self.session.post(
-                        (url), params=urlencode(params), json=json, headers=auth_header)
+                        (url), params=urlencode(params), json=json,
+                        headers=auth_header)
 
                 if self.debug:
                     _LOGGER.debug("_query %s ret %s", loop, req.status_code)
