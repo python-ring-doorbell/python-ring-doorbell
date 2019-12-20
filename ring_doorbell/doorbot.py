@@ -16,9 +16,9 @@ from ring_doorbell.const import (
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, DOORBELL_KINDS,
     DOORBELL_2_KINDS, DOORBELL_PRO_KINDS, DOORBELL_ELITE_KINDS,
     FILE_EXISTS, LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED,
-    MSG_EXISTING_TYPE, MSG_VOL_OUTBOUND, SNAPSHOT_ENDPOINT,
-    SNAPSHOT_TIMESTAMP_ENDPOINT, URL_DOORBELL_HISTORY,
-    URL_RECORDING)
+    MSG_EXISTING_TYPE, MSG_VOL_OUTBOUND, PEEPHOLE_CAM_KINDS,
+    SNAPSHOT_ENDPOINT, SNAPSHOT_TIMESTAMP_ENDPOINT,
+    URL_DOORBELL_HISTORY, URL_RECORDING)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ class RingDoorBell(RingGeneric):
     @property
     def model(self):
         """Return Ring device model name."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if self.kind in DOORBELL_KINDS:
             return 'Doorbell'
         elif self.kind in DOORBELL_2_KINDS:
@@ -42,13 +43,19 @@ class RingDoorBell(RingGeneric):
             return 'Doorbell Pro'
         elif self.kind in DOORBELL_ELITE_KINDS:
             return 'Doorbell Elite'
+        elif self.kind in PEEPHOLE_CAM_KINDS:
+            return 'Peephole Cam'
         return None
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if capability == 'battery':
             return self.kind in (DOORBELL_KINDS +
-                                 DOORBELL_2_KINDS)
+                                 DOORBELL_2_KINDS +
+                                 PEEPHOLE_CAM_KINDS)
+        elif capability == 'knock':
+            return self.kind in PEEPHOLE_CAM_KINDS
         elif capability == 'volume':
             return True
         return False

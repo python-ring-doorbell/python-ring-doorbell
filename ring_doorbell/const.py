@@ -5,7 +5,8 @@ import os
 from uuid import uuid4 as uuid
 HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
-    'User-Agent': 'Dalvik/1.6.0 (Linux; Android 4.4.4; Build/KTU84Q)',
+    'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9.0; SM-G850F Build'
+                  '"/LRX22G)',
     'Accept-Encoding': 'gzip, deflate'
 }
 
@@ -70,19 +71,21 @@ SIREN_DURATION_MIN = 0
 SIREN_DURATION_MAX = 120
 
 # device model kinds
-CHIME_KINDS = ['chime']
-CHIME_PRO_KINDS = ['chime_pro']
+CHIME_KINDS = ['chime', 'chime_v2']
+CHIME_PRO_KINDS = ['chime_pro', 'chime_pro_v2']
 
 DOORBELL_KINDS = ['doorbot', 'doorbell', 'doorbell_v3']
 DOORBELL_2_KINDS = ['doorbell_v4', 'doorbell_v5']
 DOORBELL_PRO_KINDS = ['lpd_v1', 'lpd_v2']
 DOORBELL_ELITE_KINDS = ['jbox_v1']
+PEEPHOLE_CAM_KINDS = ['doorbell_portal']
 
-FLOODLIGHT_CAM_KINDS = ['hp_cam_v1']
+FLOODLIGHT_CAM_KINDS = ['hp_cam_v1', 'floodlight_v2']
+INDOOR_CAM_KINDS = ['stickup_cam_mini']
 SPOTLIGHT_CAM_BATTERY_KINDS = ['stickup_cam_v4']
-SPOTLIGHT_CAM_WIRED_KINDS = ['hp_cam_v2']
+SPOTLIGHT_CAM_WIRED_KINDS = ['hp_cam_v2', 'spotlightw_v2']
 STICKUP_CAM_KINDS = ['stickup_cam', 'stickup_cam_v3']
-STICKUP_CAM_BATTERY_KINDS = ['stickup_cam_lunar']
+STICKUP_CAM_BATTERY_KINDS = ['cocoa_camera', 'stickup_cam_lunar']
 STICKUP_CAM_WIRED_KINDS = ['stickup_cam_elite']
 
 # error strings
