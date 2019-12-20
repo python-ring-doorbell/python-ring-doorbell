@@ -34,6 +34,7 @@ class RingDoorBell(RingGeneric):
     @property
     def model(self):
         """Return Ring device model name."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if self.kind in DOORBELL_KINDS:
             return 'Doorbell'
         elif self.kind in DOORBELL_2_KINDS:
@@ -48,6 +49,7 @@ class RingDoorBell(RingGeneric):
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if capability == 'battery':
             return self.kind in (DOORBELL_KINDS +
                                  DOORBELL_2_KINDS +

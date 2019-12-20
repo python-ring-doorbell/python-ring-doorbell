@@ -25,6 +25,7 @@ class RingStickUpCam(RingDoorBell):
     @property
     def model(self):
         """Return Ring device model name."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return 'Floodlight Cam'
         elif self.kind in INDOOR_CAM_KINDS:
@@ -45,6 +46,7 @@ class RingStickUpCam(RingDoorBell):
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if capability == 'battery':
             return self.kind in (SPOTLIGHT_CAM_BATTERY_KINDS +
                                  STICKUP_CAM_KINDS +

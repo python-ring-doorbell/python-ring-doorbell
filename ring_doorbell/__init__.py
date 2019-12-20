@@ -7,6 +7,7 @@ except ImportError:
     from urllib import urlencode
 
 import logging
+import time
 import requests
 
 from ring_doorbell.utils import _exists_cache, _save_cache, _read_cache
@@ -88,10 +89,10 @@ class Ring(object):
 
     def _get_oauth_token(self):
         """Return Oauth Bearer token."""
+        # this token should be cached / saved for later
         oauth_data = OAUTH_DATA.copy()
         oauth_data['username'] = self.username
         oauth_data['password'] = self.password
-
         response = self.session.post(OAUTH_ENDPOINT,
                                      data=oauth_data,
                                      headers=HEADERS)
@@ -100,19 +101,24 @@ class Ring(object):
             oauth_token = response.json().get('access_token')
         return oauth_token
 
-    def _authenticate(self, attempts=RETRY_TOKEN, session=None):
+    def _authenticate(self, attempts=RETRY_TOKEN, session=None, wait=1.0):
         """Authenticate user against Ring API."""
         url = API_URI + NEW_SESSION_ENDPOINT
         loop = 0
+        # make a copy as we're mutating headers in the loop below
+        # which would cause issues with _get_oauth_token()
+        # which expects a non mutated HEADERS copy
+        modified_headers = HEADERS.copy()
         while loop <= attempts:
-            HEADERS['Authorization'] = \
+            modified_headers['Authorization'] = \
                 'Bearer {}'.format(self._get_oauth_token())
             loop += 1
+
             try:
                 if session is None:
                     req = self.session.post((url),
                                             data=POST_DATA,
-                                            headers=HEADERS)
+                                            headers=modified_headers)
                 else:
                     req = session
             except requests.exceptions.RequestException as err_msg:
@@ -120,6 +126,7 @@ class Ring(object):
                 raise
 
             if not req:
+                time.sleep(wait)  # add a pause or you'll get rate limited
                 continue
 
             # if token is expired, refresh credentials and try again
@@ -140,7 +147,7 @@ class Ring(object):
                     PERSIST_TOKEN_DATA['auth_token'] = self.token
                     PERSIST_TOKEN_DATA['device[push_notification_token]'] = \
                         self._push_token_notify_url
-                    req = self.session.put((url), headers=HEADERS,
+                    req = self.session.put((url), headers=modified_headers,
                                            data=PERSIST_TOKEN_DATA)
 
                 # update token if reuse_session is True
@@ -170,6 +177,11 @@ class Ring(object):
             _LOGGER.debug("Not connected. Refreshing token...")
             self._authenticate()
 
+        # queries now need a bearer token or you'll get 401s
+        auth_header = {}
+        auth_header['Authorization'] = \
+            'Bearer {}'.format(self._get_oauth_token())
+
         response = None
         loop = 0
         while loop <= attempts:
@@ -187,12 +199,17 @@ class Ring(object):
             loop += 1
             try:
                 if method == 'GET':
-                    req = self.session.get((url), params=urlencode(params))
+                    req = self.session.get(
+                        (url), params=urlencode(params),
+                        headers=auth_header)
                 elif method == 'PUT':
-                    req = self.session.put((url), params=urlencode(params))
+                    req = self.session.put(
+                        (url), params=urlencode(params),
+                        headers=auth_header)
                 elif method == 'POST':
                     req = self.session.post(
-                        (url), params=urlencode(params), json=json)
+                        (url), params=urlencode(params), json=json,
+                        headers=auth_header)
 
                 if self.debug:
                     _LOGGER.debug("_query %s ret %s", loop, req.status_code)
