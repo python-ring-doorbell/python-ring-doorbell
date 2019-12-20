@@ -23,9 +23,10 @@ class RingChime(RingGeneric):
     @property
     def model(self):
         """Return Ring device model name."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if self.kind in CHIME_KINDS:
             return 'Chime'
-        if self.kind in CHIME_PRO_KINDS:
+        elif self.kind in CHIME_PRO_KINDS:
             return 'Chime Pro'
         return None
 

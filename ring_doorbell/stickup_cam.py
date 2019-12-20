@@ -25,33 +25,35 @@ class RingStickUpCam(RingDoorBell):
     @property
     def model(self):
         """Return Ring device model name."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return 'Floodlight Cam'
-        if self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
+        elif self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
             return 'Spotlight Cam {}'.format(
                 self._attrs.get('ring_cam_setup_flow', 'battery').title())
-        if self.kind in SPOTLIGHT_CAM_WIRED_KINDS:
+        elif self.kind in SPOTLIGHT_CAM_WIRED_KINDS:
             return 'Spotlight Cam {}'.format(
                 self._attrs.get('ring_cam_setup_flow', 'wired').title())
-        if self.kind in STICKUP_CAM_KINDS:
+        elif self.kind in STICKUP_CAM_KINDS:
             return 'Stick Up Cam'
-        if self.kind in STICKUP_CAM_BATTERY_KINDS:
+        elif self.kind in STICKUP_CAM_BATTERY_KINDS:
             return 'Stick Up Cam Battery'
-        if self.kind in STICKUP_CAM_WIRED_KINDS:
+        elif self.kind in STICKUP_CAM_WIRED_KINDS:
             return 'Stick Up Cam Wired'
         return None
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
+        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if capability == 'battery':
             return self.kind in (SPOTLIGHT_CAM_BATTERY_KINDS +
                                  STICKUP_CAM_KINDS +
                                  STICKUP_CAM_BATTERY_KINDS)
-        if capability == 'light':
+        elif capability == 'light':
             return self.kind in (FLOODLIGHT_CAM_KINDS +
                                  SPOTLIGHT_CAM_BATTERY_KINDS +
                                  SPOTLIGHT_CAM_WIRED_KINDS)
-        if capability == 'siren':
+        elif capability == 'siren':
             return self.kind in (FLOODLIGHT_CAM_KINDS +
                                  SPOTLIGHT_CAM_BATTERY_KINDS +
                                  SPOTLIGHT_CAM_WIRED_KINDS +
