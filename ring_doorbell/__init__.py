@@ -101,7 +101,7 @@ class Ring(object):
             oauth_token = response.json().get('access_token')
         return oauth_token
 
-    def _authenticate(self, attempts=RETRY_TOKEN, session=None):
+    def _authenticate(self, attempts=RETRY_TOKEN, session=None, wait=1.0):
         """Authenticate user against Ring API."""
         url = API_URI + NEW_SESSION_ENDPOINT
         loop = 0
@@ -126,7 +126,7 @@ class Ring(object):
                 raise
 
             if not req:
-                time.sleep(5)  # add a pause or you'll get rate limited (429)
+                time.sleep(wait)  # add a pause or you'll get rate limited
                 continue
 
             # if token is expired, refresh credentials and try again
@@ -199,11 +199,13 @@ class Ring(object):
             loop += 1
             try:
                 if method == 'GET':
-                    req = self.session.get((url), params=urlencode(params),
-                              headers=auth_header)
+                    req = self.session.get(
+                        (url), params=urlencode(params),
+                        headers=auth_header)
                 elif method == 'PUT':
-                    req = self.session.put((url), params=urlencode(params),
-                              headers=auth_header)
+                    req = self.session.put(
+                        (url), params=urlencode(params),
+                        headers=auth_header)
                 elif method == 'POST':
                     req = self.session.post(
                         (url), params=urlencode(params), json=json,
