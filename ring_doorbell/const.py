@@ -5,8 +5,7 @@ import os
 from uuid import uuid4 as uuid
 HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
-    'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9.0; SM-G850F Build'
-                  '"/LRX22G)',
+    'User-Agent': 'ring/5.21.0.5 CFNetwork/1121.2.2 Darwin/19.2.0',
     'Accept-Encoding': 'gzip, deflate'
 }
 
