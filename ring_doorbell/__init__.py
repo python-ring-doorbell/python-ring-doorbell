@@ -97,6 +97,8 @@ class Ring(object):
                                      data=oauth_data,
                                      headers=HEADERS)
         oauth_token = None
+        if self.debug:
+            _LOGGER.debug("response from get oauth token %s", str(response))
         if response.status_code == 200:
             oauth_token = response.json().get('access_token')
         return oauth_token
