@@ -6,7 +6,7 @@ from uuid import uuid4 as uuid
 HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
     'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9.0; SM-G850F Build'
-                  '"/LRX22G)',
+                  '/LRX22G)',
     'Accept-Encoding': 'gzip, deflate'
 }
 
