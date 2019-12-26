@@ -45,6 +45,7 @@ class RingGeneric(object):
         """Return Ring device model name."""
         return None
 
+    # pylint: disable=no-self-use
     def has_capability(self, capability):
         """Return if device has specific capability."""
         return False

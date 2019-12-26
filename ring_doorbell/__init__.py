@@ -10,6 +10,10 @@ import logging
 import time
 import requests
 
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import TokenExpiredError
+
+
 from ring_doorbell.utils import _exists_cache, _save_cache, _read_cache
 
 from ring_doorbell.const import (

@@ -1,2 +1,3 @@
 pytz
-requests
+requests==2.22.0
+requests-oauthlib==1.3.0
