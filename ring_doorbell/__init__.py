@@ -39,6 +39,8 @@ class Ring(object):
         """Initialize the Ring object."""
         self.is_connected = None
         self.token = None
+        self.access_token = None
+        self.refresh_token = None
         self.params = None
         self._persist_token = persist_token
         self._push_token_notify_url = push_token_notify_url
@@ -92,7 +94,50 @@ class Ring(object):
             self._authenticate()
 
     def _get_oauth_token(self):
-        """Return Oauth Bearer token."""
+        """
+        Oauth Bearer token.
+
+        Acquires the Bearer access_token and refresh_token.
+        """
+
+        oauth_data = OAUTH_DATA.copy()
+        oauth_data['username'] = self.username
+        oauth_data['password'] = self.password
+
+
+        from oauthlib.oauth2 import LegacyApplicationClient
+        from requests_oauthlib import OAuth2Session
+
+        import rpdb; rpdb.set_trace()
+
+        client_id = oauth_data.get('client_id')
+        client = LegacyApplicationClient(client_id)
+        #client.prepare_request_body(
+        #    username=self.username,
+        #    password=self.password,
+        #    scope='client')
+
+        oauth = OAuth2Session(client)
+        token = oauth.fetch_token(
+            token_url=OAUTH_ENDPOINT,
+            username=self.username,
+            password=self.password,
+            headers=HEADERS,
+            client_id=client_id)
+
+        #username="My_Username", password="My_Password", client_id=client_Id,
+        #client_secret=client_Secret, auth=False)
+
+
+
+
+        # for now, don't get a new bearer token if access_token is set
+        # we will need to use the refresh_token to validate and grab new one
+        if self.access_token is not None:
+            print("returning as token is set")
+            return
+
+        import rpdb; rpdb.set_trace()
         # this token should be cached / saved for later
         oauth_data = OAUTH_DATA.copy()
         oauth_data['username'] = self.username
@@ -100,12 +145,12 @@ class Ring(object):
         response = self.session.post(OAUTH_ENDPOINT,
                                      data=oauth_data,
                                      headers=HEADERS)
-        oauth_token = None
         if self.debug:
             _LOGGER.debug("response from get oauth token %s", str(response))
+
         if response.status_code == 200:
-            oauth_token = response.json().get('access_token')
-        return oauth_token
+            self.access_token = response.json().get('access_token')
+            self.refresh_token = response.json().get('refresh_token')
 
     def _authenticate(self, attempts=RETRY_TOKEN, session=None, wait=1.0):
         """Authenticate user against Ring API."""
@@ -115,9 +160,11 @@ class Ring(object):
         # which would cause issues with _get_oauth_token()
         # which expects a non mutated HEADERS copy
         modified_headers = HEADERS.copy()
+        self._get_oauth_token()
+
         while loop <= attempts:
             modified_headers['Authorization'] = \
-                'Bearer {}'.format(self._get_oauth_token())
+                'Bearer {}'.format(self.access_token)
             loop += 1
 
             try:

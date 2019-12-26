@@ -13,7 +13,13 @@ HEADERS = {
 RETRY_TOKEN = 3
 
 # default suffix for session cache file
-CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None}
+CACHE_ATTRS = {
+    'account': None,
+    'alerts': None,
+    'token': None,
+    'refresh_token': None,
+    'access_token': None
+}
 
 try:
     CACHE_FILE = os.path.join(os.getenv("HOME"),
