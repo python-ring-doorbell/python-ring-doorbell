@@ -187,7 +187,6 @@ class Ring(object):
         """Query data from Ring API."""
         if self.debug:
             _LOGGER.debug("Querying %s", url)
-        print(url)
 
         if self.debug and not self.is_connected:
             _LOGGER.debug("Not connected. Refreshing token...")
