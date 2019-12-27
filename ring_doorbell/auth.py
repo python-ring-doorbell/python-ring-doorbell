@@ -7,7 +7,7 @@ from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import (
     LegacyApplicationClient, TokenExpiredError,
     MissingTokenError)
-from ring_doorbell.const import (OAuth)
+from ring_doorbell.const import OAuth
 
 
 class Auth:
@@ -16,7 +16,6 @@ class Auth:
                  token: Optional[Dict[str, str]] = None,
                  token_updater: Optional[Callable[[str], None]] = None):
         self.token_updater = token_updater
-
         self._oauth = OAuth2Session(
             client=LegacyApplicationClient(client_id=OAuth.CLIENT_ID),
             token=token,
@@ -27,6 +26,7 @@ class Auth:
         """Initial token fetch with username/password & 2FA"""
         try:
             return self.__fetch_token(username, password)
+
         except MissingTokenError:
             if not auth_callback:
                 raise
@@ -40,6 +40,7 @@ class Auth:
             headers = {}
             headers['2fa-support'] = 'true'
             headers['2fa-code'] = auth_code
+
             return self._oauth.fetch_token(
                 OAuth.ENDPOINT,
                 username=username,
@@ -64,12 +65,9 @@ class Auth:
 
     def request(self, method: str, resource: str, **kwargs) -> Response:
         """Does an http request, if token is expired, then it will refresh"""
-        print(resource)
         try:
-            # getattr(self._oauth, method)(resource, **kwargs)
             return self._oauth.request(method, resource, **kwargs)
+
         except TokenExpiredError:
             self._oauth.token = self.refresh_tokens()
-
-            # getattr(self._oauth, method)(resource, **kwargs)
             return self._oauth.request(method, resource, **kwargs)
