@@ -25,37 +25,35 @@ class RingStickUpCam(RingDoorBell):
     @property
     def model(self):
         """Return Ring device model name."""
-        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return 'Floodlight Cam'
-        elif self.kind in INDOOR_CAM_KINDS:
+        if self.kind in INDOOR_CAM_KINDS:
             return 'Indoor Cam'
-        elif self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
+        if self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
             return 'Spotlight Cam {}'.format(
                 self._attrs.get('ring_cam_setup_flow', 'battery').title())
-        elif self.kind in SPOTLIGHT_CAM_WIRED_KINDS:
+        if self.kind in SPOTLIGHT_CAM_WIRED_KINDS:
             return 'Spotlight Cam {}'.format(
                 self._attrs.get('ring_cam_setup_flow', 'wired').title())
-        elif self.kind in STICKUP_CAM_KINDS:
+        if self.kind in STICKUP_CAM_KINDS:
             return 'Stick Up Cam'
-        elif self.kind in STICKUP_CAM_BATTERY_KINDS:
+        if self.kind in STICKUP_CAM_BATTERY_KINDS:
             return 'Stick Up Cam Battery'
-        elif self.kind in STICKUP_CAM_WIRED_KINDS:
+        if self.kind in STICKUP_CAM_WIRED_KINDS:
             return 'Stick Up Cam Wired'
         return None
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
-        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if capability == 'battery':
             return self.kind in (SPOTLIGHT_CAM_BATTERY_KINDS +
                                  STICKUP_CAM_KINDS +
                                  STICKUP_CAM_BATTERY_KINDS)
-        elif capability == 'light':
+        if capability == 'light':
             return self.kind in (FLOODLIGHT_CAM_KINDS +
                                  SPOTLIGHT_CAM_BATTERY_KINDS +
                                  SPOTLIGHT_CAM_WIRED_KINDS)
-        elif capability == 'siren':
+        if capability == 'siren':
             return self.kind in (FLOODLIGHT_CAM_KINDS +
                                  INDOOR_CAM_KINDS +
                                  SPOTLIGHT_CAM_BATTERY_KINDS +

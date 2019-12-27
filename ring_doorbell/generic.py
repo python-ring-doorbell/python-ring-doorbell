@@ -24,6 +24,7 @@ class RingGeneric(object):
         self.shared = shared
         self._attrs = None
         self._health_attrs = None
+        self.capability = False
 
         # alerts notifications
         self.alert_expires_at = None
@@ -47,7 +48,7 @@ class RingGeneric(object):
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
-        return False
+        return self.capability
 
     def update(self):
         """Refresh attributes."""

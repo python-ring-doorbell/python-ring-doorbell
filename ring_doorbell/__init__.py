@@ -6,6 +6,7 @@ try:
 except ImportError:
     from urllib import urlencode
 
+from typing import Callable
 import logging
 import time
 import requests
@@ -15,12 +16,13 @@ from ring_doorbell.utils import _exists_cache, _save_cache, _read_cache
 from ring_doorbell.const import (
     API_VERSION, API_URI, CACHE_ATTRS, CACHE_FILE,
     DEVICES_ENDPOINT, HEADERS, NEW_SESSION_ENDPOINT, MSG_GENERIC_FAIL,
-    POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA, RETRY_TOKEN,
-    OAUTH_ENDPOINT, OAUTH_DATA)
+    POST_DATA, PERSIST_TOKEN_ENDPOINT, PERSIST_TOKEN_DATA, RETRY_TOKEN)
 
 from ring_doorbell.doorbot import RingDoorBell
 from ring_doorbell.chime import RingChime
 from ring_doorbell.stickup_cam import RingStickUpCam
+from ring_doorbell.auth import Auth
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +31,9 @@ _LOGGER = logging.getLogger(__name__)
 class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
-    def __init__(self, username, password, debug=False, persist_token=False,
+    def __init__(self, username, password,
+                 auth_callback: Callable[[], str] = None,
+                 debug=False, persist_token=False,
                  push_token_notify_url="http://localhost/", reuse_session=True,
                  cache_file=CACHE_FILE):
         """Initialize the Ring object."""
@@ -44,6 +48,9 @@ class Ring(object):
         self.password = password
         self.session = requests.Session()
 
+        self.auth_callback = auth_callback
+        self.auth = None
+
         self.cache = CACHE_ATTRS
         self.cache['account'] = self.username
         self.cache_file = cache_file
@@ -51,7 +58,7 @@ class Ring(object):
 
         # tries to re-use old session
         if self._reuse_session:
-            self.cache['token'] = self.token
+            # self.cache['token'] = self.token
             self._process_cached_session()
         else:
             self._authenticate()
@@ -75,6 +82,9 @@ class Ring(object):
                 self.params = {'api_version': API_VERSION,
                                'auth_token': self.token}
 
+                if 'auth' in self.cache:
+                    self.auth = self.cache['auth']
+
                 # test if token from cache_file is still valid and functional
                 # if not, it should continue to get a new auth token
                 url = API_URI + DEVICES_ENDPOINT
@@ -90,16 +100,20 @@ class Ring(object):
     def _get_oauth_token(self):
         """Return Oauth Bearer token."""
         # this token should be cached / saved for later
-        oauth_data = OAUTH_DATA.copy()
-        oauth_data['username'] = self.username
-        oauth_data['password'] = self.password
-        response = self.session.post(OAUTH_ENDPOINT,
-                                     data=oauth_data,
-                                     headers=HEADERS)
-        oauth_token = None
-        if response.status_code == 200:
-            oauth_token = response.json().get('access_token')
-        return oauth_token
+        oauth = Auth(self.auth)
+
+        if not self.auth:
+            self.auth = oauth.fetch_token(
+                self.username,
+                self.password,
+                self.auth_callback)
+        else:
+            self.auth = oauth.refresh_tokens()
+
+        if self.debug:
+            _LOGGER.debug("response from get oauth token %s", str(self.auth))
+
+        return self.auth['access_token']
 
     def _authenticate(self, attempts=RETRY_TOKEN, session=None, wait=1.0):
         """Authenticate user against Ring API."""
@@ -154,6 +168,7 @@ class Ring(object):
                 if self._reuse_session:
                     self.cache['account'] = self.username
                     self.cache['token'] = self.token
+                    self.cache['auth'] = self.auth
                     _save_cache(self.cache, self.cache_file)
 
                 return True
