@@ -25,7 +25,6 @@ class RingStickUpCam(RingDoorBell):
     @property
     def model(self):
         """Return Ring device model name."""
-        # ignore R1705: Unnecessary "elif" after "return" (no-else-return)
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return 'Floodlight Cam'
         if self.kind in INDOOR_CAM_KINDS:
