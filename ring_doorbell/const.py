@@ -5,15 +5,25 @@ import os
 from uuid import uuid4 as uuid
 HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
-    'User-Agent': 'ring/5.21.0.5 CFNetwork/1121.2.2 Darwin/19.2.0',
+    'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9.0; SM-G850F Build'
+                  '/LRX22G)',
     'Accept-Encoding': 'gzip, deflate'
 }
+
+
+class OAuth:
+    """OAuth class constants"""
+    ENDPOINT = 'https://oauth.ring.com/oauth/token'
+    CLIENT_ID = 'ring_official_android'
+    SCOPE = 'client'
+
 
 # number of attempts to refresh token
 RETRY_TOKEN = 3
 
 # default suffix for session cache file
-CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None}
+CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None,
+               'auth': None}
 
 try:
     CACHE_FILE = os.path.join(os.getenv("HOME"),
@@ -26,7 +36,6 @@ except (AttributeError, TypeError):
 NOT_FOUND = -1
 
 # API endpoints
-OAUTH_ENDPOINT = 'https://oauth.ring.com/oauth/token'
 API_VERSION = '9'
 API_URI = 'https://api.ring.com'
 CHIMES_ENDPOINT = '/clients_api/chimes/{0}'
@@ -94,15 +103,6 @@ MSG_GENERIC_FAIL = 'Sorry.. Something went wrong...'
 FILE_EXISTS = 'The file {0} already exists.'
 MSG_VOL_OUTBOUND = 'Must be within the {0}-{1}.'
 MSG_ALLOWED_VALUES = 'Only the following values are allowed: {0}.'
-
-# structure acquired from reverse engineering to create auth token
-OAUTH_DATA = {
-    "client_id": "ring_official_android",
-    "grant_type": "password",
-    "scope": "client",
-    "username": None,
-    "password": None,
-}
 
 POST_DATA = {
     'api_version': API_VERSION,
