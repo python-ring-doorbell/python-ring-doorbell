@@ -1,8 +1,6 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Auth Class."""
-from typing import Optional, Union, Callable, Dict
-from requests import Response
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import (
     LegacyApplicationClient, TokenExpiredError,

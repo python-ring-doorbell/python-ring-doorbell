@@ -6,7 +6,6 @@ try:
 except ImportError:
     from urllib import urlencode
 
-from typing import Callable
 import logging
 import time
 import requests
