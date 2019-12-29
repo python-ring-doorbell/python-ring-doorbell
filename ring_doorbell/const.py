@@ -21,6 +21,9 @@ class OAuth:
 # number of attempts to refresh token
 RETRY_TOKEN = 3
 
+# timeout for HTTP requests
+TIMEOUT = 5
+
 # default suffix for session cache file
 CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None,
                'auth': None}
