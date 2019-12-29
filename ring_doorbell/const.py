@@ -15,7 +15,7 @@ class OAuth:
     """OAuth class constants"""
     ENDPOINT = 'https://oauth.ring.com/oauth/token'
     CLIENT_ID = 'ring_official_android'
-    SCOPE = 'client'
+    SCOPE = ['client']
 
 
 # number of attempts to refresh token
