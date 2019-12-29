@@ -66,7 +66,7 @@ class Auth:
             password=password,
             scope=OAuth.SCOPE)
 
-    # Python 2 doesn't support typing for return value, 
+    # Python 2 doesn't support typing for return value,
     #  removed: -> Dict[str, Union[str, int]]:
     def refresh_tokens(self):
         """Refreshes the auth tokens"""
@@ -79,7 +79,7 @@ class Auth:
 
     # Python 2 doesn't support typing for return value,
     #  removed: -> Response:
-    def request(self, method, resource, **kwargs):  
+    def request(self, method, resource, **kwargs):
         """Does an http request, if token is expired, then it will refresh
         :type method: str
         :type resource: str
