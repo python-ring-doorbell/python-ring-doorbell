@@ -13,17 +13,25 @@ from ring_doorbell.const import OAuth
 class Auth:
     """A Python Auth class for Ring"""
     def __init__(self,
-                 token: Optional[Dict[str, str]] = None,
-                 token_updater: Optional[Callable[[str], None]] = None):
+                 token = None,
+                 token_updater = None):
+        """
+        :type token: Optional[Dict[str, str]]
+        :type token_updater: Optional[Callable[[str], None]]
+        """
         self.token_updater = token_updater
         self._oauth = OAuth2Session(
             client=LegacyApplicationClient(client_id=OAuth.CLIENT_ID),
             token=token,
             token_updater=token_updater)
 
-    def fetch_token(self, username: str, password: str,
-                    auth_callback: Callable[[], str] = None):
-        """Initial token fetch with username/password & 2FA"""
+    def fetch_token(self, username, password,
+                    auth_callback = None):
+        """Initial token fetch with username/password & 2FA
+        :type username: str
+        :type password: str
+        :type auth_callback: Callable[[], str]
+        """
         try:
             return self.__fetch_token(username, password)
 
@@ -33,9 +41,13 @@ class Auth:
 
             return self.__fetch_token(username, password, auth_callback())
 
-    def __fetch_token(self, username: str, password: str,
-                      auth_code: str = None):
-        """Private fetch token method"""
+    def __fetch_token(self, username, password,
+                      auth_code = None):
+        """Private fetch token method
+        :type username: str
+        :type password: str
+        :type auth_code: str
+        """
         if auth_code:
             headers = {}
             headers['2fa-support'] = 'true'
@@ -54,7 +66,7 @@ class Auth:
             password=password,
             scope=OAuth.SCOPE)
 
-    def refresh_tokens(self) -> Dict[str, Union[str, int]]:
+    def refresh_tokens(self): # Python 2 doesn't support typing for return value -> Dict[str, Union[str, int]]:
         """Refreshes the auth tokens"""
         token = self._oauth.refresh_token(OAuth.ENDPOINT)
 
@@ -63,8 +75,11 @@ class Auth:
 
         return token
 
-    def request(self, method: str, resource: str, **kwargs) -> Response:
-        """Does an http request, if token is expired, then it will refresh"""
+    def request(self, method, resource, **kwargs): # Python 2 doesn't support typing for return value -> Response:
+        """Does an http request, if token is expired, then it will refresh
+        :type method: str
+        :type resource: str
+        """
         try:
             return self._oauth.request(method, resource, **kwargs)
 

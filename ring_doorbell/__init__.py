@@ -32,11 +32,13 @@ class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
     def __init__(self, username, password,
-                 auth_callback: Callable[[], str] = None,
+                 auth_callback = None,
                  debug=False, persist_token=False,
                  push_token_notify_url="http://localhost/", reuse_session=True,
                  cache_file=CACHE_FILE):
-        """Initialize the Ring object."""
+        """Initialize the Ring object.
+        :type auth_callback: Callable[[], str]
+        """
         self.is_connected = None
         self.token = None
         self.params = None
