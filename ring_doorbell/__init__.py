@@ -6,10 +6,12 @@ try:
 except ImportError:
     from urllib import urlencode
 
+from datetime import timedelta
+from datetime import datetime as dt
+
 import logging
 import time
 import requests
-import datetime
 
 from ring_doorbell.utils import _exists_cache, _save_cache, _read_cache
 
@@ -114,16 +116,16 @@ class Ring(object):
                 self.auth_callback)
         else:
             if self.last_refresh:
-                expiresIn = datetime.timedelta(seconds=self.auth['expires_in'])
-                refreshAt = self.last_refresh + expiresIn
+                expires_in = timedelta(seconds=self.auth['expires_in'])
+                refresh_at = self.last_refresh + expires_in
 
                 if self.debug:
                     _LOGGER.debug("response from get oauth token %s",
-                        str(self.auth))
+                                  str(self.auth))
 
-            if not self.last_refresh or (datetime.datetime.now() >= refreshAt):
+            if not self.last_refresh or (dt.now() >= refresh_at):
                 self.auth = oauth.refresh_tokens()
-                self.last_refresh = datetime.datetime.now()
+                self.last_refresh = dt.now()
             else:
                 if self.debug:
                     _LOGGER.debug("Reusing oauth token %s", str(self.auth))
@@ -144,6 +146,7 @@ class Ring(object):
             loop += 1
 
             try:
+                if session is None:
                     req = self.session.post((url),
                                             data=POST_DATA,
                                             headers=modified_headers,
