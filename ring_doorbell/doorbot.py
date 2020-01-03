@@ -292,10 +292,10 @@ class RingDoorBell(RingGeneric):
     def recording_download(self, recording_id, filename=None,
                            override=False, timeout=None):
         # Configure timeout if specified
-        if (timeout is None):
-            downloadTimeout = DEFAULT_VIDEO_DOWNLOAD_TIMEOUT
+        if timeout is None:
+            download_timeout = DEFAULT_VIDEO_DOWNLOAD_TIMEOUT
         else:
-            downloadTimeout = timeout
+            download_timeout = timeout
 
         """Save a recording in MP4 format to a file or return raw."""
         if not self.has_subscription:
@@ -306,7 +306,7 @@ class RingDoorBell(RingGeneric):
         url = API_URI + URL_RECORDING.format(recording_id)
         try:
             # Video download needs a longer timeout to get the large video file
-            req = self._ring.query(url, raw=True, timeout=downloadTimeout)
+            req = self._ring.query(url, raw=True, timeout=download_timeout)
             if req and req.status_code == 200:
 
                 if filename:
