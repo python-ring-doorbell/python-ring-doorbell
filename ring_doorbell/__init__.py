@@ -205,7 +205,7 @@ class Ring(object):
               json=None,
               timeout=None):
         """Query data from Ring API."""
-        
+
         # Configure timeout specific to this query
         if timeout is None:
             query_timeout = self._timeout
