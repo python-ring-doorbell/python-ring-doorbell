@@ -204,13 +204,14 @@ class Ring(object):
               extra_params=None,
               json=None,
               timeout=None):
+        """Query data from Ring API."""
+        
         # Configure timeout specific to this query
         if timeout is None:
             query_timeout = self._timeout
         else:
             query_timeout = timeout
 
-        """Query data from Ring API."""
         if self.debug:
             _LOGGER.debug("Querying %s", url)
 

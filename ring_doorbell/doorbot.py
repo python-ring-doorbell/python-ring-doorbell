@@ -291,13 +291,14 @@ class RingDoorBell(RingGeneric):
 
     def recording_download(self, recording_id, filename=None,
                            override=False, timeout=None):
+        """Save a recording in MP4 format to a file or return raw."""
+
         # Configure timeout if specified
         if timeout is None:
             download_timeout = DEFAULT_VIDEO_DOWNLOAD_TIMEOUT
         else:
             download_timeout = timeout
 
-        """Save a recording in MP4 format to a file or return raw."""
         if not self.has_subscription:
             msg = "Your Ring account does not have an active subscription."
             _LOGGER.warning(msg)
