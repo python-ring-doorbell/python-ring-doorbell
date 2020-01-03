@@ -289,7 +289,8 @@ class RingDoorBell(RingGeneric):
                 pass
         return None
 
-    def recording_download(self, recording_id, filename=None, override=False, timeout=None):
+    def recording_download(self, recording_id, filename=None,
+                           override=False, timeout=None):
         # Configure timeout if specified
         if (timeout is None):
             downloadTimeout = DEFAULT_VIDEO_DOWNLOAD_TIMEOUT
