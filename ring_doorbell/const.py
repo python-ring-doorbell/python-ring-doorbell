@@ -15,11 +15,14 @@ class OAuth:
     """OAuth class constants"""
     ENDPOINT = 'https://oauth.ring.com/oauth/token'
     CLIENT_ID = 'ring_official_android'
-    SCOPE = 'client'
+    SCOPE = ['client']
 
 
 # number of attempts to refresh token
 RETRY_TOKEN = 3
+
+# timeout for HTTP requests
+TIMEOUT = 5
 
 # default suffix for session cache file
 CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None,
