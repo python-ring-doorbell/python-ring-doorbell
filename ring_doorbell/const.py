@@ -32,7 +32,7 @@ CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None,
 
 try:
     CACHE_FILE = os.path.join(os.getenv("HOME"),
-                              '.ring_doorbell-session.cache')    
+                              '.ring_doorbell-session.cache')
 except (AttributeError, TypeError):
     CACHE_FILE = os.path.join('.', '.ring_doorbell-session.cache')
 
