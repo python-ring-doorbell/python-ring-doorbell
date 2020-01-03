@@ -31,14 +31,8 @@ CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None,
                'auth': None}
 
 try:
-    # Override ring_doorbell library's CACHE_FILE location so that it isn't stored in .indigoPlugin package
-    # itself (which causes it to be deleted when the plugin is upgraded); instead, store in appropriate
-    # preferences directory
-    # CACHE_FILE = os.path.join(os.getenv("HOME"),
-    #                           '.ring_doorbell-session.cache')
-    preferences_path = indigo.server.getInstallFolderPath() + "/Preferences/Plugins"
-    CACHE_FILE = os.path.join(preferences_path,
-                              'com.thebenzes.zachbenz.indigoplugin.ringforindigo.session.cache')
+    CACHE_FILE = os.path.join(os.getenv("HOME"),
+                              '.ring_doorbell-session.cache')    
 except (AttributeError, TypeError):
     CACHE_FILE = os.path.join('.', '.ring_doorbell-session.cache')
 
