@@ -1,7 +1,6 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Constants."""
-import indigo
 import os
 from uuid import uuid4 as uuid
 HEADERS = {
