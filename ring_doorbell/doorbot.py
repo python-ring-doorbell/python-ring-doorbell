@@ -18,7 +18,7 @@ from ring_doorbell.const import (
     FILE_EXISTS, LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED,
     MSG_EXISTING_TYPE, MSG_VOL_OUTBOUND, PEEPHOLE_CAM_KINDS,
     SNAPSHOT_ENDPOINT, SNAPSHOT_TIMESTAMP_ENDPOINT,
-    URL_DOORBELL_HISTORY, URL_RECORDING)
+    URL_DOORBELL_HISTORY, URL_RECORDING, DEFAULT_VIDEO_DOWNLOAD_TIMEOUT)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -289,7 +289,13 @@ class RingDoorBell(RingGeneric):
                 pass
         return None
 
-    def recording_download(self, recording_id, filename=None, override=False):
+    def recording_download(self, recording_id, filename=None, override=False, timeout=None):
+        # Configure timeout if specified
+        if (timeout is None):
+            downloadTimeout = DEFAULT_VIDEO_DOWNLOAD_TIMEOUT
+        else:
+            downloadTimeout = timeout
+
         """Save a recording in MP4 format to a file or return raw."""
         if not self.has_subscription:
             msg = "Your Ring account does not have an active subscription."
@@ -298,7 +304,8 @@ class RingDoorBell(RingGeneric):
 
         url = API_URI + URL_RECORDING.format(recording_id)
         try:
-            req = self._ring.query(url, raw=True)
+            # Video download needs a longer timeout to get the large video file
+            req = self._ring.query(url, raw=True, timeout=downloadTimeout)
             if req and req.status_code == 200:
 
                 if filename:

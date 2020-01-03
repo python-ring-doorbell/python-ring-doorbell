@@ -1,6 +1,7 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Constants."""
+import indigo
 import os
 from uuid import uuid4 as uuid
 HEADERS = {
@@ -23,14 +24,21 @@ RETRY_TOKEN = 3
 
 # timeout for HTTP requests
 TIMEOUT = 5
+DEFAULT_VIDEO_DOWNLOAD_TIMEOUT = 120
 
 # default suffix for session cache file
 CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None,
                'auth': None}
 
 try:
-    CACHE_FILE = os.path.join(os.getenv("HOME"),
-                              '.ring_doorbell-session.cache')
+    # Override ring_doorbell library's CACHE_FILE location so that it isn't stored in .indigoPlugin package
+    # itself (which causes it to be deleted when the plugin is upgraded); instead, store in appropriate
+    # preferences directory
+    # CACHE_FILE = os.path.join(os.getenv("HOME"),
+    #                           '.ring_doorbell-session.cache')
+    preferences_path = indigo.server.getInstallFolderPath() + "/Preferences/Plugins"
+    CACHE_FILE = os.path.join(preferences_path,
+                              'com.thebenzes.zachbenz.indigoplugin.ringforindigo.session.cache')
 except (AttributeError, TypeError):
     CACHE_FILE = os.path.join('.', '.ring_doorbell-session.cache')
 
