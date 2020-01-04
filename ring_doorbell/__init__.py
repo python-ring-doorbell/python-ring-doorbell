@@ -202,8 +202,16 @@ class Ring(object):
               method='GET',
               raw=False,
               extra_params=None,
-              json=None):
+              json=None,
+              timeout=None):
         """Query data from Ring API."""
+
+        # Configure timeout specific to this query
+        if timeout is None:
+            query_timeout = self._timeout
+        else:
+            query_timeout = timeout
+
         if self.debug:
             _LOGGER.debug("Querying %s", url)
 
@@ -235,15 +243,15 @@ class Ring(object):
                 if method == 'GET':
                     req = self.session.get(
                         (url), params=urlencode(params),
-                        headers=auth_header, timeout=self._timeout)
+                        headers=auth_header, timeout=query_timeout)
                 elif method == 'PUT':
                     req = self.session.put(
                         (url), params=urlencode(params),
-                        headers=auth_header, timeout=self._timeout)
+                        headers=auth_header, timeout=query_timeout)
                 elif method == 'POST':
                     req = self.session.post(
                         (url), params=urlencode(params), json=json,
-                        headers=auth_header, timeout=self._timeout)
+                        headers=auth_header, timeout=query_timeout)
 
                 if self.debug:
                     _LOGGER.debug("_query %s ret %s", loop, req.status_code)
