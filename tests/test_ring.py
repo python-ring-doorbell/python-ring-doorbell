@@ -24,7 +24,6 @@ class TestRing(RingUnitTestBase):
                  text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
 
         data = self.ring
-        self.assertTrue(data.is_connected)
         self.assertIsInstance(data.cache, dict)
         self.assertFalse(data.debug)
         self.assertEqual(1, len(data.chimes))

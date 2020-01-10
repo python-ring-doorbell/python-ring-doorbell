@@ -26,9 +26,9 @@ class RingUnitTestBase(unittest.TestCase):
         mock.put('https://api.ring.com/clients_api/device',
                  text=load_fixture('ring_devices.json'))
 
-        self.ring = Ring(USERNAME, PASSWORD, cache_file=CACHE)
+        self.ring = Ring(USERNAME, PASSWORD)
         self.ring_persistent = \
-            Ring(USERNAME, PASSWORD, cache_file=CACHE, persist_token=True)
+            Ring(USERNAME, PASSWORD, persist_token=True)
 
         self.assertTrue(hasattr(self.ring, "update"))
 

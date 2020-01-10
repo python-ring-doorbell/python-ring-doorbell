@@ -10,7 +10,9 @@ def callback():
 
 username = input('Username:')
 password = input('Password:')
-# auth = Auth()
-# token = auth.fetch_token(username, password, callback)
 ring = Ring(username, password, callback)
+print(ring.devices)
+print(ring.devices)
+print(ring.devices)
+print(ring.devices)
 print(ring.devices)
