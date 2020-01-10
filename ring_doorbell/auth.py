@@ -5,7 +5,7 @@ from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import (
     LegacyApplicationClient, TokenExpiredError,
     MissingTokenError)
-from ring_doorbell.const import OAuth
+from ring_doorbell.const import (OAuth, HEADERS)
 
 
 class Auth:
@@ -47,7 +47,7 @@ class Auth:
         :type auth_code: str
         """
         if auth_code:
-            headers = {}
+            headers = HEADERS.copy()
             headers['2fa-support'] = 'true'
             headers['2fa-code'] = auth_code
 
@@ -62,13 +62,15 @@ class Auth:
             OAuth.ENDPOINT,
             username=username,
             password=password,
-            scope=OAuth.SCOPE)
+            scope=OAuth.SCOPE,
+            headers=HEADERS)
 
     # Python 2 doesn't support typing for return value,
     #  removed: -> Dict[str, Union[str, int]]:
     def refresh_tokens(self):
         """Refreshes the auth tokens"""
-        token = self._oauth.refresh_token(OAuth.ENDPOINT)
+        token = self._oauth.refresh_token(
+            OAuth.ENDPOINT, headers=HEADERS)
 
         if self.token_updater is not None:
             self.token_updater(token)
