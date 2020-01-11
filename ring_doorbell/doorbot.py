@@ -10,7 +10,6 @@ import pytz
 
 from ring_doorbell.generic import RingGeneric
 
-from ring_doorbell.utils import _save_cache
 from ring_doorbell.const import (
     API_URI, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, DOORBELL_KINDS,
@@ -85,7 +84,7 @@ class RingDoorBell(RingGeneric):
         self.update()
 
         try:
-            resp = self._ring.query(url)[0]
+            resp = self._ring.query(url).json()[0]
         except (IndexError, TypeError):
             return None
 
@@ -93,10 +92,6 @@ class RingDoorBell(RingGeneric):
             timestamp = resp.get('now') + resp.get('expires_in')
             self.alert = resp
             self.alert_expires_at = datetime.fromtimestamp(timestamp)
-
-            # save to a pickle data
-            if self.alert:
-                _save_cache(self._ring.cache, self._ring.cache_file)
             return True
         return None
 
@@ -223,7 +218,7 @@ class RingDoorBell(RingGeneric):
                 params['older_than'] = older_than
 
             url = API_URI + URL_DOORBELL_HISTORY.format(self.account_id)
-            response = self._ring.query(url, extra_params=params)
+            response = self._ring.query(url, extra_params=params).json()
 
             # cherrypick only the selected kind events
             if kind:
@@ -280,11 +275,11 @@ class RingDoorBell(RingGeneric):
     def live_streaming_json(self):
         """Return JSON for live streaming."""
         url = API_URI + LIVE_STREAMING_ENDPOINT.format(self.account_id)
-        req = self._ring.query((url), method='POST', raw=True)
+        req = self._ring.query(url, method='POST')
         if req and req.status_code == 204:
             url = API_URI + DINGS_ENDPOINT
             try:
-                return self._ring.query(url)[0]
+                return self._ring.query(url).json()[0]
             except (IndexError, TypeError):
                 pass
         return None
@@ -300,7 +295,7 @@ class RingDoorBell(RingGeneric):
         url = API_URI + URL_RECORDING.format(recording_id)
         try:
             # Video download needs a longer timeout to get the large video file
-            req = self._ring.query(url, raw=True, timeout=timeout)
+            req = self._ring.query(url, timeout=timeout)
             if req and req.status_code == 200:
 
                 if filename:
@@ -326,7 +321,7 @@ class RingDoorBell(RingGeneric):
             return False
 
         url = API_URI + URL_RECORDING.format(recording_id)
-        req = self._ring.query(url, raw=True)
+        req = self._ring.query(url)
         if req and req.status_code == 200:
             return req.url
         return False
@@ -382,13 +377,15 @@ class RingDoorBell(RingGeneric):
         """Take a snapshot and download it"""
         url = API_URI + SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get('id')]}
-        self._ring.query(url, json=payload)
+        self._ring.query(url)
         request_time = time.time()
         for _ in range(retries):
             time.sleep(delay)
             response = self._ring.query(
-                url, method="POST", json=payload, raw=1).json()
+                url, method="POST", json=payload
+            ).json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
-                return self._ring.query(API_URI + SNAPSHOT_ENDPOINT.format(
-                    self._attrs.get('id')), raw=True).content
+                return self._ring.query(
+                    API_URI + SNAPSHOT_ENDPOINT.format(self._attrs.get('id'))
+                ).content
         return False

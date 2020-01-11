@@ -24,13 +24,9 @@ class TestRing(RingUnitTestBase):
                  text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
 
         data = self.ring
-        self.assertIsInstance(data.cache, dict)
-        self.assertFalse(data.debug)
         self.assertEqual(1, len(data.chimes))
         self.assertEqual(2, len(data.doorbells))
         self.assertEqual(1, len(data.stickup_cams))
-        self.assertFalse(data._persist_token)
-        self.assertEqual('http://localhost/', data._push_token_notify_url)
 
     @requests_mock.Mocker()
     def test_chime_attributes(self, mock):
@@ -72,7 +68,7 @@ class TestRing(RingUnitTestBase):
         mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
                  text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
 
-        data = self.ring_persistent
+        data = self.ring
         for dev in data.doorbells:
             if not dev.shared:
                 self.assertEqual('Front Door', dev.name)
@@ -97,7 +93,6 @@ class TestRing(RingUnitTestBase):
                                                     retry=50)))
 
                 self.assertEqual('Mechanical', dev.existing_doorbell_type)
-                self.assertTrue(data._persist_token)
                 self.assertEqual('ring_mock_wifi', dev.wifi_name)
                 self.assertEqual('good', dev.wifi_signal_category)
                 self.assertEqual(-58, dev.wifi_signal_strength)
@@ -115,7 +110,7 @@ class TestRing(RingUnitTestBase):
         mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
                  text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
 
-        data = self.ring_persistent
+        data = self.ring
         for dev in data.doorbells:
             if dev.shared:
                 self.assertEqual(987653, dev.account_id)
@@ -143,7 +138,7 @@ class TestRing(RingUnitTestBase):
         mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
                  text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
 
-        data = self.ring_persistent
+        data = self.ring
         for dev in data.doorbells:
             self.assertEqual('America/New_York', dev.timezone)
 
@@ -153,7 +148,6 @@ class TestRing(RingUnitTestBase):
             self.assertIsInstance(dev.alert, dict)
             self.assertIsInstance(dev.alert_expires_at, datetime)
             self.assertTrue(datetime.now() >= dev.alert_expires_at)
-            self.assertIsNotNone(dev._ring.cache_file)
 
     @requests_mock.Mocker()
     def test_stickup_cam_attributes(self, mock):
@@ -164,7 +158,7 @@ class TestRing(RingUnitTestBase):
         mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
                  text=load_fixture('ring_doorboot_health_attrs.json'))
 
-        data = self.ring_persistent
+        data = self.ring
         for dev in data.stickup_cams:
             self.assertEqual('hp_cam_v1', dev.kind)
             self.assertEqual('Floodlight Cam', dev.model)
@@ -183,7 +177,7 @@ class TestRing(RingUnitTestBase):
                  text=load_fixture('ring_doorboot_health_attrs.json'))
         mock.put(requests_mock.ANY, text='ok')
 
-        data = self.ring_persistent
+        data = self.ring
         for dev in data.stickup_cams:
             dev.lights = 'off'
             dev.lights = 'on'

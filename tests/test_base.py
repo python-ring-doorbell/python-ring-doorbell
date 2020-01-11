@@ -4,10 +4,10 @@ import os
 import unittest
 import requests_mock
 from tests.helpers import load_fixture
+from ring_doorbell import Ring, Auth
 
 USERNAME = 'foo'
 PASSWORD = 'bar'
-CACHE = os.path.join(os.path.dirname(__file__), 'cache.db')
 
 
 class RingUnitTestBase(unittest.TestCase):
@@ -16,7 +16,6 @@ class RingUnitTestBase(unittest.TestCase):
     @requests_mock.Mocker()
     def setUp(self, mock):
         """Setup unit test and load mock."""
-        from ring_doorbell import Ring
         mock.post('https://oauth.ring.com/oauth/token',
                   text=load_fixture('ring_oauth.json'))
         mock.get('https://api.ring.com/clients_api/ring_devices',
@@ -26,18 +25,6 @@ class RingUnitTestBase(unittest.TestCase):
         mock.put('https://api.ring.com/clients_api/device',
                  text=load_fixture('ring_devices.json'))
 
-        self.ring = Ring(USERNAME, PASSWORD)
-        self.ring_persistent = \
-            Ring(USERNAME, PASSWORD, persist_token=True)
-
-        self.assertTrue(hasattr(self.ring, "update"))
-
-    def cleanup(self):
-        """Cleanup any data created from the tests."""
-        self.ring = None
-        if os.path.isfile(CACHE):
-            os.remove(CACHE)
-
-    def tearDown(self):
-        """Stop everything started."""
-        self.cleanup()
+        auth = Auth()
+        auth.fetch_token(USERNAME, PASSWORD)
+        self.ring = Ring(auth)

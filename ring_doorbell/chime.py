@@ -60,7 +60,7 @@ class RingChime(RingGeneric):
     def linked_tree(self):
         """Return doorbell data linked to chime."""
         url = API_URI + LINKED_CHIMES_ENDPOINT.format(self.account_id)
-        return self._ring.query(url)
+        return self._ring.query(url).json()
 
     def test_sound(self, kind=KIND_DING):
         """Play chime to test sound."""
