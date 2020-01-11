@@ -1,14 +1,7 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Constants."""
-import os
 from uuid import uuid4 as uuid
-HEADERS = {
-    'Content-Type': 'application/x-www-form-urlencoded; charset: UTF-8',
-    'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9.0; SM-G850F Build'
-                  '/LRX22G)',
-    'Accept-Encoding': 'gzip, deflate'
-}
 
 
 class OAuth:
@@ -16,6 +9,10 @@ class OAuth:
     ENDPOINT = 'https://oauth.ring.com/oauth/token'
     CLIENT_ID = 'ring_official_android'
     SCOPE = ['client']
+    HEADERS = {
+        'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9.0;'
+                      'SM-G850F Build/LRX22G)'
+        }
 
 
 # number of attempts to refresh token
@@ -30,16 +27,6 @@ TIMEOUT = 5
 # backend; to be safe, we factor in a worst case overhead and set it to 2
 # minutes (this default can be overridden in method call)
 DEFAULT_VIDEO_DOWNLOAD_TIMEOUT = 120
-
-# default suffix for session cache file
-CACHE_ATTRS = {'account': None, 'alerts': None, 'token': None,
-               'auth': None}
-
-try:
-    CACHE_FILE = os.path.join(os.getenv("HOME"),
-                              '.ring_doorbell-session.cache')
-except (AttributeError, TypeError):
-    CACHE_FILE = os.path.join('.', '.ring_doorbell-session.cache')
 
 
 # code when item was not found

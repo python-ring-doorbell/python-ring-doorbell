@@ -41,11 +41,15 @@ Initializing your Ring object
 
 .. code-block:: python
 
-    from ring_doorbell import Ring
-    myring = Ring('foo@bar', 'secret')
+    from pprint import pprint
+    from ring_doorbell import Ring, Auth
 
-    myring.is_connected
-    True
+    auth = Auth(None, token_updated)
+    auth.fetch_token(username, password)
+    ring = Ring(auth)
+
+    pprint(ring.devices)
+
 
 Listing devices linked to your account
 --------------------------------------
@@ -74,9 +78,6 @@ Playing with the attributes and functions
 .. code-block:: python
 
     for dev in list(myring.stickup_cams + myring.chimes + myring.doorbells):
-
-        # refresh data
-        dev.update()
 
         print('Account ID: %s' % dev.account_id)
         print('Address:    %s' % dev.address)

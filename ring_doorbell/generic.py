@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime
 
-from ring_doorbell.utils import _locator, _save_cache
+from ring_doorbell.utils import _locator
 from ring_doorbell.const import (
     API_URI, DEVICES_ENDPOINT, NOT_FOUND,
     HEALTH_CHIMES_ENDPOINT, HEALTH_DOORBELL_ENDPOINT)
@@ -16,25 +16,26 @@ _LOGGER = logging.getLogger(__name__)
 class RingGeneric(object):
     """Generic Implementation for Ring Chime/Doorbell."""
 
-    def __init__(self, ring, name, shared=False):
+    def __init__(self, ring, attrs, shared=False):
         """Initialize Ring Generic."""
         self._ring = ring
-        self.debug = self._ring.debug
-        self.name = name
         self.shared = shared
-        self._attrs = None
+        self._attrs = attrs
         self._health_attrs = None
         self.capability = False
+        self.alert = None
 
         # alerts notifications
         self.alert_expires_at = None
 
-        # force update
-        self.update()
-
     def __repr__(self):
         """Return __repr__."""
         return "<{0}: {1}>".format(self.__class__.__name__, self.name)
+
+    @property
+    def name(self):
+        """Return name."""
+        return self._attrs['description']
 
     @property
     def family(self):
@@ -56,18 +57,6 @@ class RingGeneric(object):
         self._get_health_attrs()
         self._update_alert()
 
-    @property
-    def alert(self):
-        """Return alert attribute."""
-        return self._ring.cache['alerts']
-
-    @alert.setter
-    def alert(self, value):
-        """Set attribute to alert."""
-        self._ring.cache['alerts'] = value
-        _save_cache(self._ring.cache, self._ring.cache_file)
-        return True
-
     def _update_alert(self):
         """Verify if alert received is still valid."""
         # alert is no longer valid
@@ -75,20 +64,16 @@ class RingGeneric(object):
             if datetime.now() >= self.alert_expires_at:
                 self.alert = None
                 self.alert_expires_at = None
-                _save_cache(self._ring.cache, self._ring.cache_file)
 
     def _get_attrs(self):
         """Return attributes."""
         url = API_URI + DEVICES_ENDPOINT
-        try:
-            if self.family == 'doorbots' and self.shared:
-                lst = self._ring.query(url).get('authorized_doorbots')
-            else:
-                lst = self._ring.query(url).get(self.family)
-            index = _locator(lst, 'description', self.name)
-            if index == NOT_FOUND:
-                return None
-        except AttributeError:
+        if self.family == 'doorbots' and self.shared:
+            lst = self._ring.query(url).json().get('authorized_doorbots')
+        else:
+            lst = self._ring.query(url).json().get(self.family)
+        index = _locator(lst, 'description', self.name)
+        if index == NOT_FOUND:
             return None
 
         self._attrs = lst[index]
@@ -100,7 +85,7 @@ class RingGeneric(object):
             url = API_URI + HEALTH_DOORBELL_ENDPOINT.format(self.account_id)
         elif self.family == 'chimes':
             url = API_URI + HEALTH_CHIMES_ENDPOINT.format(self.account_id)
-        self._health_attrs = self._ring.query(url).get('device_health')
+        self._health_attrs = self._ring.query(url).json().get('device_health')
 
     @property
     def account_id(self):
