@@ -16,12 +16,11 @@ _LOGGER = logging.getLogger(__name__)
 class RingGeneric(object):
     """Generic Implementation for Ring Chime/Doorbell."""
 
-    def __init__(self, ring, name, shared=False):
+    def __init__(self, ring, attrs, shared=False):
         """Initialize Ring Generic."""
         self._ring = ring
-        self.name = name
         self.shared = shared
-        self._attrs = None
+        self._attrs = attrs
         self._health_attrs = None
         self.capability = False
         self.alert = None
@@ -32,6 +31,11 @@ class RingGeneric(object):
     def __repr__(self):
         """Return __repr__."""
         return "<{0}: {1}>".format(self.__class__.__name__, self.name)
+
+    @property
+    def name(self):
+        """Return name."""
+        return self._attrs['description']
 
     @property
     def family(self):

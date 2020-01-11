@@ -49,7 +49,7 @@ class Ring(object):
 
         for dev_type, convertor in TYPES.items():
             devices[dev_type] = [
-                convertor(self, obj['description'])
+                convertor(self, obj)
                 for obj in data.get(dev_type, [])
             ]
 
