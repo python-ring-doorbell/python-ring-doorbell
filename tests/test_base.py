@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 """Define basic data for unittests."""
-import os
 import unittest
 import requests_mock
 from tests.helpers import load_fixture
