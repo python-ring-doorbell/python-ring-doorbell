@@ -19,7 +19,7 @@ class OAuth:
 RETRY_TOKEN = 3
 
 # timeout for HTTP requests
-TIMEOUT = 5
+TIMEOUT = 10
 
 # longer default timeout for recording downloads - typical video file sizes
 # are ~12 MB and empirical testing reveals a ~20 second download time over a
