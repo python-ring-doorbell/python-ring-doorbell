@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from ring_doorbell import Ring, Auth
+from oauthlib.oauth2 import MissingTokenError
 
 
 cache_file = Path('test_token.cache')
@@ -23,7 +24,10 @@ def main():
         username = input("Username: ")
         password = input("Password: ")
         auth = Auth(None, token_updated)
-        auth.fetch_token(username, password, otp_callback)
+        try:
+            auth.fetch_token(username, password)
+        except MissingTokenError:
+            auth.fetch_token(username, password, otp_callback())
 
     ring = Ring(auth)
     print(ring.devices)

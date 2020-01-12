@@ -3,8 +3,7 @@
 """Python Ring Auth Class."""
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import (
-    LegacyApplicationClient, TokenExpiredError,
-    MissingTokenError)
+    LegacyApplicationClient, TokenExpiredError)
 from ring_doorbell.const import OAuth, API_VERSION, TIMEOUT
 
 
@@ -23,23 +22,8 @@ class Auth:
             token=token
         )
 
-    def fetch_token(self, username, password, otp_callback=None):
+    def fetch_token(self, username, password, otp_code=None):
         """Initial token fetch with username/password & 2FA
-        :type username: str
-        :type password: str
-        :type otp_callback: Callable[[], str] One Time Password callback.
-        """
-        try:
-            return self.__fetch_token(username, password)
-
-        except MissingTokenError:
-            if not otp_callback:
-                raise
-
-            return self.__fetch_token(username, password, otp_callback())
-
-    def __fetch_token(self, username, password, otp_code=None):
-        """Private fetch token method
         :type username: str
         :type password: str
         :type otp_code: str
