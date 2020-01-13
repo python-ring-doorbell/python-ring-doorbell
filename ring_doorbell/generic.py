@@ -32,7 +32,7 @@ class RingGeneric(object):
     @property
     def name(self):
         """Return name."""
-        return self._attrs['description']
+        return self._attrs["description"]
 
     @property
     def family(self):
@@ -56,44 +56,44 @@ class RingGeneric(object):
     @property
     def address(self):
         """Return address."""
-        return self._attrs.get('address')
+        return self._attrs.get("address")
 
     @property
     def firmware(self):
         """Return firmware."""
-        return self._attrs.get('firmware_version')
+        return self._attrs.get("firmware_version")
 
     @property
     def latitude(self):
         """Return latitude attr."""
-        return self._attrs.get('latitude')
+        return self._attrs.get("latitude")
 
     @property
     def longitude(self):
         """Return longitude attr."""
-        return self._attrs.get('longitude')
+        return self._attrs.get("longitude")
 
     @property
     def kind(self):
         """Return kind attr."""
-        return self._attrs.get('kind')
+        return self._attrs.get("kind")
 
     @property
     def timezone(self):
         """Return timezone."""
-        return self._attrs.get('time_zone')
+        return self._attrs.get("time_zone")
 
     @property
     def wifi_name(self):
         """Return wifi ESSID name."""
-        return self._health_attrs.get('wifi_name')
+        return self._health_attrs.get("wifi_name")
 
     @property
     def wifi_signal_strength(self):
         """Return wifi RSSI."""
-        return self._health_attrs.get('latest_signal_strength')
+        return self._health_attrs.get("latest_signal_strength")
 
     @property
     def wifi_signal_category(self):
         """Return wifi signal category."""
-        return self._health_attrs.get('latest_signal_category')
+        return self._health_attrs.get("latest_signal_category")

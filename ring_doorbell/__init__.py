@@ -6,8 +6,13 @@ from time import time
 from uuid import uuid4
 
 from .const import (
-    API_URI, DEVICES_ENDPOINT, HEALTH_CHIMES_ENDPOINT,
-    HEALTH_DOORBELL_ENDPOINT, NEW_SESSION_ENDPOINT, DINGS_ENDPOINT)
+    API_URI,
+    DEVICES_ENDPOINT,
+    HEALTH_CHIMES_ENDPOINT,
+    HEALTH_DOORBELL_ENDPOINT,
+    NEW_SESSION_ENDPOINT,
+    DINGS_ENDPOINT,
+)
 from .auth import Auth  # noqa
 from .doorbot import RingDoorBell
 from .chime import RingChime
@@ -18,11 +23,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 TYPES = {
-    'stickup_cams': RingStickUpCam,
-    'chimes': RingChime,
-    'doorbots': RingDoorBell,
-    'authorized_doorbots':
-    lambda ring, description: RingDoorBell(ring, description, shared=True),
+    "stickup_cams": RingStickUpCam,
+    "chimes": RingChime,
+    "doorbots": RingDoorBell,
+    "authorized_doorbots": lambda ring, description: RingDoorBell(
+        ring, description, shared=True
+    ),
 }
 
 
@@ -42,7 +48,7 @@ class Ring(object):
     @property
     def account_id(self):
         """Return account ID."""
-        return self.session['profile']['id']
+        return self.session["profile"]["id"]
 
     def update_all(self):
         """Update all data."""
@@ -51,31 +57,35 @@ class Ring(object):
 
         self.update_devices()
 
-        if self.devices_data['chimes']:
+        if self.devices_data["chimes"]:
             self.update_chime_health()
 
-        if self.devices_data['doorbots'] or self.devices_data['stickup_cams']:
+        if self.devices_data["doorbots"] or self.devices_data["stickup_cams"]:
             self.update_doorbell_health()
 
         self.update_dings()
 
     def create_session(self):
         """Create a new Ring session."""
-        self.session = self.query(NEW_SESSION_ENDPOINT, method='POST', data={
-            'api_version': '9',
-            'device[hardware_id]': uuid4().hex,
-            'device[os]': 'android',
-            'device[app_brand]': 'ring',
-            'device[metadata][device_model]': 'KVM',
-            'device[metadata][device_name]': 'Python',
-            'device[metadata][resolution]': '600x800',
-            'device[metadata][app_version]': '1.3.806',
-            'device[metadata][app_instalation_date]': '',
-            'device[metadata][manufacturer]': 'Qemu',
-            'device[metadata][device_type]': 'desktop',
-            'device[metadata][architecture]': 'desktop',
-            'device[metadata][language]': 'en'
-        }).json()
+        self.session = self.query(
+            NEW_SESSION_ENDPOINT,
+            method="POST",
+            data={
+                "api_version": "9",
+                "device[hardware_id]": uuid4().hex,
+                "device[os]": "android",
+                "device[app_brand]": "ring",
+                "device[metadata][device_model]": "KVM",
+                "device[metadata][device_name]": "Python",
+                "device[metadata][resolution]": "600x800",
+                "device[metadata][app_version]": "1.3.806",
+                "device[metadata][app_instalation_date]": "",
+                "device[metadata][manufacturer]": "Qemu",
+                "device[metadata][device_type]": "desktop",
+                "device[metadata][architecture]": "desktop",
+                "device[metadata][language]": "en",
+            },
+        ).json()
 
     def update_devices(self):
         """Update device data."""
@@ -103,13 +113,9 @@ class Ring(object):
         """Update dings data."""
         self.dings_data = self.query(DINGS_ENDPOINT).json()
 
-    def query(self,
-              url,
-              method='GET',
-              extra_params=None,
-              data=None,
-              json=None,
-              timeout=None):
+    def query(
+        self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
+    ):
         """Query data from Ring API."""
         return self.auth.query(
             API_URI + url,
@@ -126,7 +132,7 @@ class Ring(object):
 
         for dev_type, convertor in TYPES.items():
             devices[dev_type] = [
-                convertor(self, obj['device_id'])
+                convertor(self, obj["device_id"])
                 for obj in self.devices_data.get(dev_type, {}).values()
             ]
 
@@ -135,7 +141,7 @@ class Ring(object):
     def active_alert(self):
         """Get active alert."""
         for alert in self.dings_data:
-            expires_at = alert.get('now') + alert.get('expires_in')
+            expires_at = alert.get("now") + alert.get("expires_in")
 
             if time() < expires_at:
                 return alert

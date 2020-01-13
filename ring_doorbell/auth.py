@@ -2,13 +2,13 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Auth Class."""
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import (
-    LegacyApplicationClient, TokenExpiredError)
+from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from ring_doorbell.const import OAuth, API_VERSION, TIMEOUT
 
 
 class Auth:
     """A Python Auth class for Ring"""
+
     def __init__(self, user_agent, token=None, token_updater=None):
         """
         :type token: Optional[Dict[str, str]]
@@ -18,8 +18,7 @@ class Auth:
 
         self.token_updater = token_updater
         self._oauth = OAuth2Session(
-            client=LegacyApplicationClient(client_id=OAuth.CLIENT_ID),
-            token=token
+            client=LegacyApplicationClient(client_id=OAuth.CLIENT_ID), token=token
         )
 
     def fetch_token(self, username, password, otp_code=None):
@@ -30,8 +29,8 @@ class Auth:
         """
         if otp_code:
             headers = OAuth.HEADERS.copy()
-            headers['2fa-support'] = 'true'
-            headers['2fa-code'] = otp_code
+            headers["2fa-support"] = "true"
+            headers["2fa-code"] = otp_code
         else:
             headers = OAuth.HEADERS
 
@@ -40,7 +39,7 @@ class Auth:
             username=username,
             password=password,
             scope=OAuth.SCOPE,
-            headers=headers
+            headers=headers,
         )
 
         if self.token_updater is not None:
@@ -50,44 +49,36 @@ class Auth:
 
     def refresh_tokens(self):
         """Refreshes the auth tokens"""
-        token = self._oauth.refresh_token(
-            OAuth.ENDPOINT, headers=OAuth.HEADERS
-        )
+        token = self._oauth.refresh_token(OAuth.ENDPOINT, headers=OAuth.HEADERS)
 
         if self.token_updater is not None:
             self.token_updater(token)
 
         return token
 
-    def query(self,
-              url,
-              method='GET',
-              extra_params=None,
-              data=None,
-              json=None,
-              timeout=None):
+    def query(
+        self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
+    ):
         """Query data from Ring API."""
         if timeout is None:
             timeout = TIMEOUT
 
-        params = {'api_version': API_VERSION}
+        params = {"api_version": API_VERSION}
 
         if extra_params:
             params.update(extra_params)
 
         kwargs = {
-            'params': params,
-            'headers': {
-                'User-Agent': self.user_agent
-            },
-            'timeout': timeout,
+            "params": params,
+            "headers": {"User-Agent": self.user_agent},
+            "timeout": timeout,
         }
 
-        if method == 'POST':
+        if method == "POST":
             if json is not None:
-                kwargs['json'] = json
+                kwargs["json"] = json
             if data is not None:
-                kwargs['data'] = data
+                kwargs["data"] = data
 
         try:
             req = getattr(self._oauth, method.lower())(url, **kwargs)
