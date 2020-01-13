@@ -5,7 +5,7 @@ import logging
 
 from ring_doorbell.generic import RingGeneric
 from ring_doorbell.const import (
-    API_URI, CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
+    CHIMES_ENDPOINT, CHIME_VOL_MIN, CHIME_VOL_MAX,
     LINKED_CHIMES_ENDPOINT, MSG_VOL_OUTBOUND, TESTSOUND_CHIME_ENDPOINT,
     CHIME_TEST_SOUND_KINDS, KIND_DING, CHIME_KINDS, CHIME_PRO_KINDS)
 
@@ -19,6 +19,11 @@ class RingChime(RingGeneric):
     def family(self):
         """Return Ring device family type."""
         return 'chimes'
+
+    @property
+    def _health_attrs(self):
+        """Return health attributes."""
+        return self._ring.chime_health_data.get('device_health')
 
     @property
     def model(self):
@@ -51,21 +56,21 @@ class RingChime(RingGeneric):
         params = {
             'chime[description]': self.name,
             'chime[settings][volume]': str(value)}
-        url = API_URI + CHIMES_ENDPOINT.format(self.account_id)
+        url = CHIMES_ENDPOINT.format(self.account_id)
         self._ring.query(url, extra_params=params, method='PUT')
-        self.update()
+        self._ring.update_devices()
         return True
 
     @property
     def linked_tree(self):
         """Return doorbell data linked to chime."""
-        url = API_URI + LINKED_CHIMES_ENDPOINT.format(self.account_id)
+        url = LINKED_CHIMES_ENDPOINT.format(self.account_id)
         return self._ring.query(url).json()
 
     def test_sound(self, kind=KIND_DING):
         """Play chime to test sound."""
         if kind not in CHIME_TEST_SOUND_KINDS:
             return False
-        url = API_URI + TESTSOUND_CHIME_ENDPOINT.format(self.account_id)
+        url = TESTSOUND_CHIME_ENDPOINT.format(self.account_id)
         self._ring.query(url, method='POST', extra_params={"kind": kind})
         return True

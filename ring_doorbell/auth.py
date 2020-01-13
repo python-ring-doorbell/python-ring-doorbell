@@ -9,12 +9,12 @@ from ring_doorbell.const import OAuth, API_VERSION, TIMEOUT
 
 class Auth:
     """A Python Auth class for Ring"""
-    def __init__(self, token=None, token_updater=None):
+    def __init__(self, user_agent, token=None, token_updater=None):
         """
         :type token: Optional[Dict[str, str]]
         :type token_updater: Optional[Callable[[str], None]]
         """
-        self.params = {'api_version': API_VERSION}
+        self.user_agent = user_agent
 
         self.token_updater = token_updater
         self._oauth = OAuth2Session(
@@ -63,28 +63,31 @@ class Auth:
               url,
               method='GET',
               extra_params=None,
+              data=None,
               json=None,
               timeout=None):
         """Query data from Ring API."""
         if timeout is None:
             timeout = TIMEOUT
 
-        # allow to override params when necessary
-        # and update self.params globally for the next connection
+        params = {'api_version': API_VERSION}
+
         if extra_params:
-            params = self.params.copy()
             params.update(extra_params)
-        else:
-            params = self.params
 
         kwargs = {
             'params': params,
-            'headers': OAuth.HEADERS,
+            'headers': {
+                'User-Agent': self.user_agent
+            },
             'timeout': timeout,
         }
 
         if method == 'POST':
-            kwargs['json'] = json
+            if json is not None:
+                kwargs['json'] = json
+            if data is not None:
+                kwargs['data'] = data
 
         try:
             req = getattr(self._oauth, method.lower())(url, **kwargs)

@@ -5,7 +5,7 @@ import logging
 
 from ring_doorbell import RingDoorBell
 from ring_doorbell.const import (
-    API_URI, LIGHTS_ENDPOINT, MSG_ALLOWED_VALUES, MSG_VOL_OUTBOUND,
+    LIGHTS_ENDPOINT, MSG_ALLOWED_VALUES, MSG_VOL_OUTBOUND,
     FLOODLIGHT_CAM_KINDS, INDOOR_CAM_KINDS, SPOTLIGHT_CAM_BATTERY_KINDS,
     SPOTLIGHT_CAM_WIRED_KINDS, STICKUP_CAM_KINDS,
     STICKUP_CAM_BATTERY_KINDS, STICKUP_CAM_WIRED_KINDS,
@@ -21,6 +21,11 @@ class RingStickUpCam(RingDoorBell):
     def family(self):
         """Return Ring device family type."""
         return 'stickup_cams'
+
+    @property
+    def _health_attrs(self):
+        """Return health attributes."""
+        return self._ring.doorbell_health_data.get('device_health')
 
     @property
     def model(self):
@@ -75,9 +80,9 @@ class RingStickUpCam(RingDoorBell):
             _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(', '.join(values)))
             return False
 
-        url = API_URI + LIGHTS_ENDPOINT.format(self.account_id, state)
+        url = LIGHTS_ENDPOINT.format(self.account_id, state)
         self._ring.query(url, method='PUT')
-        self.update()
+        self._ring.update_devices()
         return True
 
     @property
@@ -102,7 +107,7 @@ class RingStickUpCam(RingDoorBell):
         else:
             state = 'off'
             params = {}
-        url = API_URI + SIREN_ENDPOINT.format(self.account_id, state)
+        url = SIREN_ENDPOINT.format(self.account_id, state)
         self._ring.query(url, extra_params=params, method='PUT')
-        self.update()
+        self._ring.update_devices()
         return True

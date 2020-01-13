@@ -11,7 +11,7 @@ import pytz
 from ring_doorbell.generic import RingGeneric
 
 from ring_doorbell.const import (
-    API_URI, DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
+    DOORBELLS_ENDPOINT, DOORBELL_VOL_MIN, DOORBELL_VOL_MAX,
     DOORBELL_EXISTING_TYPE, DINGS_ENDPOINT, DOORBELL_KINDS,
     DOORBELL_2_KINDS, DOORBELL_PRO_KINDS, DOORBELL_ELITE_KINDS,
     FILE_EXISTS, LIVE_STREAMING_ENDPOINT, MSG_BOOLEAN_REQUIRED,
@@ -25,10 +25,19 @@ _LOGGER = logging.getLogger(__name__)
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
+    def __init__(self, ring, device_id, shared=False):
+        super().__init__(ring, device_id)
+        self.shared = shared
+
     @property
     def family(self):
         """Return Ring device family type."""
-        return 'doorbots'
+        return 'authorized_doorbots' if self.shared else 'doorbots'
+
+    @property
+    def _health_attrs(self):
+        """Return health attributes."""
+        return self._ring.doorbell_health_data.get('device_health')
 
     @property
     def model(self):
@@ -78,23 +87,6 @@ class RingDoorBell(RingGeneric):
                 value = 100
         return value
 
-    def check_alerts(self):
-        """Return JSON when motion or ring is detected."""
-        url = API_URI + DINGS_ENDPOINT
-        self.update()
-
-        try:
-            resp = self._ring.query(url).json()[0]
-        except (IndexError, TypeError):
-            return None
-
-        if resp:
-            timestamp = resp.get('now') + resp.get('expires_in')
-            self.alert = resp
-            self.alert_expires_at = datetime.fromtimestamp(timestamp)
-            return True
-        return None
-
     @property
     def existing_doorbell_type(self):
         """
@@ -126,9 +118,9 @@ class RingDoorBell(RingGeneric):
             'doorbot[description]': self.name,
             'doorbot[settings][chime_settings][type]': value}
         if self.existing_doorbell_type:
-            url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+            url = DOORBELLS_ENDPOINT.format(self.account_id)
             self._ring.query(url, extra_params=params, method='PUT')
-            self.update()
+            self._ring.update_devices()
             return True
         return None
 
@@ -157,9 +149,9 @@ class RingDoorBell(RingGeneric):
             params = {
                 'doorbot[description]': self.name,
                 'doorbot[settings][chime_settings][enable]': value}
-            url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+            url = DOORBELLS_ENDPOINT.format(self.account_id)
             self._ring.query(url, extra_params=params, method='PUT')
-            self.update()
+            self._ring.update_devices()
             return True
         return False
 
@@ -187,9 +179,9 @@ class RingDoorBell(RingGeneric):
                 params = {
                     'doorbot[description]': self.name,
                     'doorbot[settings][chime_settings][duration]': value}
-                url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+                url = DOORBELLS_ENDPOINT.format(self.account_id)
                 self._ring.query(url, extra_params=params, method='PUT')
-                self.update()
+                self._ring.update_devices()
                 return True
         return None
 
@@ -217,7 +209,7 @@ class RingDoorBell(RingGeneric):
             if older_than:
                 params['older_than'] = older_than
 
-            url = API_URI + URL_DOORBELL_HISTORY.format(self.account_id)
+            url = URL_DOORBELL_HISTORY.format(self.account_id)
             response = self._ring.query(url, extra_params=params).json()
 
             # cherrypick only the selected kind events
@@ -274,10 +266,10 @@ class RingDoorBell(RingGeneric):
     @property
     def live_streaming_json(self):
         """Return JSON for live streaming."""
-        url = API_URI + LIVE_STREAMING_ENDPOINT.format(self.account_id)
+        url = LIVE_STREAMING_ENDPOINT.format(self.account_id)
         req = self._ring.query(url, method='POST')
         if req and req.status_code == 204:
-            url = API_URI + DINGS_ENDPOINT
+            url = DINGS_ENDPOINT
             try:
                 return self._ring.query(url).json()[0]
             except (IndexError, TypeError):
@@ -292,7 +284,7 @@ class RingDoorBell(RingGeneric):
             _LOGGER.warning(msg)
             return False
 
-        url = API_URI + URL_RECORDING.format(recording_id)
+        url = URL_RECORDING.format(recording_id)
         try:
             # Video download needs a longer timeout to get the large video file
             req = self._ring.query(url, timeout=timeout)
@@ -320,7 +312,7 @@ class RingDoorBell(RingGeneric):
             _LOGGER.warning(msg)
             return False
 
-        url = API_URI + URL_RECORDING.format(recording_id)
+        url = URL_RECORDING.format(recording_id)
         req = self._ring.query(url)
         if req and req.status_code == 200:
             return req.url
@@ -363,9 +355,9 @@ class RingDoorBell(RingGeneric):
         params = {
             'doorbot[description]': self.name,
             'doorbot[settings][doorbell_volume]': str(value)}
-        url = API_URI + DOORBELLS_ENDPOINT.format(self.account_id)
+        url = DOORBELLS_ENDPOINT.format(self.account_id)
         self._ring.query(url, extra_params=params, method='PUT')
-        self.update()
+        self._ring.update_devices()
         return True
 
     @property
@@ -375,7 +367,7 @@ class RingDoorBell(RingGeneric):
 
     def get_snapshot(self, retries=3, delay=1):
         """Take a snapshot and download it"""
-        url = API_URI + SNAPSHOT_TIMESTAMP_ENDPOINT
+        url = SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get('id')]}
         self._ring.query(url)
         request_time = time.time()
@@ -386,6 +378,6 @@ class RingDoorBell(RingGeneric):
             ).json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
                 return self._ring.query(
-                    API_URI + SNAPSHOT_ENDPOINT.format(self._attrs.get('id'))
+                    SNAPSHOT_ENDPOINT.format(self._attrs.get('id'))
                 ).content
         return False

@@ -15,9 +15,6 @@ class OAuth:
         }
 
 
-# number of attempts to refresh token
-RETRY_TOKEN = 3
-
 # timeout for HTTP requests
 TIMEOUT = 10
 
@@ -28,9 +25,6 @@ TIMEOUT = 10
 # minutes (this default can be overridden in method call)
 DEFAULT_VIDEO_DOWNLOAD_TIMEOUT = 120
 
-
-# code when item was not found
-NOT_FOUND = -1
 
 # API endpoints
 API_VERSION = '9'
