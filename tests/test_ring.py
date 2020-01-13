@@ -14,7 +14,7 @@ def ring(mock_ring_requests):
     auth = Auth("PythonRingDoorbell/0.6")
     auth.fetch_token("foo", "bar")
     ring = Ring(auth)
-    ring.update_all()
+    ring.update_data()
     return ring
 
 
@@ -37,11 +37,11 @@ def mock_ring_requests():
             text=load_fixture("ring_chime_health_attrs.json"),
         )
         mock.get(
-            "https://api.ring.com/clients_api/doorbots/999999/health",
+            "https://api.ring.com/clients_api/doorbots/987652/health",
             text=load_fixture("ring_doorboot_health_attrs.json"),
         )
         mock.get(
-            "https://api.ring.com/clients_api/doorbots/999999/history",
+            "https://api.ring.com/clients_api/doorbots/987652/history",
             text=load_fixture("ring_doorbots.json"),
         )
         mock.get(
@@ -49,16 +49,16 @@ def mock_ring_requests():
             text=load_fixture("ring_ding_active.json"),
         )
         mock.put(
-            "https://api.ring.com/clients_api/doorbots/999999/floodlight_light_off",
+            "https://api.ring.com/clients_api/doorbots/987652/floodlight_light_off",
             text="ok",
         )
         mock.put(
-            "https://api.ring.com/clients_api/doorbots/999999/floodlight_light_on",
+            "https://api.ring.com/clients_api/doorbots/987652/floodlight_light_on",
             text="ok",
         )
-        mock.put("https://api.ring.com/clients_api/doorbots/999999/siren_on", text="ok")
+        mock.put("https://api.ring.com/clients_api/doorbots/987652/siren_on", text="ok")
         mock.put(
-            "https://api.ring.com/clients_api/doorbots/999999/siren_off", text="ok"
+            "https://api.ring.com/clients_api/doorbots/987652/siren_off", text="ok"
         )
         yield mock
 
@@ -77,7 +77,7 @@ def test_chime_attributes(ring):
     dev = ring.devices()["chimes"][0]
 
     assert dev.address == "123 Main St"
-    assert dev.account_id != 99999
+    assert dev.id != 99999
     assert dev.device_id == "abcdef123"
     assert dev.kind == "chime"
     assert dev.model == "Chime"
@@ -86,6 +86,8 @@ def test_chime_attributes(ring):
     assert dev.latitude is not None
     assert dev.timezone == "America/New_York"
     assert dev.volume == 2
+
+    dev.update_health_data()
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
     assert dev.wifi_signal_strength != 100
@@ -95,7 +97,7 @@ def test_doorbell_attributes(ring):
     data = ring.devices()
     dev = data["doorbots"][0]
     assert dev.name == "Front Door"
-    assert dev.account_id == 999999
+    assert dev.id == 987652
     assert dev.address == "123 Main St"
     assert dev.kind == "lpd_v1"
     assert dev.model == "Doorbell Pro"
@@ -112,6 +114,9 @@ def test_doorbell_attributes(ring):
     assert len(dev.history(limit=1, kind="ding", enforce_limit=True, retry=50)) == 0
 
     assert dev.existing_doorbell_type == "Mechanical"
+
+    dev.update_health_data()
+
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
     assert dev.wifi_signal_strength == -58
@@ -121,7 +126,7 @@ def test_shared_doorbell_attributes(ring):
     data = ring.devices()
     dev = data["authorized_doorbots"][0]
 
-    assert dev.account_id == 999999
+    assert dev.id == 987653
     assert dev.battery_life == 51
     assert dev.address == "123 Second St"
     assert dev.kind == "lpd_v1"
@@ -135,13 +140,6 @@ def test_shared_doorbell_attributes(ring):
 
 
 def test_stickup_cam_attributes(ring):
-    # mock.post('https://oauth.ring.com/oauth/token',
-    #             text=load_fixture('ring_oauth.json'))
-    # mock.get('https://api.ring.com/clients_api/ring_devices',
-    #             text=load_fixture('ring_devices.json'))
-    # mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
-    #             text=load_fixture('ring_doorboot_health_attrs.json'))
-
     dev = ring.devices()["stickup_cams"][0]
     assert dev.kind == "hp_cam_v1"
     assert dev.model == "Floodlight Cam"
@@ -162,9 +160,9 @@ def test_stickup_cam_controls(ring, mock_ring_requests):
     history = list(
         filter(lambda x: x.method == "PUT", mock_ring_requests.request_history)
     )
-    assert history[0].path == "/clients_api/doorbots/999999/floodlight_light_off"
-    assert history[1].path == "/clients_api/doorbots/999999/floodlight_light_on"
-    assert history[2].path == "/clients_api/doorbots/999999/siren_off"
+    assert history[0].path == "/clients_api/doorbots/987652/floodlight_light_off"
+    assert history[1].path == "/clients_api/doorbots/987652/floodlight_light_on"
+    assert history[2].path == "/clients_api/doorbots/987652/siren_off"
     assert "duration" not in history[2].qs
-    assert history[3].path == "/clients_api/doorbots/999999/siren_on"
+    assert history[3].path == "/clients_api/doorbots/987652/siren_on"
     assert history[3].qs["duration"][0] == "30"

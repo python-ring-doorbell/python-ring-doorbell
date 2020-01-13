@@ -10,12 +10,16 @@ _LOGGER = logging.getLogger(__name__)
 class RingGeneric(object):
     """Generic Implementation for Ring Chime/Doorbell."""
 
-    def __init__(self, ring, device_id):
+    # pylint: disable=redefined-builtin
+    def __init__(self, ring, id):
         """Initialize Ring Generic."""
         self._ring = ring
-        self.device_id = device_id
+        # This is the account ID of the device.
+        # Not the same as device ID.
+        self.id = id  # pylint:disable=invalid-name
         self.capability = False
         self.alert = None
+        self._health_attrs = None
 
         # alerts notifications
         self.alert_expires_at = None
@@ -24,15 +28,27 @@ class RingGeneric(object):
         """Return __repr__."""
         return "<{0}: {1}>".format(self.__class__.__name__, self.name)
 
+    def update(self):
+        """Update this device info."""
+        self.update_health_data()
+
+    def update_health_data(self):
+        raise NotImplementedError
+
     @property
     def _attrs(self):
         """Return attributes."""
-        return self._ring.devices_data[self.family][self.device_id]
+        return self._ring.devices_data[self.family][self.id]
 
     @property
     def name(self):
         """Return name."""
         return self._attrs["description"]
+
+    @property
+    def device_id(self):
+        """Return device ID."""
+        return self._attrs["device_id"]
 
     @property
     def family(self):
@@ -47,11 +63,6 @@ class RingGeneric(object):
     def has_capability(self, capability):
         """Return if device has specific capability."""
         return self.capability
-
-    @property
-    def account_id(self):
-        """Return account ID."""
-        return self._ring.account_id
 
     @property
     def address(self):
@@ -85,15 +96,24 @@ class RingGeneric(object):
 
     @property
     def wifi_name(self):
-        """Return wifi ESSID name."""
-        return self._health_attrs.get("wifi_name")
+        """Return wifi ESSID name.
+
+        Requires health data to be updated.
+        """
+        return self._health_attrs["device_health"].get("wifi_name")
 
     @property
     def wifi_signal_strength(self):
-        """Return wifi RSSI."""
-        return self._health_attrs.get("latest_signal_strength")
+        """Return wifi RSSI.
+
+        Requires health data to be updated.
+        """
+        return self._health_attrs["device_health"].get("latest_signal_strength")
 
     @property
     def wifi_signal_category(self):
-        """Return wifi signal category."""
-        return self._health_attrs.get("latest_signal_category")
+        """Return wifi signal category.
+
+        Requires health data to be updated.
+        """
+        return self._health_attrs["device_health"].get("latest_signal_category")

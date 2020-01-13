@@ -45,23 +45,12 @@ class Ring(object):
         self.doorbell_health_data = None
         self.dings_data = None
 
-    @property
-    def account_id(self):
-        """Return account ID."""
-        return self.session["profile"]["id"]
-
-    def update_all(self):
+    def update_data(self):
         """Update all data."""
         if self.session is None:
             self.create_session()
 
         self.update_devices()
-
-        if self.devices_data["chimes"]:
-            self.update_chime_health()
-
-        if self.devices_data["doorbots"] or self.devices_data["stickup_cams"]:
-            self.update_doorbell_health()
 
         self.update_dings()
 
@@ -93,21 +82,9 @@ class Ring(object):
 
         # Index data by device ID.
         self.devices_data = {
-            device_type: {obj["device_id"]: obj for obj in devices}
+            device_type: {obj["id"]: obj for obj in devices}
             for device_type, devices in data.items()
         }
-
-    def update_chime_health(self):
-        """Update chime health data."""
-        self.chime_health_data = self.query(
-            HEALTH_CHIMES_ENDPOINT.format(self.account_id)
-        ).json()
-
-    def update_doorbell_health(self):
-        """Update doorbell health data."""
-        self.doorbell_health_data = self.query(
-            HEALTH_DOORBELL_ENDPOINT.format(self.account_id)
-        ).json()
 
     def update_dings(self):
         """Update dings data."""
@@ -132,18 +109,19 @@ class Ring(object):
 
         for dev_type, convertor in TYPES.items():
             devices[dev_type] = [
-                convertor(self, obj["device_id"])
+                convertor(self, obj["id"])
                 for obj in self.devices_data.get(dev_type, {}).values()
             ]
 
         return devices
 
-    def active_alert(self):
-        """Get active alert."""
+    def active_alerts(self):
+        """Get active alerts."""
+        alerts = []
         for alert in self.dings_data:
             expires_at = alert.get("now") + alert.get("expires_in")
 
             if time() < expires_at:
-                return alert
+                alerts.append(alert)
 
-        return None
+        return alerts

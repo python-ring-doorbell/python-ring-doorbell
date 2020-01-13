@@ -18,6 +18,7 @@ from ring_doorbell.const import (
     SIREN_DURATION_MIN,
     SIREN_DURATION_MAX,
     SIREN_ENDPOINT,
+    HEALTH_DOORBELL_ENDPOINT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,10 +32,11 @@ class RingStickUpCam(RingDoorBell):
         """Return Ring device family type."""
         return "stickup_cams"
 
-    @property
-    def _health_attrs(self):
-        """Return health attributes."""
-        return self._ring.doorbell_health_data.get("device_health")
+    def update_health_data(self):
+        """Update health attrs."""
+        self._health_attrs = self._ring.query(
+            HEALTH_DOORBELL_ENDPOINT.format(self.id)
+        ).json()
 
     @property
     def model(self):
@@ -97,7 +99,7 @@ class RingStickUpCam(RingDoorBell):
             _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(", ".join(values)))
             return False
 
-        url = LIGHTS_ENDPOINT.format(self.account_id, state)
+        url = LIGHTS_ENDPOINT.format(self.id, state)
         self._ring.query(url, method="PUT")
         self._ring.update_devices()
         return True
@@ -127,7 +129,7 @@ class RingStickUpCam(RingDoorBell):
         else:
             state = "off"
             params = {}
-        url = SIREN_ENDPOINT.format(self.account_id, state)
+        url = SIREN_ENDPOINT.format(self.id, state)
         self._ring.query(url, extra_params=params, method="PUT")
         self._ring.update_devices()
         return True

@@ -35,11 +35,11 @@ def main():
             auth.fetch_token(username, password, otp_callback())
 
     ring = Ring(auth)
-    ring.update_all()
+    ring.update_data()
 
     print(f"Hello {ring.session['profile']['first_name']}")
     print()
-    pprint(ring.devices())
+    pprint(ring.devices_data)
 
 
 if __name__ == "__main__":
