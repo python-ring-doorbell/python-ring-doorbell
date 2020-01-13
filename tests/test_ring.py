@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """The tests for the Ring platform."""
-from datetime import datetime
-from itertools import chain
 import pytest
 
 from tests.helpers import load_fixture
