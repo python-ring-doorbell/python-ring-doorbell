@@ -33,6 +33,7 @@ class RingGeneric(object):
         self.update_health_data()
 
     def update_health_data(self):
+        """Update the health data."""
         raise NotImplementedError
 
     @property
