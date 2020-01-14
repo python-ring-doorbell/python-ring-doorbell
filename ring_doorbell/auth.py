@@ -47,7 +47,9 @@ class Auth:
 
     def refresh_tokens(self):
         """Refreshes the auth tokens"""
-        token = self._oauth.refresh_token(OAuth.ENDPOINT, headers=OAuth.HEADERS)
+        token = self._oauth.refresh_token(
+            OAuth.ENDPOINT, headers={"User-Agent": self.user_agent}
+        )
 
         if self.token_updater is not None:
             self.token_updater(token)
