@@ -41,7 +41,7 @@ class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
     def __init__(self, ring, device_id, shared=False):
-        super().__init__(ring, device_id)
+        super(RingDoorBell, self).__init__(ring, device_id)
         self.shared = shared
 
     @property
