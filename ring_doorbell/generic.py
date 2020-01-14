@@ -100,7 +100,7 @@ class RingGeneric(object):
 
         Requires health data to be updated.
         """
-        return self._health_attrs["device_health"].get("wifi_name")
+        return self._health_attrs.get("wifi_name")
 
     @property
     def wifi_signal_strength(self):
@@ -108,7 +108,7 @@ class RingGeneric(object):
 
         Requires health data to be updated.
         """
-        return self._health_attrs["device_health"].get("latest_signal_strength")
+        return self._health_attrs.get("latest_signal_strength")
 
     @property
     def wifi_signal_category(self):
@@ -116,4 +116,4 @@ class RingGeneric(object):
 
         Requires health data to be updated.
         """
-        return self._health_attrs["device_health"].get("latest_signal_category")
+        return self._health_attrs.get("latest_signal_category")

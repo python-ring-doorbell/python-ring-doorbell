@@ -51,9 +51,11 @@ class RingDoorBell(RingGeneric):
 
     def update_health_data(self):
         """Update health attrs."""
-        self._health_attrs = self._ring.query(
-            HEALTH_DOORBELL_ENDPOINT.format(self.id)
-        ).json()
+        self._health_attrs = (
+            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.id))
+            .json()
+            .get("device_health", {})
+        )
 
     @property
     def model(self):
