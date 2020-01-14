@@ -2,6 +2,7 @@
 reports=no
 
 # Reasons disabled:
+# format - handled by black
 # locally-disabled - it spams too much
 # duplicate-code - unavoidable
 # cyclic-import - doesn't test if both import on load
@@ -15,6 +16,7 @@ reports=no
 # abstract-method - with intro of async there are always methods missing
 
 disable=
+  format,
   locally-disabled,
   duplicate-code,
   cyclic-import,

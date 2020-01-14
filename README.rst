@@ -44,11 +44,12 @@ Initializing your Ring object
     from pprint import pprint
     from ring_doorbell import Ring, Auth
 
-    auth = Auth(None, token_updated)
+    auth = Auth("YourProject/0.1", None, token_updated)
     auth.fetch_token(username, password)
     ring = Ring(auth)
+    ring.update_data()
 
-    pprint(ring.devices)
+    pprint(ring.session['profile'])
 
 
 Listing devices linked to your account
@@ -57,28 +58,16 @@ Listing devices linked to your account
 .. code-block:: python
 
     # All devices
-    myring.devices
+    myring.devices()
     {'chimes': [<RingChime: Downstairs>],
     'doorbells': [<RingDoorBell: Front Door>]}
-
-    # All chimes
-    myring.chimes
-    [<RingChime: Downstairs>]
-
-    # All door bells
-    myring.doorbells
-    [<RingDoorBell: Front Door>]
-
-    # All stickup cams
-    myring.stickup_cams
-    [<RingStickUpCam: Driveway>]
 
 Playing with the attributes and functions
 -----------------------------------------
 .. code-block:: python
 
     for dev in list(myring.stickup_cams + myring.chimes + myring.doorbells):
-
+        dev.update_health_data()
         print('Account ID: %s' % dev.account_id)
         print('Address:    %s' % dev.address)
         print('Family:     %s' % dev.family)
