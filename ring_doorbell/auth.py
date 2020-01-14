@@ -27,12 +27,10 @@ class Auth:
         :type password: str
         :type otp_code: str
         """
+        headers = {"User-Agent": self.user_agent}
         if otp_code:
-            headers = OAuth.HEADERS.copy()
             headers["2fa-support"] = "true"
             headers["2fa-code"] = otp_code
-        else:
-            headers = OAuth.HEADERS
 
         token = self._oauth.fetch_token(
             OAuth.ENDPOINT,
