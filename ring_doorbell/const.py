@@ -10,9 +10,6 @@ class OAuth:
     ENDPOINT = "https://oauth.ring.com/oauth/token"
     CLIENT_ID = "ring_official_android"
     SCOPE = ["client"]
-    HEADERS = {
-        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 9.0;" "SM-G850F Build/LRX22G)"
-    }
 
 
 # timeout for HTTP requests

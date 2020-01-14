@@ -8,8 +8,6 @@ from uuid import uuid4
 from .const import (
     API_URI,
     DEVICES_ENDPOINT,
-    HEALTH_CHIMES_ENDPOINT,
-    HEALTH_DOORBELL_ENDPOINT,
     NEW_SESSION_ENDPOINT,
     DINGS_ENDPOINT,
 )

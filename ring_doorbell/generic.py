@@ -19,7 +19,7 @@ class RingGeneric(object):
         self.id = id  # pylint:disable=invalid-name
         self.capability = False
         self.alert = None
-        self._health_attrs = None
+        self._health_attrs = {}
 
         # alerts notifications
         self.alert_expires_at = None
