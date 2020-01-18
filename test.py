@@ -36,8 +36,6 @@ def main():
     ring = Ring(auth)
     ring.update_data()
     devices = ring.devices()
-    print(f"Hello {ring.session['profile']['first_name']}")
-    print()
     print(devices)
 
 
