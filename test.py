@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from pprint import pprint
 
 from ring_doorbell import Ring, Auth
 from oauthlib.oauth2 import MissingTokenError
@@ -28,7 +27,7 @@ def main():
     else:
         username = input("Username: ")
         password = input("Password: ")
-        auth = Auth(None, token_updated)
+        auth = Auth("HomeAssistant/0.105.0dev0", None, token_updated)
         try:
             auth.fetch_token(username, password)
         except MissingTokenError:
@@ -36,10 +35,10 @@ def main():
 
     ring = Ring(auth)
     ring.update_data()
-
+    devices = ring.devices()
     print(f"Hello {ring.session['profile']['first_name']}")
     print()
-    pprint(ring.devices_data)
+    print(devices)
 
 
 if __name__ == "__main__":
