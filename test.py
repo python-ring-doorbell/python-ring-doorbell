@@ -19,11 +19,7 @@ def otp_callback():
 
 def main():
     if cache_file.is_file():
-        auth = Auth(
-            "MyProject/1.0",
-            json.loads(cache_file.read_text()),
-            token_updated,
-        )
+        auth = Auth("MyProject/1.0", json.loads(cache_file.read_text()), token_updated,)
     else:
         username = input("Username: ")
         password = input("Password: ")
