@@ -27,7 +27,7 @@ def main():
     else:
         username = input("Username: ")
         password = input("Password: ")
-        auth = Auth("HomeAssistant/0.105.0dev0", None, token_updated)
+        auth = Auth("MyProject/1.0", None, token_updated)
         try:
             auth.fetch_token(username, password)
         except MissingTokenError:
