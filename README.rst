@@ -48,6 +48,7 @@ Initializing your Ring object
     auth.fetch_token(username, password)
     ring = Ring(auth)
     ring.update_data()
+    devices = ring.devices()
 
     pprint(ring.session['profile'])
 
@@ -66,6 +67,7 @@ Playing with the attributes and functions
 -----------------------------------------
 .. code-block:: python
 
+    devices = ring.devices()
     for dev in list(devices['stickup_cams'] + devices['chimes'] + devices['doorbots']):
         dev.update_health_data()
         print('Address:    %s' % dev.address)
@@ -95,6 +97,7 @@ Showing door bell events
 ------------------------
 .. code-block:: python
 
+    devices = ring.devices()
     for doorbell in devices['doorbots']:
 
         # listing the last 15 events of any kind
@@ -113,6 +116,7 @@ Downloading the last video triggered by ding
 --------------------------------------------
 .. code-block:: python
 
+    devices = ring.devices()
     doorbell = devices['doorbots'][0]
     doorbell.recording_download(
         doorbell.history(limit=100, kind='ding')[0]['id'],
