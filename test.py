@@ -20,7 +20,7 @@ def otp_callback():
 def main():
     if cache_file.is_file():
         auth = Auth(
-            "HomeAssistant/0.105.0dev0",
+            "MyProject/1.0",
             json.loads(cache_file.read_text()),
             token_updated,
         )
