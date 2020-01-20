@@ -32,8 +32,17 @@ def main():
 
     ring = Ring(auth)
     ring.update_data()
+
     devices = ring.devices()
     print(devices)
+
+    doorbells = devices["doorbots"]
+    chimes = devices["chimes"]
+    stickup_cams = devices["stickup_cams"]
+
+    print(doorbells)
+    print(chimes)
+    print(stickup_cams)
 
 
 if __name__ == "__main__":

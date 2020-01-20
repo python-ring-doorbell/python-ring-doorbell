@@ -59,9 +59,21 @@ Listing devices linked to your account
 .. code-block:: python
 
     # All devices
-    ring.devices()
+    devices = ring.devices()
     {'chimes': [<RingChime: Downstairs>],
     'doorbots': [<RingDoorBell: Front Door>]}
+
+    # All doorbells
+    doorbells = devices['doorbots']
+    [<RingDoorBell: Front Door>]
+
+    # All chimes
+    chimes = devices['chimes']
+    [<RingChime: Downstairs>]
+
+    # All stickup cams
+    stickup_cams = devices['stickup_cams']
+    [<RingStickUpCam: Driveway>]
 
 Playing with the attributes and functions
 -----------------------------------------
