@@ -15,7 +15,7 @@ Python Ring Door Bell
     :target: https://pypi.python.org/pypi/ring-doorbell
 
 
-Python Ring Door Bell is a library written in Python 2.7/3x
+Python Ring Door Bell is a library written for Python 3.6+
 that exposes the Ring.com devices as Python objects.
 
 *Currently Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
@@ -48,6 +48,7 @@ Initializing your Ring object
     auth.fetch_token(username, password)
     ring = Ring(auth)
     ring.update_data()
+    devices = ring.devices()
 
     pprint(ring.session['profile'])
 
@@ -58,17 +59,29 @@ Listing devices linked to your account
 .. code-block:: python
 
     # All devices
-    myring.devices()
+    devices = ring.devices()
     {'chimes': [<RingChime: Downstairs>],
-    'doorbells': [<RingDoorBell: Front Door>]}
+    'doorbots': [<RingDoorBell: Front Door>]}
+
+    # All doorbells
+    doorbells = devices['doorbots']
+    [<RingDoorBell: Front Door>]
+
+    # All chimes
+    chimes = devices['chimes']
+    [<RingChime: Downstairs>]
+
+    # All stickup cams
+    stickup_cams = devices['stickup_cams']
+    [<RingStickUpCam: Driveway>]
 
 Playing with the attributes and functions
 -----------------------------------------
 .. code-block:: python
 
-    for dev in list(myring.stickup_cams + myring.chimes + myring.doorbells):
+    devices = ring.devices()
+    for dev in list(devices['stickup_cams'] + devices['chimes'] + devices['doorbots']):
         dev.update_health_data()
-        print('Account ID: %s' % dev.account_id)
         print('Address:    %s' % dev.address)
         print('Family:     %s' % dev.family)
         print('ID:         %s' % dev.id)
@@ -96,7 +109,8 @@ Showing door bell events
 ------------------------
 .. code-block:: python
 
-    for doorbell in myring.doorbells:
+    devices = ring.devices()
+    for doorbell in devices['doorbots']:
 
         # listing the last 15 events of any kind
         for event in doorbell.history(limit=15):
@@ -114,10 +128,11 @@ Downloading the last video triggered by ding
 --------------------------------------------
 .. code-block:: python
 
-    doorbell = myring.doorbells[0]
+    devices = ring.devices()
+    doorbell = devices['doorbots'][0]
     doorbell.recording_download(
         doorbell.history(limit=100, kind='ding')[0]['id'],
-                         filename='/home/user/last_ding.mp4',
+                         filename='last_ding.mp4',
                          override=True)
 
 
