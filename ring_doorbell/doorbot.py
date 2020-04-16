@@ -18,6 +18,8 @@ from ring_doorbell.const import (
     DINGS_ENDPOINT,
     DOORBELL_KINDS,
     DOORBELL_2_KINDS,
+    DOORBELL_3_KINDS,
+    DOORBELL_3_PLUS_KINDS,
     DOORBELL_PRO_KINDS,
     DOORBELL_ELITE_KINDS,
     FILE_EXISTS,
@@ -64,6 +66,10 @@ class RingDoorBell(RingGeneric):
             return "Doorbell"
         if self.kind in DOORBELL_2_KINDS:
             return "Doorbell 2"
+        if self.kind in DOORBELL_3_KINDS:
+            return "Doorbell 3"
+        if self.kind in DOORBELL_3_PLUS_KINDS:
+            return "Doorbell 3 Plus"
         if self.kind in DOORBELL_PRO_KINDS:
             return "Doorbell Pro"
         if self.kind in DOORBELL_ELITE_KINDS:
@@ -75,9 +81,17 @@ class RingDoorBell(RingGeneric):
     def has_capability(self, capability):
         """Return if device has specific capability."""
         if capability == "battery":
-            return self.kind in (DOORBELL_KINDS + DOORBELL_2_KINDS + PEEPHOLE_CAM_KINDS)
+            return self.kind in (
+                DOORBELL_KINDS
+                + DOORBELL_2_KINDS
+                + DOORBELL_3_KINDS
+                + DOORBELL_3_PLUS_KINDS
+                + PEEPHOLE_CAM_KINDS
+            )
         if capability == "knock":
             return self.kind in PEEPHOLE_CAM_KINDS
+        if capability == "pre-roll":
+            return self.kind in DOORBELL_3_PLUS_KINDS
         if capability == "volume":
             return True
         return False

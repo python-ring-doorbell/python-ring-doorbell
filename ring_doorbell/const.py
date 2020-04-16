@@ -67,9 +67,11 @@ SIREN_DURATION_MAX = 120
 CHIME_KINDS = ["chime", "chime_v2"]
 CHIME_PRO_KINDS = ["chime_pro", "chime_pro_v2"]
 
-DOORBELL_KINDS = ["doorbot", "doorbell", "doorbell_v3"]
+DOORBELL_KINDS = ["doorbot", "doorbell", "doorbell_v3", "cocoa_doorbell"]
 DOORBELL_2_KINDS = ["doorbell_v4", "doorbell_v5"]
-DOORBELL_PRO_KINDS = ["lpd_v1", "lpd_v2"]
+DOORBELL_3_KINDS = ["doorbell_scallop_lite"]
+DOORBELL_3_PLUS_KINDS = ["doorbell_scallop"]
+DOORBELL_PRO_KINDS = ["lpd_v1", "lpd_v2", "lpd_v4"]
 DOORBELL_ELITE_KINDS = ["jbox_v1"]
 PEEPHOLE_CAM_KINDS = ["doorbell_portal"]
 
