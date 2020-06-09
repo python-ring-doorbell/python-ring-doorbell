@@ -424,7 +424,7 @@ class RingDoorBell(RingGeneric):
         """Take a snapshot and download it"""
         url = SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get("id")]}
-        self._ring.query(url)
+        self._ring.query(url, method="POST", json=payload)
         request_time = time.time()
         for _ in range(retries):
             time.sleep(delay)
