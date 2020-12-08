@@ -1,7 +1,6 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Constants."""
-from uuid import uuid4 as uuid
 
 
 class OAuth:
@@ -93,7 +92,6 @@ MSG_ALLOWED_VALUES = "Only the following values are allowed: {0}."
 
 POST_DATA = {
     "api_version": API_VERSION,
-    "device[hardware_id]": str(uuid()),
     "device[os]": "android",
     "device[app_brand]": "ring",
     "device[metadata][device_model]": "KVM",
