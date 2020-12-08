@@ -3,13 +3,13 @@
 """Python Ring Doorbell wrapper."""
 import logging
 from time import time
-from uuid import uuid4
 
 from .const import (
     API_URI,
     DEVICES_ENDPOINT,
     NEW_SESSION_ENDPOINT,
     DINGS_ENDPOINT,
+    POST_DATA,
 )
 from .auth import Auth  # noqa
 from .doorbot import RingDoorBell
@@ -54,24 +54,13 @@ class Ring(object):
 
     def create_session(self):
         """Create a new Ring session."""
+        session_post_data = POST_DATA
+        session_post_data['device[hardware_id]'] = self.auth.get_hardware_id()
+
         self.session = self.query(
             NEW_SESSION_ENDPOINT,
             method="POST",
-            data={
-                "api_version": "9",
-                "device[hardware_id]": uuid4().hex,
-                "device[os]": "android",
-                "device[app_brand]": "ring",
-                "device[metadata][device_model]": "KVM",
-                "device[metadata][device_name]": "Python",
-                "device[metadata][resolution]": "600x800",
-                "device[metadata][app_version]": "1.3.806",
-                "device[metadata][app_instalation_date]": "",
-                "device[metadata][manufacturer]": "Qemu",
-                "device[metadata][device_type]": "desktop",
-                "device[metadata][architecture]": "desktop",
-                "device[metadata][language]": "en",
-            },
+            data=session_post_data,
         ).json()
 
     def update_devices(self):
