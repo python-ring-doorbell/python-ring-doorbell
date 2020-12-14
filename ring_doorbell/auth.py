@@ -98,6 +98,4 @@ class Auth:
             self._oauth.token = self.refresh_tokens()
             req = getattr(self._oauth, method.lower())(url, **kwargs)
 
-        req.raise_for_status()
-
         return req
