@@ -81,6 +81,7 @@ SPOTLIGHT_CAM_WIRED_KINDS = ["hp_cam_v2", "spotlightw_v2"]
 STICKUP_CAM_KINDS = ["stickup_cam", "stickup_cam_v3"]
 STICKUP_CAM_BATTERY_KINDS = ["cocoa_camera", "stickup_cam_lunar"]
 STICKUP_CAM_WIRED_KINDS = ["stickup_cam_elite"]
+BEAM_KINDS = ["beams_ct200_transformer"]
 
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."

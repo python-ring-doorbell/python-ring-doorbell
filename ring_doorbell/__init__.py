@@ -15,6 +15,7 @@ from .auth import Auth  # noqa
 from .doorbot import RingDoorBell
 from .chime import RingChime
 from .stickup_cam import RingStickUpCam
+from .beam import RingBeam
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ TYPES = {
     "stickup_cams": RingStickUpCam,
     "chimes": RingChime,
     "doorbots": RingDoorBell,
+    "beams": RingBeam,
     "authorized_doorbots": lambda ring, description: RingDoorBell(
         ring, description, shared=True
     ),

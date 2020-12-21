@@ -33,8 +33,8 @@ class Auth:
         :type otp_code: str
         """
         headers = {
-                "User-Agent": self.user_agent,
-                "hardware_id": self.hardware_id
+            "User-Agent": self.user_agent,
+            "hardware_id": self.hardware_id
         }
 
         if otp_code:
@@ -66,6 +66,7 @@ class Auth:
         return token
 
     def get_hardware_id(self):
+        """Get hardware ID"""
         return self.hardware_id
 
     def query(
