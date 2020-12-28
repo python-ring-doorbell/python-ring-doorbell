@@ -10,12 +10,13 @@ from .const import (
     NEW_SESSION_ENDPOINT,
     DINGS_ENDPOINT,
     POST_DATA,
+    GROUPS_ENDPOINT,
 )
 from .auth import Auth  # noqa
 from .doorbot import RingDoorBell
 from .chime import RingChime
 from .stickup_cam import RingStickUpCam
-from .beam import RingBeam
+from .group import RingLightGroup
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,7 +26,6 @@ TYPES = {
     "stickup_cams": RingStickUpCam,
     "chimes": RingChime,
     "doorbots": RingDoorBell,
-    "beams": RingBeam,
     "authorized_doorbots": lambda ring, description: RingDoorBell(
         ring, description, shared=True
     ),
@@ -44,6 +44,7 @@ class Ring(object):
         self.chime_health_data = None
         self.doorbell_health_data = None
         self.dings_data = None
+        self.groups_data = None
 
     def update_data(self):
         """Update all data."""
@@ -53,6 +54,8 @@ class Ring(object):
         self.update_devices()
 
         self.update_dings()
+
+        self.update_groups()
 
     def create_session(self):
         """Create a new Ring session."""
@@ -79,6 +82,20 @@ class Ring(object):
         """Update dings data."""
         self.dings_data = self.query(DINGS_ENDPOINT).json()
 
+    def update_groups(self):
+        # Get all locations
+        locations = set()
+        for device_type, devices in self.devices_data.items():
+            for dev in devices.values():
+                locations.add(dev['location_id'])
+
+        # Query for groups
+        self.groups_data = {}
+        for location in locations:
+            data = self.query(GROUPS_ENDPOINT.format(location)).json()
+            for group in data['device_groups']:
+                self.groups_data[group['device_group_id']] = group
+
     def query(
         self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
     ):
@@ -103,6 +120,15 @@ class Ring(object):
             ]
 
         return devices
+
+    def groups(self):
+        """Get all groups."""
+        groups = {}
+
+        for group_id in self.groups_data:
+            groups[group_id] = RingLightGroup(self, group_id)
+
+        return groups
 
     def active_alerts(self):
         """Get active alerts."""

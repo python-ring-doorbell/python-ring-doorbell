@@ -30,6 +30,7 @@ DEVICES_ENDPOINT = "/clients_api/ring_devices"
 DINGS_ENDPOINT = "/clients_api/dings/active"
 DOORBELLS_ENDPOINT = "/clients_api/doorbots/{0}"
 PERSIST_TOKEN_ENDPOINT = "/clients_api/device"
+GROUPS_ENDPOINT = "/groups/v1/locations/{0}/groups"
 
 HEALTH_DOORBELL_ENDPOINT = DOORBELLS_ENDPOINT + "/health"
 HEALTH_CHIMES_ENDPOINT = CHIMES_ENDPOINT + "/health"
@@ -44,6 +45,7 @@ SNAPSHOT_TIMESTAMP_ENDPOINT = "/clients_api/snapshots/timestamps"
 TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + "/play_sound"
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + "/history"
 URL_RECORDING = "/clients_api/dings/{0}/recording"
+GROUP_DEVICES_ENDPOINT = GROUPS_ENDPOINT + "/{1}/devices"
 
 # chime test sound kinds
 KIND_DING = "ding"
