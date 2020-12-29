@@ -63,6 +63,7 @@ class Auth:
         return token
 
     def get_hardware_id(self):
+        """Get hardware ID."""
         return self.hardware_id
 
     def query(
