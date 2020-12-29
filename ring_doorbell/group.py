@@ -3,10 +3,7 @@
 """Python Ring light group wrapper."""
 import logging
 
-from ring_doorbell.const import (
-    GROUP_DEVICES_ENDPOINT,
-    MSG_ALLOWED_VALUES
-)
+from ring_doorbell.const import GROUP_DEVICES_ENDPOINT, MSG_ALLOWED_VALUES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +53,7 @@ class RingLightGroup:
     @property
     def location_id(self):
         """Return group location ID."""
-        return self._attrs['location_id']
+        return self._attrs["location_id"]
 
     @property
     def model(self):
@@ -73,32 +70,28 @@ class RingLightGroup:
     @property
     def lights(self):
         """Return lights status."""
-        if (not self._health_attrs_fetched):
+        if not self._health_attrs_fetched:
             self.update()
-        return self._health_attrs['lights_on']
+        return self._health_attrs["lights_on"]
 
     @lights.setter
     def lights(self, value):
         """Control the lights."""
-        values = ['True', 'False']
+        values = ["True", "False"]
         state = None
         duration = None
-        if (isinstance(value, tuple)):
+        if isinstance(value, tuple):
             state, duration = value
         else:
             state = value
-        if (not isinstance(state, bool)):
+        if not isinstance(state, bool):
             _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(", ".join(values)))
             return False
 
         url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.id)
-        payload = {
-            "lights_on": {
-                "enabled": state
-            }
-        }
-        if (duration is not None):
-            payload['lights_on']['duration_seconds'] = duration
+        payload = {"lights_on": {"enabled": state}}
+        if duration is not None:
+            payload["lights_on"]["duration_seconds"] = duration
         self._ring.query(url, method="POST", json=payload)
         self.update()
         return True

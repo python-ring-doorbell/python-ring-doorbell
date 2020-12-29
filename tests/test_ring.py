@@ -70,7 +70,7 @@ def mock_ring_requests():
         )
         mock.post(
             "https://api.ring.com/groups/v1/locations/mock-location-id/groups/mock-group-id/devices",
-            text="ok"
+            text="ok",
         )
         yield mock
 
@@ -181,7 +181,7 @@ def test_stickup_cam_controls(ring, mock_ring_requests):
 
 
 def test_light_groups(ring):
-    group = ring.groups()['mock-group-id']
+    group = ring.groups()["mock-group-id"]
 
     assert group.name == "Landscape"
     assert group.family == "group"

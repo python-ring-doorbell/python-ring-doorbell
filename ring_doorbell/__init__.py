@@ -60,7 +60,7 @@ class Ring(object):
     def create_session(self):
         """Create a new Ring session."""
         session_post_data = POST_DATA
-        session_post_data['device[hardware_id]'] = self.auth.get_hardware_id()
+        session_post_data["device[hardware_id]"] = self.auth.get_hardware_id()
 
         self.session = self.query(
             NEW_SESSION_ENDPOINT,
@@ -88,16 +88,16 @@ class Ring(object):
         locations = set()
         for devices in self.devices_data.values():
             for dev in devices.values():
-                if ('location_id' in dev):
-                    locations.add(dev['location_id'])
+                if "location_id" in dev:
+                    locations.add(dev["location_id"])
 
         # Query for groups
         self.groups_data = {}
         locations.discard(None)
         for location in locations:
             data = self.query(GROUPS_ENDPOINT.format(location)).json()
-            for group in data['device_groups']:
-                self.groups_data[group['device_group_id']] = group
+            for group in data["device_groups"]:
+                self.groups_data[group["device_group_id"]] = group
 
     def query(
         self, url, method="GET", extra_params=None, data=None, json=None, timeout=None

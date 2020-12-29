@@ -32,10 +32,7 @@ class Auth:
         :type password: str
         :type otp_code: str
         """
-        headers = {
-            "User-Agent": self.user_agent,
-            "hardware_id": self.hardware_id
-        }
+        headers = {"User-Agent": self.user_agent, "hardware_id": self.hardware_id}
 
         if otp_code:
             headers["2fa-support"] = "true"
