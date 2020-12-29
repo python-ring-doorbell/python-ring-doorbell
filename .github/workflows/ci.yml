@@ -35,7 +35,7 @@ jobs:
           fi
       - name: Test with tox
         run: |
-          tox -e py
+          tox
         env:
           TOXENV: ${{ steps.toxenv.outputs.toxenv }}
       - name: Report to Coveralls
