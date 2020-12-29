@@ -179,6 +179,7 @@ def test_stickup_cam_controls(ring, mock_ring_requests):
     assert history[3].path == "/clients_api/doorbots/987652/siren_on"
     assert history[3].qs["duration"][0] == "30"
 
+
 def test_light_groups(ring):
     group = ring.groups()['mock-group-id']
 
@@ -187,10 +188,10 @@ def test_light_groups(ring):
     assert group.device_id == "mock-group-id"
     assert group.location_id == "mock-location-id"
     assert group.model == "Light Group"
-    assert group.has_capability("light") == True
-    assert group.has_capability("something-else") == False
+    assert group.has_capability("light") is True
+    assert group.has_capability("something-else") is False
 
-    assert group.lights == False
+    assert group.lights is False
 
     # Attempt turning on lights
     group.lights = True

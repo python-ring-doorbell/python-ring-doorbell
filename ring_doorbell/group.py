@@ -63,6 +63,7 @@ class RingLightGroup:
         """Return Ring device model name."""
         return "Light Group"
 
+    # pylint:disable=no-self-use
     def has_capability(self, capability):
         """Return if device has specific capability."""
         if capability == "light":
