@@ -149,15 +149,6 @@ def test_stickup_cam_attributes(ring):
     assert dev.siren == 0
 
 
-def test_beam_attributes(ring):
-    dev = ring.devices()["beams"][0]
-    assert dev.kind == "beams_ct200_transformer"
-    assert dev.model == "Lighting Transformer"
-    assert dev.has_capability("battery") is False
-    assert dev.has_capability("light") is True
-    assert dev.lights == "off"
-
-
 def test_stickup_cam_controls(ring, mock_ring_requests):
     dev = ring.devices()["stickup_cams"][0]
 
