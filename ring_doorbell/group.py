@@ -11,7 +11,7 @@ from ring_doorbell.const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class RingLightGroup(object):
+class RingLightGroup:
     """Implementation for RingLightGroup."""
 
     # pylint: disable=redefined-builtin
@@ -72,22 +72,28 @@ class RingLightGroup(object):
     @property
     def lights(self):
         """Return lights status."""
-        if (self._health_attrs_fetched != True):
+        if (not self._health_attrs_fetched):
             self.update()
         return self._health_attrs['lights_on']
 
     @lights.setter
-    def lights(self, state, duration=None):
+    def lights(self, value):
         """Control the lights."""
-        values = ["on", "off"]
-        if state not in values:
+        values = ['True', 'False']
+        state = None
+        duration = None
+        if (isinstance(value, tuple)):
+            state, duration = value
+        else:
+            state = value
+        if (not isinstance(state, bool)):
             _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(", ".join(values)))
             return False
 
         url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.id)
         payload = {
             "lights_on": {
-                "enabled": state == "on"
+                "enabled": state
             }
         }
         if (duration is not None):

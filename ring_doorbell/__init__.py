@@ -83,14 +83,17 @@ class Ring(object):
         self.dings_data = self.query(DINGS_ENDPOINT).json()
 
     def update_groups(self):
+        """Update groups data."""
         # Get all locations
         locations = set()
-        for device_type, devices in self.devices_data.items():
+        for devices in self.devices_data.values():
             for dev in devices.values():
-                locations.add(dev['location_id'])
+                if ('location_id' in dev):
+                    locations.add(dev['location_id'])
 
         # Query for groups
         self.groups_data = {}
+        locations.discard(None)
         for location in locations:
             data = self.query(GROUPS_ENDPOINT.format(location)).json()
             for group in data['device_groups']:

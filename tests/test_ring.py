@@ -60,6 +60,18 @@ def mock_ring_requests():
         mock.put(
             "https://api.ring.com/clients_api/doorbots/987652/siren_off", text="ok"
         )
+        mock.get(
+            "https://api.ring.com/groups/v1/locations/mock-location-id/groups",
+            text=load_fixture("ring_groups.json"),
+        )
+        mock.get(
+            "https://api.ring.com/groups/v1/locations/mock-location-id/groups/mock-group-id/devices",
+            text=load_fixture("ring_group_devices.json"),
+        )
+        mock.post(
+            "https://api.ring.com/groups/v1/locations/mock-location-id/groups/mock-group-id/devices",
+            text="ok"
+        )
         yield mock
 
 
@@ -166,3 +178,28 @@ def test_stickup_cam_controls(ring, mock_ring_requests):
     assert "duration" not in history[2].qs
     assert history[3].path == "/clients_api/doorbots/987652/siren_on"
     assert history[3].qs["duration"][0] == "30"
+
+def test_light_groups(ring):
+    group = ring.groups()['mock-group-id']
+
+    assert group.name == "Landscape"
+    assert group.family == "group"
+    assert group.device_id == "mock-group-id"
+    assert group.location_id == "mock-location-id"
+    assert group.model == "Light Group"
+    assert group.has_capability("light") == True
+    assert group.has_capability("something-else") == False
+
+    assert group.lights == False
+
+    # Attempt turning on lights
+    group.lights = True
+
+    # Attempt turning off lights
+    group.lights = False
+
+    # Attempt turning on lights for 30 seconds
+    group.lights = (True, 30)
+
+    # Attempt setting lights to invalid value
+    group.lights = 30
