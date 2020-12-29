@@ -42,6 +42,6 @@ jobs:
         run: |
           coveralls
         # Only report coverage on latest Python version and skip on prior failures
-        if: ${{ success() && matrix.strategy == '3.7' }}
+        if: ${{ success() && matrix.python-version == '3.7' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
