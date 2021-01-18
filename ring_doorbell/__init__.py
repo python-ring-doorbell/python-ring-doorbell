@@ -3,18 +3,20 @@
 """Python Ring Doorbell wrapper."""
 import logging
 from time import time
-from uuid import uuid4
 
 from .const import (
     API_URI,
     DEVICES_ENDPOINT,
     NEW_SESSION_ENDPOINT,
     DINGS_ENDPOINT,
+    POST_DATA,
+    GROUPS_ENDPOINT,
 )
 from .auth import Auth  # noqa
 from .doorbot import RingDoorBell
 from .chime import RingChime
 from .stickup_cam import RingStickUpCam
+from .group import RingLightGroup
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +44,7 @@ class Ring(object):
         self.chime_health_data = None
         self.doorbell_health_data = None
         self.dings_data = None
+        self.groups_data = None
 
     def update_data(self):
         """Update all data."""
@@ -52,26 +55,17 @@ class Ring(object):
 
         self.update_dings()
 
+        self.update_groups()
+
     def create_session(self):
         """Create a new Ring session."""
+        session_post_data = POST_DATA
+        session_post_data["device[hardware_id]"] = self.auth.get_hardware_id()
+
         self.session = self.query(
             NEW_SESSION_ENDPOINT,
             method="POST",
-            data={
-                "api_version": "9",
-                "device[hardware_id]": uuid4().hex,
-                "device[os]": "android",
-                "device[app_brand]": "ring",
-                "device[metadata][device_model]": "KVM",
-                "device[metadata][device_name]": "Python",
-                "device[metadata][resolution]": "600x800",
-                "device[metadata][app_version]": "1.3.806",
-                "device[metadata][app_instalation_date]": "",
-                "device[metadata][manufacturer]": "Qemu",
-                "device[metadata][device_type]": "desktop",
-                "device[metadata][architecture]": "desktop",
-                "device[metadata][language]": "en",
-            },
+            data=session_post_data,
         ).json()
 
     def update_devices(self):
@@ -87,6 +81,23 @@ class Ring(object):
     def update_dings(self):
         """Update dings data."""
         self.dings_data = self.query(DINGS_ENDPOINT).json()
+
+    def update_groups(self):
+        """Update groups data."""
+        # Get all locations
+        locations = set()
+        for devices in self.devices_data.values():
+            for dev in devices.values():
+                if "location_id" in dev:
+                    locations.add(dev["location_id"])
+
+        # Query for groups
+        self.groups_data = {}
+        locations.discard(None)
+        for location in locations:
+            data = self.query(GROUPS_ENDPOINT.format(location)).json()
+            for group in data["device_groups"]:
+                self.groups_data[group["device_group_id"]] = group
 
     def query(
         self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
@@ -112,6 +123,15 @@ class Ring(object):
             ]
 
         return devices
+
+    def groups(self):
+        """Get all groups."""
+        groups = {}
+
+        for group_id in self.groups_data:
+            groups[group_id] = RingLightGroup(self, group_id)
+
+        return groups
 
     def active_alerts(self):
         """Get active alerts."""

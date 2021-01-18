@@ -175,6 +175,24 @@ Displaying the last video capture URL
     print(doorbell.recording_url(doorbell.last_recording_id))
     'https://ring-transcoded-videos.s3.amazonaws.com/99999999.mp4?X-Amz-Expires=3600&X-Amz-Date=20170313T232537Z&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=TOKEN_SECRET/us-east-1/s3/aws4_request&X-Amz-SignedHeaders=host&X-Amz-Signature=secret'
 
+Controlling a Light Group
+-------------------------
+.. code-block:: python
+
+    groups = ring.groups()
+    group = groups['the-group-you-want']
+
+    print(group.lights)
+    # Prints True if lights are on, False if off
+
+    # Turn on lights indefinitely
+    group.lights = True
+
+    # Turn off lights
+    group.lights = False
+
+    # Turn on lights for 30 seconds
+    group.lights = (True, 30)
 
 How to contribute
 -----------------

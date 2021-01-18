@@ -43,7 +43,7 @@ class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
     def __init__(self, ring, device_id, shared=False):
-        super(RingDoorBell, self).__init__(ring, device_id)
+        super().__init__(ring, device_id)
         self.shared = shared
 
     @property
@@ -99,6 +99,12 @@ class RingDoorBell(RingGeneric):
     @property
     def battery_life(self):
         """Return battery life."""
+        if (
+            self._attrs.get("battery_life") is None
+            and self._attrs.get("battery_life_2") is None
+        ):
+            return None
+
         value = 0
         if "battery_life_2" in self._attrs:
             # Camera has two battery bays
@@ -109,12 +115,13 @@ class RingDoorBell(RingGeneric):
                 # Bay 2
                 value += int(self._attrs.get("battery_life_2"))
             return value
+
         # Camera has a single battery bay
         # Latest stickup cam can be externally powered
-        if self._attrs.get("battery_life") is not None:
-            value = int(self._attrs.get("battery_life"))
-            if value and value > 100:
-                value = 100
+        value = int(self._attrs.get("battery_life"))
+        if value and value > 100:
+            value = 100
+
         return value
 
     @property
@@ -315,7 +322,7 @@ class RingDoorBell(RingGeneric):
         """Return JSON for live streaming."""
         url = LIVE_STREAMING_ENDPOINT.format(self.id)
         req = self._ring.query(url, method="POST")
-        if req and req.status_code == 204:
+        if req and req.status_code == 200:
             url = DINGS_ENDPOINT
             try:
                 return self._ring.query(url).json()[0]
@@ -430,8 +437,8 @@ class RingDoorBell(RingGeneric):
             time.sleep(delay)
             response = self._ring.query(url, method="POST", json=payload).json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
-                snapshot = self._ring.query(
-                    SNAPSHOT_ENDPOINT.format(self._attrs.get("id"))
+                return self._ring.query(
+                    SNAPSHOT_ENDPOINT.format(self._attrs.get("id"), raw=True)
                 ).content
                 with open(filename, "wb") as jpg:
                     jpg.write(snapshot)

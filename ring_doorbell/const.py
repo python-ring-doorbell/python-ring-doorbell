@@ -1,7 +1,6 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Constants."""
-from uuid import uuid4 as uuid
 
 
 class OAuth:
@@ -31,12 +30,13 @@ DEVICES_ENDPOINT = "/clients_api/ring_devices"
 DINGS_ENDPOINT = "/clients_api/dings/active"
 DOORBELLS_ENDPOINT = "/clients_api/doorbots/{0}"
 PERSIST_TOKEN_ENDPOINT = "/clients_api/device"
+GROUPS_ENDPOINT = "/groups/v1/locations/{0}/groups"
 
 HEALTH_DOORBELL_ENDPOINT = DOORBELLS_ENDPOINT + "/health"
 HEALTH_CHIMES_ENDPOINT = CHIMES_ENDPOINT + "/health"
 LIGHTS_ENDPOINT = DOORBELLS_ENDPOINT + "/floodlight_light_{1}"
 LINKED_CHIMES_ENDPOINT = CHIMES_ENDPOINT + "/linked_doorbots"
-LIVE_STREAMING_ENDPOINT = DOORBELLS_ENDPOINT + "/vod"
+LIVE_STREAMING_ENDPOINT = DOORBELLS_ENDPOINT + "/live_view"
 NEW_SESSION_ENDPOINT = "/clients_api/session"
 RINGTONES_ENDPOINT = "/ringtones"
 SIREN_ENDPOINT = DOORBELLS_ENDPOINT + "/siren_{1}"
@@ -45,6 +45,7 @@ SNAPSHOT_TIMESTAMP_ENDPOINT = "/clients_api/snapshots/timestamps"
 TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + "/play_sound"
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + "/history"
 URL_RECORDING = "/clients_api/dings/{0}/recording"
+GROUP_DEVICES_ENDPOINT = GROUPS_ENDPOINT + "/{1}/devices"
 
 # chime test sound kinds
 KIND_DING = "ding"
@@ -82,6 +83,7 @@ SPOTLIGHT_CAM_WIRED_KINDS = ["hp_cam_v2", "spotlightw_v2"]
 STICKUP_CAM_KINDS = ["stickup_cam", "stickup_cam_v3"]
 STICKUP_CAM_BATTERY_KINDS = ["cocoa_camera", "stickup_cam_lunar"]
 STICKUP_CAM_WIRED_KINDS = ["stickup_cam_elite"]
+BEAM_KINDS = ["beams_ct200_transformer"]
 
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."
@@ -93,7 +95,6 @@ MSG_ALLOWED_VALUES = "Only the following values are allowed: {0}."
 
 POST_DATA = {
     "api_version": API_VERSION,
-    "device[hardware_id]": str(uuid()),
     "device[os]": "android",
     "device[app_brand]": "ring",
     "device[metadata][device_model]": "KVM",

@@ -2,7 +2,7 @@
 """Python Ring Door Bell setup script."""
 from setuptools import setup
 
-_VERSION = '0.6.0'
+_VERSION = '0.6.2'
 
 
 def readme():
@@ -23,9 +23,9 @@ setup(
     license='LGPLv3+',
     include_package_data=True,
     install_requires=[
-        'requests==2.22.0',
-        'requests-oauthlib==1.3.0',
-        'oauthlib==3.1.0',
+        "requests>=2.0.0",
+        "requests-oauthlib>=1.3.0,<2",
+        "oauthlib>=3.0.0,<4",
         'pytz'
     ],
     test_suite='tests',

@@ -148,7 +148,9 @@ def main():
 
         while len(history) > 0:
             print(
-                "\tProcessing and downloading the next" + " videos".format(len(history))
+                "\tProcessing and downloading the next "
+                + format(len(history))
+                + " videos"
             )
 
             counter = 0
