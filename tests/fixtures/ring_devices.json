@@ -146,7 +146,7 @@
             "kind": "hp_cam_v1",
             "latitude": 12.000000,
             "led_status": "off",
-            "location_id": null,
+            "location_id": "mock-location-id",
             "longitude": -70.12345,
             "motion_snooze": {"scheduled": true},
             "night_mode_status": "false",
