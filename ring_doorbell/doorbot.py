@@ -427,7 +427,7 @@ class RingDoorBell(RingGeneric):
         """Return connection status."""
         return self._attrs.get("alerts").get("connection")
 
-    def get_snapshot(self, retries=3, delay=1, filename="snapshot.jpg"):
+    def get_snapshot(self, retries=3, delay=1, filename=None):
         """Take a snapshot and download it"""
         url = SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get("id")]}
@@ -437,10 +437,11 @@ class RingDoorBell(RingGeneric):
             time.sleep(delay)
             response = self._ring.query(url, method="POST", json=payload).json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
-                return self._ring.query(
-                    SNAPSHOT_ENDPOINT.format(self._attrs.get("id"), raw=True)
-                ).content
-                with open(filename, "wb") as jpg:
-                    jpg.write(snapshot)
+                snapshot = self._ring.query(SNAPSHOT_ENDPOINT.format(
+                    self._attrs.get("id")), raw=True).content
+                if filename:
+                    with open(filename, "wb") as jpg:
+                        jpg.write(snapshot)
                     return True
+                return snapshot
         return False
