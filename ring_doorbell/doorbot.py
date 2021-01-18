@@ -99,6 +99,12 @@ class RingDoorBell(RingGeneric):
     @property
     def battery_life(self):
         """Return battery life."""
+        if (
+            self._attrs.get("battery_life") is None
+            and self._attrs.get("battery_life_2") is None
+        ):
+            return None
+
         value = 0
         if "battery_life_2" in self._attrs:
             # Camera has two battery bays
@@ -109,12 +115,13 @@ class RingDoorBell(RingGeneric):
                 # Bay 2
                 value += int(self._attrs.get("battery_life_2"))
             return value
+
         # Camera has a single battery bay
         # Latest stickup cam can be externally powered
-        if self._attrs.get("battery_life") is not None:
-            value = int(self._attrs.get("battery_life"))
-            if value and value > 100:
-                value = 100
+        value = int(self._attrs.get("battery_life"))
+        if value and value > 100:
+            value = 100
+
         return value
 
     @property
