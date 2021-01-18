@@ -32,10 +32,7 @@ class Auth:
         :type password: str
         :type otp_code: str
         """
-        headers = {
-                "User-Agent": self.user_agent,
-                "hardware_id": self.hardware_id
-        }
+        headers = {"User-Agent": self.user_agent, "hardware_id": self.hardware_id}
 
         if otp_code:
             headers["2fa-support"] = "true"
@@ -66,6 +63,7 @@ class Auth:
         return token
 
     def get_hardware_id(self):
+        """Get hardware ID."""
         return self.hardware_id
 
     def query(

@@ -55,7 +55,7 @@ class Ring(object):
     def create_session(self):
         """Create a new Ring session."""
         session_post_data = POST_DATA
-        session_post_data['device[hardware_id]'] = self.auth.get_hardware_id()
+        session_post_data["device[hardware_id]"] = self.auth.get_hardware_id()
 
         self.session = self.query(
             NEW_SESSION_ENDPOINT,
