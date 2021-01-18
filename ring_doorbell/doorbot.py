@@ -437,8 +437,9 @@ class RingDoorBell(RingGeneric):
             time.sleep(delay)
             response = self._ring.query(url, method="POST", json=payload).json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
-                snapshot = self._ring.query(SNAPSHOT_ENDPOINT.format(
-                    self._attrs.get("id")), raw=True).content
+                snapshot = self._ring.query(
+                    SNAPSHOT_ENDPOINT.format(self._attrs.get("id")), raw=True
+                ).content
                 if filename:
                     with open(filename, "wb") as jpg:
                         jpg.write(snapshot)
