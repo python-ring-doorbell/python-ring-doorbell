@@ -427,7 +427,7 @@ class RingDoorBell(RingGeneric):
         """Return connection status."""
         return self._attrs.get("alerts").get("connection")
 
-    def get_snapshot(self, retries=3, delay=1, filename="snapshot.jpg",):
+    def get_snapshot(self, retries=3, delay=1, filename="snapshot.jpg"):
         """Take a snapshot and download it"""
         url = SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get("id")]}
