@@ -39,8 +39,9 @@ jobs:
         env:
           TOXENV: ${{ steps.toxenv.outputs.toxenv }}
       - name: Report to Coveralls
-        uses: coverallsapp/github-action@master
+        run: |
+          coveralls --service=github
         # Only report coverage on latest Python version and skip on prior failures
         if: ${{ success() && matrix.python-version == '3.7' }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
