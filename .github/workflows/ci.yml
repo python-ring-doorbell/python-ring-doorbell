@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  - push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version:
+          - 3.6
+          - 3.7
+          - 3.8
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U tox coveralls
+      - name: Prepare toxenv
+        id: toxenv
+        run: |
+          if [[ '${{ matrix.python-version }}' == '3.6' ]]; then
+            echo "::set-output name=toxenv::py36"
+          elif [[ '${{ matrix.python-version }}' == '3.7' ]]; then
+            echo "::set-output name=toxenv::py37"
+          else
+            echo "::set-output name=toxenv::lint"
+          fi
+      - name: Test with tox
+        run: |
+          tox
+        env:
+          TOXENV: ${{ steps.toxenv.outputs.toxenv }}
+      - name: Report to Coveralls
+        run: |
+          coveralls --service=github
+        # Only report coverage on latest Python version and skip on prior failures
+        if: ${{ success() && matrix.python-version == '3.7' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

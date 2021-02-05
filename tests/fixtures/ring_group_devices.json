@@ -1,0 +1,25 @@
+{
+    "device_group_id": "mock-group-id",
+    "motion_snooze_on": false,
+    "devices": [
+        {
+            "id": "12345678",
+            "lights_on": false,
+            "motion_detection_on": false,
+            "motion_notifications_on": false,
+            "motion_activated_lights": false,
+            "motion_message_on": false,
+            "siren_on": false,
+            "motion_snooze_seconds_left": 0,
+            "motion_light_duration_seconds": 0
+        }
+    ],
+    "lights_on": false,
+    "motion_detection_on": false,
+    "motion_notifications_on": false,
+    "motion_activated_lights": false,
+    "motion_message_on": false,
+    "siren_on": false,
+    "motion_snooze_seconds_left": 0,
+    "motion_light_duration_seconds": 0
+}

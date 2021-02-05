@@ -1,209 +1,206 @@
 # -*- coding: utf-8 -*-
 """The tests for the Ring platform."""
-from datetime import datetime
-from tests.test_base import RingUnitTestBase
+import pytest
+
 from tests.helpers import load_fixture
 import requests_mock
 
+from ring_doorbell import Ring, Auth
 
-class TestRing(RingUnitTestBase):
-    """Unit test for core Ring."""
 
-    @requests_mock.Mocker()
-    def test_basic_attributes(self, mock):
-        """Test the Ring class and methods."""
-        mock.post('https://oauth.ring.com/oauth/token',
-                  text=load_fixture('ring_oauth.json'))
-        mock.get('https://api.ring.com/clients_api/ring_devices',
-                 text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/chimes/999999/health',
-                 text=load_fixture('ring_chime_health_attrs.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
-                 text=load_fixture('ring_doorboot_health_attrs.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
-                 text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
+@pytest.fixture
+def ring(mock_ring_requests):
+    """Return ring object."""
+    auth = Auth("PythonRingDoorbell/0.6")
+    auth.fetch_token("foo", "bar")
+    ring = Ring(auth)
+    ring.update_data()
+    return ring
 
-        data = self.ring
-        self.assertTrue(data.is_connected)
-        self.assertIsInstance(data.cache, dict)
-        self.assertFalse(data.debug)
-        self.assertEqual(1, len(data.chimes))
-        self.assertEqual(2, len(data.doorbells))
-        self.assertEqual(1, len(data.stickup_cams))
-        self.assertFalse(data._persist_token)
-        self.assertEqual('http://localhost/', data._push_token_notify_url)
 
-    @requests_mock.Mocker()
-    def test_chime_attributes(self, mock):
-        """Test the Ring Chime class and methods."""
-        mock.post('https://oauth.ring.com/oauth/token',
-                  text=load_fixture('ring_oauth.json'))
-        mock.get('https://api.ring.com/clients_api/ring_devices',
-                 text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/chimes/999999/health',
-                 text=load_fixture('ring_chime_health_attrs.json'))
+@pytest.fixture(autouse=True)
+def mock_ring_requests():
+    with requests_mock.Mocker() as mock:
+        mock.post(
+            "https://oauth.ring.com/oauth/token", text=load_fixture("ring_oauth.json")
+        )
+        mock.post(
+            "https://api.ring.com/clients_api/session",
+            text=load_fixture("ring_session.json"),
+        )
+        mock.get(
+            "https://api.ring.com/clients_api/ring_devices",
+            text=load_fixture("ring_devices.json"),
+        )
+        mock.get(
+            "https://api.ring.com/clients_api/chimes/999999/health",
+            text=load_fixture("ring_chime_health_attrs.json"),
+        )
+        mock.get(
+            "https://api.ring.com/clients_api/doorbots/987652/health",
+            text=load_fixture("ring_doorboot_health_attrs.json"),
+        )
+        mock.get(
+            "https://api.ring.com/clients_api/doorbots/987652/history",
+            text=load_fixture("ring_doorbots.json"),
+        )
+        mock.get(
+            "https://api.ring.com/clients_api/dings/active",
+            text=load_fixture("ring_ding_active.json"),
+        )
+        mock.put(
+            "https://api.ring.com/clients_api/doorbots/987652/floodlight_light_off",
+            text="ok",
+        )
+        mock.put(
+            "https://api.ring.com/clients_api/doorbots/987652/floodlight_light_on",
+            text="ok",
+        )
+        mock.put("https://api.ring.com/clients_api/doorbots/987652/siren_on", text="ok")
+        mock.put(
+            "https://api.ring.com/clients_api/doorbots/987652/siren_off", text="ok"
+        )
+        mock.get(
+            "https://api.ring.com/groups/v1/locations/mock-location-id/groups",
+            text=load_fixture("ring_groups.json"),
+        )
+        mock.get(
+            "https://api.ring.com/groups/v1/locations/mock-location-id/groups/mock-group-id/devices",
+            text=load_fixture("ring_group_devices.json"),
+        )
+        mock.post(
+            "https://api.ring.com/groups/v1/locations/mock-location-id/groups/mock-group-id/devices",
+            text="ok",
+        )
+        yield mock
 
-        data = self.ring
-        dev = data.chimes[0]
 
-        self.assertEqual('123 Main St', dev.address)
-        self.assertNotEqual(99999, dev.account_id)
-        self.assertEqual('abcdef123', dev.id)
-        self.assertEqual('chime', dev.kind)
-        self.assertEqual('Chime', dev.model)
-        self.assertEqual(False, dev.has_capability('battery'))
-        self.assertEqual(True, dev.has_capability('volume'))
-        self.assertIsNotNone(dev.latitude)
-        self.assertEqual('America/New_York', dev.timezone)
-        self.assertEqual(2, dev.volume)
-        self.assertEqual('ring_mock_wifi', dev.wifi_name)
-        self.assertEqual('good', dev.wifi_signal_category)
-        self.assertNotEqual(100, dev.wifi_signal_strength)
+def test_basic_attributes(ring):
+    """Test the Ring class and methods."""
+    data = ring.devices()
+    assert len(data["chimes"]) == 1
+    assert len(data["doorbots"]) == 1
+    assert len(data["authorized_doorbots"]) == 1
+    assert len(data["stickup_cams"]) == 1
 
-    @requests_mock.Mocker()
-    def test_doorbell_attributes(self, mock):
-        mock.post('https://oauth.ring.com/oauth/token',
-                  text=load_fixture('ring_oauth.json'))
-        mock.get('https://api.ring.com/clients_api/ring_devices',
-                 text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/history',
-                 text=load_fixture('ring_doorbots.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
-                 text=load_fixture('ring_doorboot_health_attrs.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
-                 text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
 
-        data = self.ring_persistent
-        for dev in data.doorbells:
-            if not dev.shared:
-                self.assertEqual('Front Door', dev.name)
-                self.assertEqual(987652, dev.account_id)
-                self.assertEqual('123 Main St', dev.address)
-                self.assertEqual('lpd_v1', dev.kind)
-                self.assertEqual('Doorbell Pro', dev.model)
-                self.assertEqual(False, dev.has_capability('battery'))
-                self.assertEqual(True, dev.has_capability('volume'))
-                self.assertEqual(-70.12345, dev.longitude)
-                self.assertEqual('America/New_York', dev.timezone)
-                self.assertEqual(1, dev.volume)
-                self.assertTrue(dev.has_subscription)
-                self.assertEqual('online', dev.connection_status)
+def test_chime_attributes(ring):
+    """Test the Ring Chime class and methods."""
+    dev = ring.devices()["chimes"][0]
 
-                self.assertIsInstance(dev.history(limit=1, kind='motion'),
-                                      list)
-                self.assertEqual(0, len(dev.history(limit=1, kind='ding')))
-                self.assertEqual(0, len(dev.history(limit=1,
-                                                    kind='ding',
-                                                    enforce_limit=True,
-                                                    retry=50)))
+    assert dev.address == "123 Main St"
+    assert dev.id != 99999
+    assert dev.device_id == "abcdef123"
+    assert dev.kind == "chime"
+    assert dev.model == "Chime"
+    assert dev.has_capability("battery") is False
+    assert dev.has_capability("volume") is True
+    assert dev.latitude is not None
+    assert dev.timezone == "America/New_York"
+    assert dev.volume == 2
 
-                self.assertEqual('Mechanical', dev.existing_doorbell_type)
-                self.assertTrue(data._persist_token)
-                self.assertEqual('ring_mock_wifi', dev.wifi_name)
-                self.assertEqual('good', dev.wifi_signal_category)
-                self.assertEqual(-58, dev.wifi_signal_strength)
+    dev.update_health_data()
+    assert dev.wifi_name == "ring_mock_wifi"
+    assert dev.wifi_signal_category == "good"
+    assert dev.wifi_signal_strength != 100
 
-    @requests_mock.Mocker()
-    def test_shared_doorbell_attributes(self, mock):
-        mock.post('https://oauth.ring.com/oauth/token',
-                  text=load_fixture('ring_oauth.json'))
-        mock.get('https://api.ring.com/clients_api/ring_devices',
-                 text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/history',
-                 text=load_fixture('ring_doorbots.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
-                 text=load_fixture('ring_doorboot_health_attrs.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
-                 text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
 
-        data = self.ring_persistent
-        for dev in data.doorbells:
-            if dev.shared:
-                self.assertEqual(987653, dev.account_id)
-                self.assertEqual(51, dev.battery_life)
-                self.assertEqual('123 Second St', dev.address)
-                self.assertEqual('lpd_v1', dev.kind)
-                self.assertEqual('Doorbell Pro', dev.model)
-                self.assertEqual(False, dev.has_capability('battery'))
-                self.assertEqual(True, dev.has_capability('volume'))
-                self.assertEqual(-70.12345, dev.longitude)
-                self.assertEqual('America/New_York', dev.timezone)
-                self.assertEqual(5, dev.volume)
-                self.assertEqual('Digital', dev.existing_doorbell_type)
+def test_doorbell_attributes(ring):
+    data = ring.devices()
+    dev = data["doorbots"][0]
+    assert dev.name == "Front Door"
+    assert dev.id == 987652
+    assert dev.address == "123 Main St"
+    assert dev.kind == "lpd_v1"
+    assert dev.model == "Doorbell Pro"
+    assert dev.has_capability("battery") is False
+    assert dev.has_capability("volume") is True
+    assert dev.longitude == -70.12345
+    assert dev.timezone == "America/New_York"
+    assert dev.volume == 1
+    assert dev.has_subscription is True
+    assert dev.connection_status == "online"
 
-    @requests_mock.Mocker()
-    def test_doorbell_alerts(self, mock):
-        mock.post('https://oauth.ring.com/oauth/token',
-                  text=load_fixture('ring_oauth.json'))
-        mock.get('https://api.ring.com/clients_api/ring_devices',
-                 text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/dings/active',
-                 text=load_fixture('ring_ding_active.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
-                 text=load_fixture('ring_doorboot_health_attrs.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987653/health',
-                 text=load_fixture('ring_doorboot_health_attrs_id987653.json'))
+    assert isinstance(dev.history(limit=1, kind="motion"), list)
+    assert len(dev.history(limit=1, kind="ding")) == 0
+    assert len(dev.history(limit=1, kind="ding", enforce_limit=True, retry=50)) == 0
 
-        data = self.ring_persistent
-        for dev in data.doorbells:
-            self.assertEqual('America/New_York', dev.timezone)
+    assert dev.existing_doorbell_type == "Mechanical"
 
-            # call alerts
-            dev.check_alerts()
+    dev.update_health_data()
 
-            self.assertIsInstance(dev.alert, dict)
-            self.assertIsInstance(dev.alert_expires_at, datetime)
-            self.assertTrue(datetime.now() >= dev.alert_expires_at)
-            self.assertIsNotNone(dev._ring.cache_file)
+    assert dev.wifi_name == "ring_mock_wifi"
+    assert dev.wifi_signal_category == "good"
+    assert dev.wifi_signal_strength == -58
 
-    @requests_mock.Mocker()
-    def test_stickup_cam_attributes(self, mock):
-        mock.post('https://oauth.ring.com/oauth/token',
-                  text=load_fixture('ring_oauth.json'))
-        mock.get('https://api.ring.com/clients_api/ring_devices',
-                 text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
-                 text=load_fixture('ring_doorboot_health_attrs.json'))
 
-        data = self.ring_persistent
-        for dev in data.stickup_cams:
-            self.assertEqual('hp_cam_v1', dev.kind)
-            self.assertEqual('Floodlight Cam', dev.model)
-            self.assertEqual(False, dev.has_capability('battery'))
-            self.assertEqual(True, dev.has_capability('light'))
-            self.assertEqual('off', dev.lights)
-            self.assertEqual(0, dev.siren)
+def test_shared_doorbell_attributes(ring):
+    data = ring.devices()
+    dev = data["authorized_doorbots"][0]
 
-    @requests_mock.Mocker()
-    def test_stickup_cam_controls(self, mock):
-        mock.post('https://oauth.ring.com/oauth/token',
-                  text=load_fixture('ring_oauth.json'))
-        mock.get('https://api.ring.com/clients_api/ring_devices',
-                 text=load_fixture('ring_devices.json'))
-        mock.get('https://api.ring.com/clients_api/doorbots/987652/health',
-                 text=load_fixture('ring_doorboot_health_attrs.json'))
-        mock.put(requests_mock.ANY, text='ok')
+    assert dev.id == 987653
+    assert dev.battery_life == 51
+    assert dev.address == "123 Second St"
+    assert dev.kind == "lpd_v1"
+    assert dev.model == "Doorbell Pro"
+    assert dev.has_capability("battery") is False
+    assert dev.has_capability("volume") is True
+    assert dev.longitude == -70.12345
+    assert dev.timezone == "America/New_York"
+    assert dev.volume == 5
+    assert dev.existing_doorbell_type == "Digital"
 
-        data = self.ring_persistent
-        for dev in data.stickup_cams:
-            dev.lights = 'off'
-            dev.lights = 'on'
-            dev.siren = 0
-            dev.siren = 30
 
-            history = list(filter(lambda x: x.method == 'PUT',
-                                  mock.request_history))
-            self.assertEqual(
-                '/clients_api/doorbots/987652/floodlight_light_off',
-                history[0].path)
-            self.assertEqual(
-                '/clients_api/doorbots/987652/floodlight_light_on',
-                history[1].path)
-            self.assertEqual(
-                '/clients_api/doorbots/987652/siren_off',
-                history[2].path)
-            self.assertNotIn('duration', history[2].qs)
-            self.assertEqual(
-                '/clients_api/doorbots/987652/siren_on',
-                history[3].path)
-            self.assertEqual('30', history[3].qs['duration'][0])
+def test_stickup_cam_attributes(ring):
+    dev = ring.devices()["stickup_cams"][0]
+    assert dev.kind == "hp_cam_v1"
+    assert dev.model == "Floodlight Cam"
+    assert dev.has_capability("battery") is False
+    assert dev.has_capability("light") is True
+    assert dev.lights == "off"
+    assert dev.siren == 0
+
+
+def test_stickup_cam_controls(ring, mock_ring_requests):
+    dev = ring.devices()["stickup_cams"][0]
+
+    dev.lights = "off"
+    dev.lights = "on"
+    dev.siren = 0
+    dev.siren = 30
+
+    history = list(
+        filter(lambda x: x.method == "PUT", mock_ring_requests.request_history)
+    )
+    assert history[0].path == "/clients_api/doorbots/987652/floodlight_light_off"
+    assert history[1].path == "/clients_api/doorbots/987652/floodlight_light_on"
+    assert history[2].path == "/clients_api/doorbots/987652/siren_off"
+    assert "duration" not in history[2].qs
+    assert history[3].path == "/clients_api/doorbots/987652/siren_on"
+    assert history[3].qs["duration"][0] == "30"
+
+
+def test_light_groups(ring):
+    group = ring.groups()["mock-group-id"]
+
+    assert group.name == "Landscape"
+    assert group.family == "group"
+    assert group.device_id == "mock-group-id"
+    assert group.location_id == "mock-location-id"
+    assert group.model == "Light Group"
+    assert group.has_capability("light") is True
+    assert group.has_capability("something-else") is False
+
+    assert group.lights is False
+
+    # Attempt turning on lights
+    group.lights = True
+
+    # Attempt turning off lights
+    group.lights = False
+
+    # Attempt turning on lights for 30 seconds
+    group.lights = (True, 30)
+
+    # Attempt setting lights to invalid value
+    group.lights = 30
