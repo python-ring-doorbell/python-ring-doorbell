@@ -96,7 +96,7 @@ class Ring(object):
         locations.discard(None)
         for location in locations:
             data = self.query(GROUPS_ENDPOINT.format(location)).json()
-            for group in data["device_groups"]:
+            for group in data.get("device_groups") or []:
                 self.groups_data[group["device_group_id"]] = group
 
     def query(
