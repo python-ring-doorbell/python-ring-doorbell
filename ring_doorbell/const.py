@@ -45,6 +45,7 @@ SNAPSHOT_TIMESTAMP_ENDPOINT = "/clients_api/snapshots/timestamps"
 TESTSOUND_CHIME_ENDPOINT = CHIMES_ENDPOINT + "/play_sound"
 URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + "/history"
 URL_RECORDING = "/clients_api/dings/{0}/recording"
+URL_RECORDING_SHARE_PLAY = "/clients_api/dings/{0}/share/play"
 GROUP_DEVICES_ENDPOINT = GROUPS_ENDPOINT + "/{1}/devices"
 
 # chime test sound kinds

@@ -32,6 +32,7 @@ from ring_doorbell.const import (
     SNAPSHOT_TIMESTAMP_ENDPOINT,
     URL_DOORBELL_HISTORY,
     URL_RECORDING,
+    URL_RECORDING_SHARE_PLAY,
     DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
     HEALTH_DOORBELL_ENDPOINT,
 )
@@ -371,10 +372,11 @@ class RingDoorBell(RingGeneric):
             _LOGGER.warning(msg)
             return False
 
-        url = URL_RECORDING.format(recording_id)
+        url = URL_RECORDING_SHARE_PLAY.format(recording_id)
         req = self._ring.query(url)
-        if req and req.status_code == 200:
-            return req.url
+        data = req.json()
+        if req and req.status_code == 200 and data is not None:
+            return data["url"]
         return False
 
     @property

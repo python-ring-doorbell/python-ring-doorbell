@@ -96,8 +96,9 @@ class Ring(object):
         locations.discard(None)
         for location in locations:
             data = self.query(GROUPS_ENDPOINT.format(location)).json()
-            for group in data["device_groups"]:
-                self.groups_data[group["device_group_id"]] = group
+            if data["device_groups"] is not None:
+                for group in data["device_groups"]:
+                    self.groups_data[group["device_group_id"]] = group
 
     def query(
         self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
