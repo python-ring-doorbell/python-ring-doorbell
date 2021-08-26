@@ -2,7 +2,7 @@
 """Python Ring Door Bell setup script."""
 from setuptools import setup
 
-_VERSION = '0.7.0'
+_VERSION = '0.7.1'
 
 
 def readme():
