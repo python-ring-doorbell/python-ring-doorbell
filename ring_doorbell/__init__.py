@@ -15,6 +15,7 @@ from .const import (
 from .auth import Auth  # noqa
 from .doorbot import RingDoorBell
 from .chime import RingChime
+from .basestation import RingBaseStation
 from .stickup_cam import RingStickUpCam
 from .group import RingLightGroup
 
@@ -25,6 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 TYPES = {
     "stickup_cams": RingStickUpCam,
     "chimes": RingChime,
+    "base_stations": RingBaseStation,
     "doorbots": RingDoorBell,
     "authorized_doorbots": lambda ring, description: RingDoorBell(
         ring, description, shared=True
