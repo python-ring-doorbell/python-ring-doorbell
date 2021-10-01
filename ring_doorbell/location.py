@@ -83,7 +83,7 @@ class RingLocation:
         return self._address1
 
     @property
-    def address1(self):
+    def address2(self):
         """Return location address2."""
         return self._address2
 

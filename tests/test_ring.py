@@ -223,18 +223,18 @@ def test_location(ring):
     locations = ring.locations()
     assert len(locations) == 1
     location = locations[list(locations)[0]]
-    assert location._location_id == "mock-location-id"
-    assert location._owner_id == "123456"
-    assert location._name == "My Location"
-    assert location._latitude == 10.000000
-    assert location._longitude == -10.000000
-    assert location._address1 == "123 Happy St."
-    assert location._address2 == "Apt 1"
-    assert location._city == "My Town"
-    assert location._state == "NJ"
-    assert location._zip_code == "07700"
-    assert location._country == "US"
-    assert location._timezone == "America/New_York"
+    assert location.location_id == "mock-location-id"
+    assert location.owner_id == "123456"
+    assert location.name == "My Location"
+    assert location.latitude == 10.000000
+    assert location.longitude == -10.000000
+    assert location.address1 == "123 Happy St."
+    assert location.address2 == "Apt 1"
+    assert location.city == "My Town"
+    assert location.state == "NJ"
+    assert location.zip_code == "07700"
+    assert location.country == "US"
+    assert location.timezone == "America/New_York"
 
     # Attempt setting mode to valid values
     location.mode = LocationMode.HOME
