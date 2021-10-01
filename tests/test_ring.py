@@ -237,8 +237,8 @@ def test_location(ring):
     assert location._timezone == "America/New_York"
 
     # Attempt setting mode to valid values
-    #location.mode = LocationMode.HOME
-    #location.mode = LocationMode.AWAY
+    location._mode = LocationMode.HOME
+    location._mode = LocationMode.AWAY
 
     # Attempt setting mode to an invalid value
-    #location.mode = "foo"
+    location._mode = "foo"
