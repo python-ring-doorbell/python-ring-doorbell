@@ -38,7 +38,7 @@ class RingLocation:
 
     def update(self):
         """Update this device info."""
-        modevalue = self._ring.query(LOCATION_MODE_ENDPOINT.format(self._location_id), APP_URI).json().get("mode", {})
+        modevalue = self._ring.query(LOCATION_MODE_ENDPOINT.format(self._location_id), base=APP_URI).json().get("mode", {})
         
         self._mode = LocationMode[modevalue.upper()]
 
@@ -117,9 +117,9 @@ class RingLocation:
         if not isinstance(mode, LocationMode):
             raise TypeError('mode must be an instance of LocationMode Enum')
 
-        payload = {"mode": mode.value.lower()}
+        payload = {"mode": mode.value}
 
-        url = LOCATION_MODE_ENDPOINT.format(self.location_id)
-        self._ring.query(url, method="POST", json=payload)
+        url = LOCATION_MODE_ENDPOINT.format(self._location_id)
+        self._ring.query(url, base=APP_URI, method="POST", json=payload)
         self._ring.update_devices()
         return True

@@ -237,8 +237,9 @@ def test_location(ring):
     assert location._timezone == "America/New_York"
 
     # Attempt setting mode to valid values
-    location._mode = LocationMode.HOME
-    location._mode = LocationMode.AWAY
+    location.mode = LocationMode.HOME
+    location.mode = LocationMode.AWAY
 
     # Attempt setting mode to an invalid value
-    location._mode = "foo"
+    with pytest.raises(TypeError):
+        location.mode = "foo"
