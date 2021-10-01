@@ -5,6 +5,7 @@ import pytest
 from tests.helpers import load_fixture
 import requests_mock
 
+from ring_doorbell.location import LocationMode
 from ring_doorbell import Ring, Auth
 
 
@@ -59,6 +60,18 @@ def mock_ring_requests():
         mock.put("https://api.ring.com/clients_api/doorbots/987652/siren_on", text="ok")
         mock.put(
             "https://api.ring.com/clients_api/doorbots/987652/siren_off", text="ok"
+        )
+        mock.get(
+            "https://api.ring.com/devices/v1/locations",
+            text=load_fixture("ring_locations.json"),
+        )
+        mock.get(
+            "https://app.ring.com/api/v1/mode/location/mock-location-id",
+            text=load_fixture("ring_location_mode.json"),
+        )
+        mock.post(
+            "https://app.ring.com/api/v1/mode/location/mock-location-id",
+            text="ok",
         )
         mock.get(
             "https://api.ring.com/groups/v1/locations/mock-location-id/groups",
@@ -204,3 +217,28 @@ def test_light_groups(ring):
 
     # Attempt setting lights to invalid value
     group.lights = 30
+
+
+def test_location(ring):
+    locations = ring.locations()
+    assert len(locations) == 1
+    location = locations[list(locations)[0]]
+    assert location._location_id == "mock-location-id"
+    assert location._owner_id == "123456"
+    assert location._name == "My Location"
+    assert location._latitude == 10.000000
+    assert location._longitude == -10.000000
+    assert location._address1 == "123 Happy St."
+    assert location._address2 == "Apt 1"
+    assert location._city == "My Town"
+    assert location._state == "NJ"
+    assert location._zip_code == "07700"
+    assert location._country == "US"
+    assert location._timezone == "America/New_York"
+
+    # Attempt setting mode to valid values
+    #location.mode = LocationMode.HOME
+    #location.mode = LocationMode.AWAY
+
+    # Attempt setting mode to an invalid value
+    #location.mode = "foo"

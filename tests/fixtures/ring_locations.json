@@ -1,0 +1,27 @@
+{
+    "user_locations": [
+        {
+            "location_id": "mock-location-id",
+            "owner_id": "123456",
+            "name": "My Location",
+            "geo_coordinates": {
+                "latitude": 10.000000,
+                "longitude": -10.000000
+            },
+            "address": {
+                "address1": "123 Happy St.",
+                "address2": "Apt 1",
+                "cross_street": "",
+                "city": "My Town",
+                "state": "NJ",
+                "zip_code": "07700",
+                "country": "US",
+                "timezone": "America/New_York"
+            },
+            "user_verified": true,
+            "geo_service_verified": "unverified",
+            "created_at": "2020-05-22T14:09:55Z",
+            "updated_at": "2020-05-22T14:09:55Z"
+        }
+    ]
+}

@@ -10,12 +10,14 @@ from .const import (
     NEW_SESSION_ENDPOINT,
     DINGS_ENDPOINT,
     POST_DATA,
-    GROUPS_ENDPOINT,
+    LOCATIONS_ENDPOINT,
+    GROUPS_ENDPOINT
 )
 from .auth import Auth  # noqa
 from .doorbot import RingDoorBell
 from .chime import RingChime
 from .stickup_cam import RingStickUpCam
+from .location import RingLocation
 from .group import RingLightGroup
 
 
@@ -28,7 +30,8 @@ TYPES = {
     "doorbots": RingDoorBell,
     "authorized_doorbots": lambda ring, description: RingDoorBell(
         ring, description, shared=True
-    ),
+    ),    
+    "locations": RingLocation,
 }
 
 
@@ -44,6 +47,7 @@ class Ring(object):
         self.chime_health_data = None
         self.doorbell_health_data = None
         self.dings_data = None
+        self.locations_data = None
         self.groups_data = None
 
     def update_data(self):
@@ -54,6 +58,8 @@ class Ring(object):
         self.update_devices()
 
         self.update_dings()
+
+        self.update_locations()
 
         self.update_groups()
 
@@ -82,30 +88,31 @@ class Ring(object):
         """Update dings data."""
         self.dings_data = self.query(DINGS_ENDPOINT).json()
 
+    def update_locations(self):
+        """Update locations data."""
+        self.locations_data = {}
+        data = self.query(LOCATIONS_ENDPOINT).json()
+        if data["user_locations"] is not None:
+            for location in data["user_locations"]:
+                self.locations_data[location["location_id"]] = location
+
     def update_groups(self):
         """Update groups data."""
-        # Get all locations
-        locations = set()
-        for devices in self.devices_data.values():
-            for dev in devices.values():
-                if "location_id" in dev:
-                    locations.add(dev["location_id"])
 
         # Query for groups
         self.groups_data = {}
-        locations.discard(None)
-        for location in locations:
-            data = self.query(GROUPS_ENDPOINT.format(location)).json()
+        for location in self.locations_data.values() :
+            data = self.query(GROUPS_ENDPOINT.format(location["location_id"])).json()
             if data["device_groups"] is not None:
                 for group in data["device_groups"]:
                     self.groups_data[group["device_group_id"]] = group
 
     def query(
-        self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
+        self, url, base=API_URI, method="GET", extra_params=None, data=None, json=None, timeout=None
     ):
         """Query data from Ring API."""
         return self.auth.query(
-            API_URI + url,
+            base + url,
             method=method,
             extra_params=extra_params,
             data=data,
@@ -124,6 +131,16 @@ class Ring(object):
             ]
 
         return devices
+
+    def locations(self):
+        """Get all locations."""
+        locations = {}
+
+        for location_id in self.locations_data:
+            locationData = self.locations_data[location_id]
+            locations[location_id] = RingLocation(self, locationData)
+
+        return locations
 
     def groups(self):
         """Get all groups."""
