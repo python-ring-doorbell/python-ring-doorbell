@@ -20,8 +20,10 @@ from ring_doorbell.const import (
     DOORBELL_2_KINDS,
     DOORBELL_3_KINDS,
     DOORBELL_3_PLUS_KINDS,
+    DOORBELL_4_KINDS,
     DOORBELL_PRO_KINDS,
     DOORBELL_ELITE_KINDS,
+    DOORBELL_WIRED_KINDS,
     FILE_EXISTS,
     LIVE_STREAMING_ENDPOINT,
     MSG_BOOLEAN_REQUIRED,
@@ -71,10 +73,14 @@ class RingDoorBell(RingGeneric):
             return "Doorbell 3"
         if self.kind in DOORBELL_3_PLUS_KINDS:
             return "Doorbell 3 Plus"
+        if self.kind in DOORBELL_4_KINDS:
+            return "Doorbell 4"
         if self.kind in DOORBELL_PRO_KINDS:
             return "Doorbell Pro"
         if self.kind in DOORBELL_ELITE_KINDS:
             return "Doorbell Elite"
+        if self.kind in DOORBELL_WIRED_KINDS:
+            return "Doorbell Wired"
         if self.kind in PEEPHOLE_CAM_KINDS:
             return "Peephole Cam"
         return None
