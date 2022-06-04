@@ -93,6 +93,7 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_2_KINDS
                 + DOORBELL_3_KINDS
                 + DOORBELL_3_PLUS_KINDS
+                + DOORBELL_4_KINDS
                 + PEEPHOLE_CAM_KINDS
             )
         if capability == "knock":
