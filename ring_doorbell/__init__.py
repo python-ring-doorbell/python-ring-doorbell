@@ -17,7 +17,7 @@ from .doorbot import RingDoorBell
 from .chime import RingChime
 from .stickup_cam import RingStickUpCam
 from .group import RingLightGroup
-
+from .other import Other
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ TYPES = {
     "authorized_doorbots": lambda ring, description: RingDoorBell(
         ring, description, shared=True
     ),
+    "other": Other,
 }
 
 
