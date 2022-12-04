@@ -84,7 +84,7 @@ class Auth:
             "timeout": timeout,
         }
 
-        if method == "POST":
+        if method in ["POST", "PUT"]:
             if json is not None:
                 kwargs["json"] = json
             if data is not None:
