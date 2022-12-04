@@ -39,10 +39,12 @@ def main():
     doorbells = devices["doorbots"]
     chimes = devices["chimes"]
     stickup_cams = devices["stickup_cams"]
+    other = devices["other"]
 
     print(doorbells)
     print(chimes)
     print(stickup_cams)
+    print(other)
 
 
 if __name__ == "__main__":
