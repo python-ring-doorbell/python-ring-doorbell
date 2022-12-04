@@ -125,7 +125,7 @@ class Other(RingGeneric):
 
         return None
 
-    def open_door(self, retries=3, delay=1):
+    def open_door(self):
         """Open the door"""
 
         if self.kind in INTERCOM_KINDS:
