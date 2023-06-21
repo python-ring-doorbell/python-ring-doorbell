@@ -9,6 +9,7 @@ from ring_doorbell.const import (
     MSG_ALLOWED_VALUES,
     MSG_VOL_OUTBOUND,
     FLOODLIGHT_CAM_KINDS,
+    FLOODLIGHT_CAM_PRO_KINDS,
     INDOOR_CAM_KINDS,
     SPOTLIGHT_CAM_BATTERY_KINDS,
     SPOTLIGHT_CAM_WIRED_KINDS,
@@ -45,6 +46,8 @@ class RingStickUpCam(RingDoorBell):
         """Return Ring device model name."""
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return "Floodlight Cam"
+        if self.kind in FLOODLIGHT_CAM_PRO_KINDS:
+            return "Floodlight Cam Pro"
         if self.kind in INDOOR_CAM_KINDS:
             return "Indoor Cam"
         if self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
@@ -61,6 +64,7 @@ class RingStickUpCam(RingDoorBell):
             return "Stick Up Cam Battery"
         if self.kind in STICKUP_CAM_WIRED_KINDS:
             return "Stick Up Cam Wired"
+        _LOGGER.error("Unknown kind: %s", self.kind)
         return None
 
     def has_capability(self, capability):
@@ -74,12 +78,14 @@ class RingStickUpCam(RingDoorBell):
         if capability == "light":
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
+                + FLOODLIGHT_CAM_PRO_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
             )
         if capability == "siren":
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
+                + FLOODLIGHT_CAM_PRO_KINDS
                 + INDOOR_CAM_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
