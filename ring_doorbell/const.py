@@ -78,6 +78,7 @@ DOORBELL_ELITE_KINDS = ["jbox_v1"]
 PEEPHOLE_CAM_KINDS = ["doorbell_portal"]
 
 FLOODLIGHT_CAM_KINDS = ["hp_cam_v1", "floodlight_v2", "cocoa_floodlight"]
+FLOODLIGHT_CAM_PRO_KINDS = ["floodlight_pro"]
 INDOOR_CAM_KINDS = ["stickup_cam_mini"]
 SPOTLIGHT_CAM_BATTERY_KINDS = ["stickup_cam_v4"]
 SPOTLIGHT_CAM_WIRED_KINDS = ["hp_cam_v2", "spotlightw_v2"]
