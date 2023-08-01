@@ -47,6 +47,7 @@ URL_DOORBELL_HISTORY = DOORBELLS_ENDPOINT + "/history"
 URL_RECORDING = "/clients_api/dings/{0}/recording"
 URL_RECORDING_SHARE_PLAY = "/clients_api/dings/{0}/share/play"
 GROUP_DEVICES_ENDPOINT = GROUPS_ENDPOINT + "/{1}/devices"
+SETTINGS_ENDPOINT = "/devices/v1/devices/{0}/settings"
 
 # chime test sound kinds
 KIND_DING = "ding"
@@ -94,6 +95,7 @@ MSG_GENERIC_FAIL = "Sorry.. Something went wrong..."
 FILE_EXISTS = "The file {0} already exists."
 MSG_VOL_OUTBOUND = "Must be within the {0}-{1}."
 MSG_ALLOWED_VALUES = "Only the following values are allowed: {0}."
+MSG_EXPECTED_ATTRIBUTE_NOT_FOUND = "Couldn't find expected attribute: {0}."
 
 POST_DATA = {
     "api_version": API_VERSION,

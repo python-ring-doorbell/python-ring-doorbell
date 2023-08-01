@@ -39,6 +39,7 @@
                     "middle",
                     "high",
                     "highest"],
+                "motion_detection_enabled": true,
                 "motion_announcement": false,
                 "motion_snooze_preset_profile": "low",
                 "motion_snooze_presets": [
@@ -115,6 +116,7 @@
                     "middle",
                     "high",
                     "highest"],
+                "motion_detection_enabled": true,
                 "motion_announcement": false,
                 "motion_snooze_preset_profile": "low",
                 "motion_snooze_presets": [
@@ -179,6 +181,7 @@
                     "middle",
                     "high",
                     "highest"],
+                "motion_detection_enabled": true,
                 "motion_announcement": false,
                 "motion_snooze_preset_profile": "low",
                 "motion_snooze_presets": [
