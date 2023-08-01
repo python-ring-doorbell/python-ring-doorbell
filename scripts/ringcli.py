@@ -44,7 +44,6 @@ def _format_filename(event):
 
 
 def main():
-
     parser = argparse.ArgumentParser(
         description="Ring Doorbell",
         epilog="https://github.com/tchellomello/python-ring-doorbell",

@@ -11,6 +11,7 @@ class RingGeneric(object):
     """Generic Implementation for Ring Chime/Doorbell."""
 
     # pylint: disable=redefined-builtin
+    # pylint:disable=invalid-name
     def __init__(self, ring, id):
         """Initialize Ring Generic."""
         self._ring = ring

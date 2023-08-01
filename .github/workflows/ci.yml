@@ -1,18 +1,44 @@
 name: CI
 
 on:
-  - push
+  push:
+  pull_request:
+    branches: ["master"]
 
 jobs:
-  ci:
+  linting:
+    name: "Perform linting checks"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U tox
+      - name: Lint with tox
+        run: |
+          tox
+        env: 
+          TOXENV: lint
+
+  tests:
+    name: tests
+    needs: linting
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
         python-version:
-          - 3.6
-          - 3.7
-          - 3.8
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -26,12 +52,14 @@ jobs:
       - name: Prepare toxenv
         id: toxenv
         run: |
-          if [[ '${{ matrix.python-version }}' == '3.6' ]]; then
-            echo "::set-output name=toxenv::py36"
-          elif [[ '${{ matrix.python-version }}' == '3.7' ]]; then
-            echo "::set-output name=toxenv::py37"
+          if [[ '${{ matrix.python-version }}' == '3.8' ]]; then
+            echo "::set-output name=toxenv::py38"
+          elif [[ '${{ matrix.python-version }}' == '3.9' ]]; then
+            echo "::set-output name=toxenv::py39"
+          elif [[ '${{ matrix.python-version }}' == '3.10' ]]; then
+            echo "::set-output name=toxenv::py310"
           else
-            echo "::set-output name=toxenv::lint"
+            echo "::set-output name=toxenv::py311"
           fi
       - name: Test with tox
         run: |
@@ -42,6 +70,6 @@ jobs:
         run: |
           coveralls --service=github
         # Only report coverage on latest Python version and skip on prior failures
-        if: ${{ success() && matrix.python-version == '3.7' }}
+        if: ${{ success() && matrix.python-version == '3.11' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

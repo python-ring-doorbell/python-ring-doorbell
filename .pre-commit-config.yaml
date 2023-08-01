@@ -1,0 +1,24 @@
+repos:
+- repo: https://github.com/pycqa/flake8
+  rev: 6.0.0
+  hooks:
+  - id: flake8
+
+- repo: local
+  hooks:
+  - id: pylint
+    name: pylint
+    entry: pylint
+    language: system
+    types: [python]
+    require_serial: true
+    files: ^ring_doorbell/
+    args:
+      - --rcfile=pylintrc
+
+- repo: https://github.com/python/black
+  rev: 23.3.0
+  hooks:
+  - id: black
+    args:
+      - --check
