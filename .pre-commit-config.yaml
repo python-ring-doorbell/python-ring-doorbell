@@ -3,6 +3,7 @@ repos:
   rev: 6.0.0
   hooks:
   - id: flake8
+    files: ^ring_doorbell/|^tests/|^test.py|^scripts/
 
 - repo: local
   hooks:
@@ -20,5 +21,6 @@ repos:
   rev: 23.3.0
   hooks:
   - id: black
+    files: ^ring_doorbell/|^tests/|^test.py|^scripts/
     args:
       - --check
