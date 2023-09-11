@@ -27,6 +27,8 @@ from ring_doorbell.const import (
     MSG_BOOLEAN_REQUIRED,
     MSG_EXISTING_TYPE,
     MSG_VOL_OUTBOUND,
+    MSG_ALLOWED_VALUES,
+    MSG_EXPECTED_ATTRIBUTE_NOT_FOUND,
     PEEPHOLE_CAM_KINDS,
     SNAPSHOT_ENDPOINT,
     SNAPSHOT_TIMESTAMP_ENDPOINT,
@@ -35,6 +37,7 @@ from ring_doorbell.const import (
     URL_RECORDING_SHARE_PLAY,
     DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
     HEALTH_DOORBELL_ENDPOINT,
+    SETTINGS_ENDPOINT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,6 +98,14 @@ class RingDoorBell(RingGeneric):
             return self.kind in DOORBELL_3_PLUS_KINDS
         if capability == "volume":
             return True
+        if capability == "motion_detection":
+            return self.kind in (
+                DOORBELL_KINDS
+                + DOORBELL_2_KINDS
+                + DOORBELL_3_KINDS
+                + DOORBELL_3_PLUS_KINDS
+                + PEEPHOLE_CAM_KINDS
+            )
         return False
 
     @property
@@ -447,3 +458,39 @@ class RingDoorBell(RingGeneric):
                     return True
                 return snapshot
         return False
+
+    def _motion_detection_state(self):
+        if "settings" in self._attrs and "motion_detection_enabled" in self._attrs.get(
+            "settings"
+        ):
+            return self._attrs.get("settings")["motion_detection_enabled"]
+        return None
+
+    @property
+    def motion_detection(self):
+        """Return motion detection enabled state."""
+        return self._motion_detection_state()
+
+    @motion_detection.setter
+    def motion_detection(self, state):
+        """Set the motion detection enabled state."""
+        values = [True, False]
+        if state not in values:
+            _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(", ".join(values)))
+            return False
+
+        if self._motion_detection_state() is None:
+            _LOGGER.warning(
+                "%s",
+                MSG_EXPECTED_ATTRIBUTE_NOT_FOUND.format(
+                    "settings[motion_detection_enabled]"
+                ),
+            )
+            return False
+
+        url = SETTINGS_ENDPOINT.format(self.id)
+        payload = {"motion_settings": {"motion_detection_enabled": state}}
+
+        self._ring.query(url, method="PATCH", json=payload)
+        self._ring.update_devices()
+        return True

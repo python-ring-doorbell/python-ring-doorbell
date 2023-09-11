@@ -92,6 +92,16 @@ class RingStickUpCam(RingDoorBell):
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_WIRED_KINDS
             )
+        if capability == "motion_detection":
+            return self.kind in (
+                FLOODLIGHT_CAM_KINDS
+                + FLOODLIGHT_CAM_PRO_KINDS
+                + INDOOR_CAM_KINDS
+                + SPOTLIGHT_CAM_BATTERY_KINDS
+                + SPOTLIGHT_CAM_WIRED_KINDS
+                + STICKUP_CAM_BATTERY_KINDS
+                + STICKUP_CAM_WIRED_KINDS
+            )
         return False
 
     @property

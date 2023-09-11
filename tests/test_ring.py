@@ -72,6 +72,10 @@ def mock_ring_requests():
             "https://api.ring.com/groups/v1/locations/mock-location-id/groups/mock-group-id/devices",
             text="ok",
         )
+        mock.patch(
+            "https://api.ring.com/devices/v1/devices/987652/settings",
+            text="ok",
+        )
         yield mock
 
 
@@ -204,3 +208,18 @@ def test_light_groups(ring):
 
     # Attempt setting lights to invalid value
     group.lights = 30
+
+
+def test_motion_detection_enable(ring, mock_ring_requests):
+    dev = ring.devices()["doorbots"][0]
+
+    dev.motion_detection = True
+    dev.motion_detection = False
+
+    history = list(
+        filter(lambda x: x.method == "PATCH", mock_ring_requests.request_history)
+    )
+    assert history[0].path == "/devices/v1/devices/987652/settings"
+    assert history[0].text == '{"motion_settings": {"motion_detection_enabled": true}}'
+    assert history[1].path == "/devices/v1/devices/987652/settings"
+    assert history[1].text == '{"motion_settings": {"motion_detection_enabled": false}}'
