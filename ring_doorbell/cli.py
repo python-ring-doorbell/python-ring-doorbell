@@ -1,13 +1,12 @@
-#!/usr/bin/env python
 # vim:sw=4:ts=4:et
 # Many thanks to @troopermax <https://github.com/troopermax>
-
+"""Python Ring CLI."""
 import json
 import getpass
 import argparse
 from pathlib import Path
-from ring_doorbell import Ring, Auth
 from oauthlib.oauth2 import MissingTokenError
+from ring_doorbell import Ring, Auth
 
 
 def _header():
@@ -23,12 +22,13 @@ cache_file = Path("test_token.cache")
 
 
 def token_updated(token):
-    cache_file.write_text(json.dumps(token))
+    """Writes token to file"""
+    cache_file.write_text(json.dumps(token), encoding="utf-8")
 
 
 def _format_filename(event):
     if not isinstance(event, dict):
-        return
+        return None
 
     if event["answered"]:
         answered_status = "answered"
@@ -43,7 +43,8 @@ def _format_filename(event):
     return filename
 
 
-def main():
+def cli():
+    """Command line function."""
     parser = argparse.ArgumentParser(
         description="Ring Doorbell",
         epilog="https://github.com/tchellomello/python-ring-doorbell",
@@ -77,7 +78,11 @@ def main():
 
     # connect to Ring account
     if cache_file.is_file():
-        auth = Auth("RingCLI/0.6", json.loads(cache_file.read_text()), token_updated)
+        auth = Auth(
+            "RingCLI/0.6",
+            json.loads(cache_file.read_text(encoding="utf-8")),
+            token_updated,
+        )
     else:
         if not args.username:
             args.username = input("Username: ")
@@ -166,4 +171,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cli()

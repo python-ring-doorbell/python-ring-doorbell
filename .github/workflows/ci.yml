@@ -2,8 +2,14 @@ name: CI
 
 on:
   push:
+    branches: ["master"]
   pull_request:
     branches: ["master"]
+
+env:
+  POETRY_VERSION: 1.6.1
+  TOX_VERSION: 4.11.3
+  COVERALLS_VERSION: 3.3.1
 
 jobs:
   linting:
@@ -19,13 +25,41 @@ jobs:
           python-version: "${{ matrix.python-version }}"
       - name: "Install dependencies"
         run: |
-          python -m pip install --upgrade pip
-          pip install -U tox
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+          pipx install poetry==$POETRY_VERSION
+          pipx install tox==$TOX_VERSION
       - name: Lint with tox
         run: |
           tox
         env: 
           TOXENV: lint
+
+  docs:
+    name: "Build docs"
+    needs: linting
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install dependencies"
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+          pipx install poetry==$POETRY_VERSION
+          pipx install tox==$TOX_VERSION
+      - name: Make docs with tox
+        run: |
+          tox
+        env: 
+          TOXENV: docs
 
   tests:
     name: tests
@@ -47,8 +81,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -U tox coveralls
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+          pipx install poetry==$POETRY_VERSION
+          pipx install tox==$TOX_VERSION
+          pipx install coveralls==$COVERALLS_VERSION
       - name: Prepare toxenv
         id: toxenv
         run: |

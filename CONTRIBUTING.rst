@@ -45,37 +45,96 @@ File an issue at https://github.com/tchellomello/python-ring-doorbell/issues.
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `python-ring_doorbell` for local development.
+Ready to contribute? Here's how to set up `python-ring-doorbell` for local development.
 
-1. Fork the `python-ring-doorbel` repo on GitHub.
-2. Clone your fork locally::
+1.  Fork the `python-ring-doorbell` repo on GitHub.
 
-    $ git clone git@github.com:your_name_here/python-ring-doorbell.git
+#.  Clone your fork locally::
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+    $ cd YOURDIRECTORYFORTHECODE
+    $ git clone git@github.com:YOUR_GITHUB_USERNAME/python-ring-doorbell.git
 
-    $ mkvirtualenv python-ring-doorbell
-    $ cd python-ring-doorbell/
-    $ python setup.py develop
-    $ pip install -r requirements_tests.txt
+#.  We are using `poetry <https://python-poetry.org/>`_ for dependency management.
 
-4. Create a branch for local development::
+    If you dont have poetry installed you can install it with::
+    
+    $ curl -sSL https://install.python-poetry.org | python3 -
 
-    $ git checkout -b name-of-your-bugfix-or-feature
+    This installs Poetry in a virtual environment to isolate it from the rest of your system.  Then to install `python-ring-doorbell`::
 
-   Now you can make your changes locally.
+    $ poetry install
 
-5. When you're done making changes, check that your changes pass flake8 and the tests, including testing other Python versions with tox::
+    Poetry will create a virtual environment for you and install all the requirements
 
-    $ tox -r
+    If you want to be able to build the docs (not necessary unless you are working on the doc generation)::
 
-6. Commit your changes and push your branch to GitHub::
+    $ poetry install --extras docs
+    
+#.  Create a branch for local development::
+
+    $ git checkout -b NAME-OF-YOUR-BUGFIX-OR-FEATURE
+
+    Now you can make your changes locally.
+
+#.  We are using `tox <https://tox.wiki/>`_ for testing and linting::
+
+    $ poetry run tox -r
+
+#.  Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
-    $ git push origin name-of-your-bugfix-or-feature
+    $ git push origin NAME-OF-YOUR-BUGFIX-OR-FEATURE
 
-7. Submit a pull request through the GitHub website.
-
+#.  Submit a pull request through the GitHub website.
 
 Thank you!!
+
+Additional Notes
+----------------
+
+Poetry
+~~~~~~
+
+Dependencies
+^^^^^^^^^^^^
+
+Poetry is very useful at managing virtual environments and ensuring that dependencies all match up for you.  
+It manages this with the use of the `poetry.lock` file which contains all the exact versions to be installed.
+This means that if you add any dependecies you should do it via::
+
+    $ poetry add pypi_project_name  
+
+rather than pip.  This will update `pyproject.toml` and `poetry.lock` accordingly.  
+If you install something in the virtual environment directly via pip you will need to run::
+
+    $ poetry lock --no-update
+
+to resync the lock file but without updating all the other requirements to latest versions.
+To uninstall a dependency::
+
+    $ poetry remove pypi_project_name
+
+finally if you want to add a dependency for development only::
+
+    $ poetry add --group dev pypi_project_name
+
+Environments
+^^^^^^^^^^^^
+
+Poetry creates a virtual environment for the project and you can activate the virtual environment with::
+
+    $ poetry shell
+
+To exit the shell type ``exit`` rather than deactivate.
+However you don't **need** to activate the virtual environment and you can run any command without activating it by::
+
+    $ poetry run SOME_COMMAND
+
+It is possible to manage all this from within a virtual environment you create yourself but that requires installing poetry
+into the same virtual environment and this can potentially cause poetry to uninstall some of its own dependencies
+in certain situations.  Hence the recommendation to install poetry into a seperate virtual environment of its via
+the install script above or pipx.
+
+See `poetry documentation <https://python-poetry.org/>`_ for more info
+

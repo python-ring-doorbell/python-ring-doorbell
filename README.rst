@@ -3,21 +3,29 @@ Python Ring Door Bell
 =====================
 
 .. image:: https://badge.fury.io/py/ring-doorbell.svg
+    :alt: PyPI Version
     :target: https://badge.fury.io/py/ring-doorbell
 
-.. image:: https://travis-ci.org/tchellomello/python-ring-doorbell.svg?branch=master
-    :target: https://travis-ci.org/tchellomello/python-ring-doorbell
+.. image:: https://github.com/tchellomello/python-ring-doorbell/actions/workflows/ci.yml/badge.svg?branch=master
+    :alt: Build Status
+    :target: https://github.com/tchellomello/python-ring-doorbell/actions/workflows/ci.yml?branch=master
 
 .. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg?branch=master
+    :alt: Coverage
     :target: https://coveralls.io/github/tchellomello/python-ring-doorbell?branch=master
 
+.. image:: https://readthedocs.org/projects/python-ring-doorbell/badge/?version=latest
+    :alt: Documentation Status
+    :target: https://python-ring-doorbell.readthedocs.io/?badge=latest
+
 .. image:: https://img.shields.io/pypi/pyversions/ring-doorbell.svg
+    :alt: Py Versions
     :target: https://pypi.python.org/pypi/ring-doorbell
 
 *Looking for maintainers* 
 
 
-Python Ring Door Bell is a library written for Python 3.6+
+Python Ring Door Bell is a library written for Python 3.8+
 that exposes the Ring.com devices as Python objects.
 
 *Currently Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
@@ -198,7 +206,7 @@ Controlling a Light Group
 
 How to contribute
 -----------------
-See CONTRIBUTING.rst
+See our `Contributing Page <https://python-ring-doorbell.readthedocs.io/contributing.html>`_.
 
 
 Credits && Thanks
