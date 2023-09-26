@@ -1,4 +1,9 @@
 repos:
+-   repo: https://github.com/python-poetry/poetry
+    rev: 1.6.0
+    hooks:
+    -   id: poetry-check
+
 - repo: https://github.com/pycqa/flake8
   rev: 6.0.0
   hooks:
@@ -14,13 +19,10 @@ repos:
     types: [python]
     require_serial: true
     files: ^ring_doorbell/
-    args:
-      - --rcfile=pylintrc
 
 - repo: https://github.com/python/black
   rev: 23.3.0
   hooks:
   - id: black
     files: ^ring_doorbell/|^tests/|^test.py|^scripts/
-    args:
-      - --check
+
