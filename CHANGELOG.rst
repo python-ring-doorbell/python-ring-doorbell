@@ -2,6 +2,20 @@
 Changelog
 =========
 
+0.7.4
+=====
+
+Released on 2023-09-27 - `GitHub <https://github.com/tchellomello/python-ring-doorbell/releases/tag/0.7.4>`__  - `PyPI <https://pypi.org/project/python-ring-doorbell/0.7.4/>`__ 
+
+.. raw:: html
+
+   <embed>
+      <h2>What's Changed</h2>
+      <ul>
+      <li>Fix and update cli (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="1830888544" data-permission-text="Title is private" data-url="https://github.com/tchellomello/python-ring-doorbell/issues/288" data-hovercard-type="pull_request" data-hovercard-url="/tchellomello/python-ring-doorbell/pull/282/hovercard" href="https://github.com/tchellomello/python-ring-doorbell/pull/288">#288</a>) <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/sdb9696/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/sdb9696">@sdb9696</a></li>
+      <li>Update to pyproject.toml, poetry, and update docs to use yaml config (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="1829769517" data-permission-text="Title is private" data-url="https://github.com/tchellomello/python-ring-doorbell/issues/287" data-hovercard-type="pull_request" data-hovercard-url="/tchellomello/python-ring-doorbell/pull/281/hovercard" href="https://github.com/tchellomello/python-ring-doorbell/pull/287">#287</a>) <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/sdb9696/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/sdb9696">@sdb9696</a></li>
+      </ul>
+   </embed>
 
 
 0.7.3
