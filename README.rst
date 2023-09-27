@@ -22,11 +22,11 @@ Python Ring Door Bell
     :alt: Py Versions
     :target: https://pypi.python.org/pypi/ring-doorbell
 
-*Looking for maintainers* 
-
 
 Python Ring Door Bell is a library written for Python 3.8+
 that exposes the Ring.com devices as Python objects.
+
+There is also a command line interface that is work in progress. `Contributors welcome <https://python-ring-doorbell.readthedocs.io/contributing.html>`_.
 
 *Currently Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
 
@@ -45,6 +45,21 @@ Installation
     $ pip install \
         git+https://github.com/tchellomello/python-ring-doorbell@master
 
+
+Using the CLI
+-------------
+
+The CLI is work in progress and at the moment only displays your device info and video info.
+
+1.  Show your devices::
+    
+    $ ring-doorbell
+
+#.  Either count or download your vidoes or both::
+
+    $ ring-doorbell videos --count --download-all
+
+#.  Run ``ring-doorbell --help`` or ``ring-doorbell videos --help`` for full options
 
 Initializing your Ring object
 -----------------------------

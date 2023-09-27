@@ -25,6 +25,8 @@ DEFAULT_VIDEO_DOWNLOAD_TIMEOUT = 120
 # API endpoints
 API_VERSION = "9"
 API_URI = "https://api.ring.com"
+USER_AGENT = "RingAPI2023/1.0"
+CLI_TOKEN_FILE = "ring_token.cache"
 CHIMES_ENDPOINT = "/clients_api/chimes/{0}"
 DEVICES_ENDPOINT = "/clients_api/ring_devices"
 DINGS_ENDPOINT = "/clients_api/dings/active"
