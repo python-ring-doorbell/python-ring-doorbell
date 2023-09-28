@@ -29,6 +29,9 @@ class RingGeneric(object):
         """Return __repr__."""
         return "<{0}: {1}>".format(self.__class__.__name__, self.name)
 
+    def __str__(self):
+        return f"{self.name} ({self.kind})"
+
     def update(self):
         """Update this device info."""
         self.update_health_data()

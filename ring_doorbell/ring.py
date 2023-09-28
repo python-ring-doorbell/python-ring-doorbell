@@ -45,6 +45,9 @@ class Ring(object):
 
     def update_data(self):
         """Update all data."""
+        self._update_data()
+
+    def _update_data(self):
         if self.session is None:
             self.create_session()
 
@@ -121,6 +124,16 @@ class Ring(object):
             ]
 
         return devices
+
+    def video_devices(self):
+        """Get all devices."""
+        devices = self.devices()
+
+        return (
+            devices["doorbots"]
+            + devices["authorized_doorbots"]
+            + devices["stickup_cams"]
+        )
 
     def groups(self):
         """Get all groups."""

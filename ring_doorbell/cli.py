@@ -4,7 +4,7 @@
 import json
 import getpass
 import asyncio
-from pathlib import Path
+from pathlib import Path, PurePath
 from oauthlib.oauth2 import MissingTokenError, InvalidGrantError
 import asyncclick as click
 
@@ -43,6 +43,9 @@ class ExceptionHandlerGroup(click.Group):
         except Exception as ex:  # pylint: disable=broad-exception-caught
             echo(f"Got error: {ex!r}")
 
+        finally:
+            loop.close()
+
 
 cache_file = Path(CLI_TOKEN_FILE)
 
@@ -54,7 +57,7 @@ def token_updated(token):
     cache_file.write_text(json.dumps(token), encoding="utf-8")
 
 
-def _format_filename(event):
+def _format_filename(device_name, event):
     if not isinstance(event, dict):
         return None
 
@@ -63,8 +66,8 @@ def _format_filename(event):
     else:
         answered_status = "not_answered"
 
-    filename = "{}_{}_{}_{}".format(
-        event["created_at"], event["kind"], answered_status, event["id"]
+    filename = "{}_{}_{}_{}_{}".format(
+        device_name, event["created_at"], event["kind"], answered_status, event["id"]
     )
 
     filename = filename.replace(" ", "_").replace(":", ".") + ".mp4"
@@ -78,7 +81,7 @@ def _do_auth(username, password):
     if not password:
         password = getpass.getpass("Password: ")
 
-    auth = Auth("RingCLI/0.6", None, token_updated)
+    auth = Auth(USER_AGENT, None, token_updated)
     try:
         auth.fetch_token(username, password)
         return auth
@@ -144,29 +147,22 @@ async def cli(ctx, username, password):
 
 @cli.command()
 @pass_ring
-async def show(ring):
+async def show(ring: Ring):
     """Display ring devices."""
     devices = ring.devices()
 
-    echo(devices)
+    # echo(devices)
 
     doorbells = devices["doorbots"]
     chimes = devices["chimes"]
     stickup_cams = devices["stickup_cams"]
 
-    echo(doorbells)
-    echo(chimes)
-    echo(stickup_cams)
-    devices = ring.devices()
-    echo(devices)
-
-    doorbells = devices["doorbots"]
-    chimes = devices["chimes"]
-    stickup_cams = devices["stickup_cams"]
-
-    echo(doorbells)
-    echo(chimes)
-    echo(stickup_cams)
+    for device in doorbells:
+        echo(device)
+    for device in chimes:
+        echo(device)
+    for device in stickup_cams:
+        echo(device)
 
 
 @cli.command()
@@ -185,85 +181,97 @@ async def show(ring):
     help="Download all videos on your Ring account",
 )
 @click.option(
+    "--download",
+    required=False,
+    default=False,
+    is_flag=True,
+    help="Download videos on your Ring account up to the max-count option",
+)
+@click.option(
     "--max-count",
     required=False,
     default=300,
     help="Maximum count of videos to count or download from your Ring account",
 )
+@click.option(
+    "--download-to",
+    required=False,
+    default="./",
+    help="Download location ending with a /",
+)
+@click.option(
+    "--device-name",
+    required=False,
+    default=None,
+    help="Name of device, defaults to the first device returned",
+)
 @pass_ring
 @click.pass_context
-async def videos(ctx, ring, count, download_all, max_count):
-    """Intercat with ring videos."""
-    devices = ring.devices()
-    doorbell = devices["doorbots"][0]
+async def videos(
+    ctx, ring, count, download, download_all, max_count, download_to, device_name
+):
+    """Interact with ring videos."""
+    devices = ring.video_devices()
+
+    names_to_idx = {device.name: idx for (idx, device) in enumerate(devices)}
+    device = (
+        devices[0]
+        if device_name not in names_to_idx
+        else devices[names_to_idx[device_name]]
+    )
+
+    events = None
+    if download_all:
+        download = True
+        max_count = -1
+
+    def _get_events(device, max_count):
+        limit = 100 if max_count == -1 else min(100, max_count)
+        events = []
+        history = device.history(limit=limit)
+        while len(history) > 0:
+            events += history
+            if (len(events) >= max_count and max_count != -1) or len(history) < limit:
+                break
+            history = device.history(older_than=history[-1]["id"], limit=limit)
+        return events
 
     if count:
         echo(
-            "\tCounting videos linked on your Ring account.\n"
+            f"\tCounting videos linked on your Ring account for {device.name}.\n"
             + "\tThis may take some time....\n"
         )
 
-        events = []
-        counter = 0
-        history = doorbell.history(limit=100)
-        while len(history) > 0:
-            events += history
-            counter += len(history)
-            history = doorbell.history(older_than=history[-1]["id"], limit=100)
-            if len(events) >= max_count:
-                break
+        events = _get_events(device, max_count)
 
         motion = len([m["kind"] for m in events if m["kind"] == "motion"])
         ding = len([m["kind"] for m in events if m["kind"] == "ding"])
         on_demand = len([m["kind"] for m in events if m["kind"] == "on_demand"])
 
-        echo("\tTotal videos: {}".format(counter))
+        echo("\tTotal videos: {}".format(len(events)))
         echo("\tDing triggered: {}".format(ding))
         echo("\tMotion triggered: {}".format(motion))
         echo("\tOn-Demand triggered: {}".format(on_demand))
 
-        # already have all events in memory
-        if download_all:
-            counter = 0
+    if download:
+        if events is None:
             echo(
-                "\tDownloading all videos linked on your Ring account.\n"
+                "\tGetting videos linked on your Ring account.\n"
                 + "\tThis may take some time....\n"
             )
+            events = _get_events(device, max_count)
 
-            for event in events:
-                counter += 1
-                filename = _format_filename(event)
-                echo("\t{}/{} Downloading {}".format(counter, len(events), filename))
-
-                doorbell.recording_download(
-                    event["id"], filename=filename, override=False
-                )
-
-    if download_all and not count:
         echo(
-            "\tDownloading all videos linked on your Ring account.\n"
+            f"\tDownloading {len(events)} videos linked on your Ring account.\n"
             + "\tThis may take some time....\n"
         )
-        history = doorbell.history(limit=100)
+        counter = 0
+        for event in events:
+            counter += 1
+            filename = str(PurePath(download_to, _format_filename(device.name, event)))
+            echo("\t{}/{} Downloading {}".format(counter, len(events), filename))
 
-        while len(history) > 0:
-            echo(
-                "\tProcessing and downloading the next "
-                + format(len(history))
-                + " videos"
-            )
-
-            counter = 0
-            for event in history:
-                counter += 1
-                filename = _format_filename(event)
-                echo("\t{}/{} Downloading {}".format(counter, len(history), filename))
-
-                doorbell.recording_download(
-                    event["id"], filename=filename, override=False
-                )
-
-            history = doorbell.history(limit=100, older_than=history[-1]["id"])
+            device.recording_download(event["id"], filename=filename, override=False)
 
 
 if __name__ == "__main__":

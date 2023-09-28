@@ -65,6 +65,9 @@ pytest-cov = "*"
 requests-mock = "*"
 sphinx-github-changelog = "^1.2.1"
 tox = "*"
+pytest-asyncio = "*"
+pytest-mock = "*"
+black = "*"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-programoutput", "docutils"]
@@ -72,6 +75,7 @@ docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-programoutput", "docutils"]
 [tool.pytest.ini_options]
 testpaths = "tests"
 norecursedirs = ".git"
+asyncio_mode = "auto"
 
 [tool.pylint]
 disable = ["format", "locally-disabled", "duplicate-code", "cyclic-import", "unused-argument",
