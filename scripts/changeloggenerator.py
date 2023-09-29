@@ -58,7 +58,8 @@ def main():
     parser.add_argument(
         "token",
         type=str,
-        help="Enter GitHub Access Token (from https://github.com/settings/tokens/new?description=GitHub%20Changelog%20Generator%20token)",
+        help="Enter GitHub Access Token (from https://github.com/"
+        + "settings/tokens/new?description=GitHub%20Changelog%20Generator%20token)",
     )
 
     args = parser.parse_args()

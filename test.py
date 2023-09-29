@@ -1,4 +1,5 @@
-"""Test module which just runs the cli.  Deprecated as you can either call the cli directly:
+"""Test module which just runs the cli.
+Deprecated as you can either call the cli directly:
 python3 ring_doorbell/cli.py
 Or use the ring-doorbell script if you installed ring_doorbell via poetry or pip
 """

@@ -4,6 +4,12 @@ repos:
     hooks:
     -   id: poetry-check
 
+- repo: https://github.com/python/black
+  rev: 23.3.0
+  hooks:
+  - id: black
+    files: ^ring_doorbell/|^tests/|^test.py|^scripts/
+    
 - repo: https://github.com/pycqa/flake8
   rev: 6.0.0
   hooks:
@@ -20,9 +26,4 @@ repos:
     require_serial: true
     files: ^ring_doorbell/
 
-- repo: https://github.com/python/black
-  rev: 23.3.0
-  hooks:
-  - id: black
-    files: ^ring_doorbell/|^tests/|^test.py|^scripts/
 
