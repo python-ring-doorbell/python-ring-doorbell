@@ -14,9 +14,10 @@ from .const import (
     DINGS_ENDPOINT,
     POST_DATA,
     GROUPS_ENDPOINT,
+    PACKAGE_NAME,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(PACKAGE_NAME)
 
 
 TYPES = {
@@ -104,7 +105,15 @@ class Ring(object):
         self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
     ):
         """Query data from Ring API."""
-        return self.auth.query(
+        _logger.debug(
+            "url: %s\nmethod: %s\njson: %s\ndata: %s\n extra_params: %s",
+            url,
+            method,
+            json,
+            data,
+            extra_params,
+        )
+        response = self.auth.query(
             API_URI + url,
             method=method,
             extra_params=extra_params,
@@ -112,6 +121,8 @@ class Ring(object):
             json=json,
             timeout=timeout,
         )
+        _logger.debug("response_text %s", response.text)
+        return response
 
     def devices(self):
         """Get all devices."""
@@ -124,6 +135,27 @@ class Ring(object):
             ]
 
         return devices
+
+    def get_device_list(self):
+        """Get a combined list of all devices."""
+        devices = self.devices()
+        return (
+            devices["doorbots"]
+            + devices["authorized_doorbots"]
+            + devices["stickup_cams"]
+            + devices["chimes"]
+        )
+
+    def get_device_by_name(self, device_name):
+        """Return a device using it's name."""
+        all_devices = self.get_device_list()
+        names_to_idx = {device.name: idx for (idx, device) in enumerate(all_devices)}
+        device = (
+            None
+            if device_name not in names_to_idx
+            else all_devices[names_to_idx[device_name]]
+        )
+        return device
 
     def video_devices(self):
         """Get all devices."""

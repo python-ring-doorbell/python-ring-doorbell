@@ -1,10 +1,7 @@
 import pytest
 from asyncclick.testing import CliRunner
 from tests.helpers import load_fixture
-from .fakes import (
-    ring,
-    mock_ring_requests,
-)  # noqa: F401; pylint: disable=unused-variable
+
 from unittest.mock import MagicMock, DEFAULT
 from pathlib import Path
 import getpass
@@ -13,6 +10,8 @@ from ring_doorbell.cli import (
     cli,
     show,
     videos,
+    list_command,
+    motion_detection,
 )
 
 from ring_doorbell import Auth
@@ -35,10 +34,14 @@ async def test_cli_default(ring):
             cli, ["--username", "foo", "--password", "foo"], obj=ring
         )
 
-        expected = "Front Door (lpd_v1)\nDownstairs (chime)\nFront (hp_cam_v1)\n"
+        expected = (
+            "Name:       Downstairs\nFamily:     chimes\nID:"
+            + "         999999\nTimezone:   America/New_York\nWifi Name:"
+            + "  ring_mock_wifi\nWifi RSSI:  -39\n\n"
+        )
 
-        assert expected in res.output
         assert res.exit_code == 0
+        assert expected in res.output
 
 
 async def test_show(ring):
@@ -46,10 +49,25 @@ async def test_show(ring):
     with runner.isolated_filesystem():
         res = await runner.invoke(show, obj=ring)
 
+        expected = (
+            "Name:       Downstairs\nFamily:     chimes\nID:"
+            + "         999999\nTimezone:   America/New_York\nWifi Name:"
+            + "  ring_mock_wifi\nWifi RSSI:  -39\n\n"
+        )
+
+        assert res.exit_code == 0
+        assert expected in res.output
+
+
+async def test_list(ring):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        res = await runner.invoke(list_command, obj=ring)
+
         expected = "Front Door (lpd_v1)\nDownstairs (chime)\nFront (hp_cam_v1)\n"
 
-        assert expected in res.output
         assert res.exit_code == 0
+        assert expected in res.output
 
 
 async def test_videos(ring, mocker):
@@ -99,3 +117,40 @@ async def test_auth(mocker, affect_method, exception, file_exists):
         res = await runner.invoke(cli)
 
         assert res.exit_code == 0
+
+
+async def test_motion_detection(ring, requests_mock):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        res = await runner.invoke(
+            motion_detection,
+            ["--device-name", "Front"],
+            obj=ring,
+        )
+        expected = "Front (hp_cam_v1) has motion detection off"
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        res = await runner.invoke(
+            motion_detection,
+            ["--device-name", "Front", "--off"],
+            obj=ring,
+        )
+        expected = "Front (hp_cam_v1) already has motion detection off"
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Changes the return to indicate that the siren is now on.
+        requests_mock.get(
+            "https://api.ring.com/clients_api/ring_devices",
+            text=load_fixture("ring_devices_updated.json"),
+        )
+
+        res = await runner.invoke(
+            motion_detection,
+            ["--device-name", "Front", "--on"],
+            obj=ring,
+        )
+        expected = "Front (hp_cam_v1) motion detection set to on"
+        assert res.exit_code == 0
+        assert expected in res.output

@@ -5,7 +5,6 @@ from tests.helpers import load_fixture
 import requests_mock
 
 from ring_doorbell import Ring, Auth
-from .fakes import ring, mock_ring_requests
 
 
 def test_basic_attributes(ring):
@@ -94,7 +93,7 @@ def test_stickup_cam_attributes(ring):
     assert dev.siren == 0
 
 
-def test_stickup_cam_controls(ring, mock_ring_requests):
+def test_stickup_cam_controls(ring, requests_mock):
     dev = ring.devices()["stickup_cams"][0]
 
     dev.lights = "off"
@@ -102,9 +101,7 @@ def test_stickup_cam_controls(ring, mock_ring_requests):
     dev.siren = 0
     dev.siren = 30
 
-    history = list(
-        filter(lambda x: x.method == "PUT", mock_ring_requests.request_history)
-    )
+    history = list(filter(lambda x: x.method == "PUT", requests_mock.request_history))
     assert history[0].path == "/clients_api/doorbots/987652/floodlight_light_off"
     assert history[1].path == "/clients_api/doorbots/987652/floodlight_light_on"
     assert history[2].path == "/clients_api/doorbots/987652/siren_off"
@@ -139,15 +136,13 @@ def test_light_groups(ring):
     group.lights = 30
 
 
-def test_motion_detection_enable(ring, mock_ring_requests):
+def test_motion_detection_enable(ring, requests_mock):
     dev = ring.devices()["doorbots"][0]
 
     dev.motion_detection = True
     dev.motion_detection = False
 
-    history = list(
-        filter(lambda x: x.method == "PATCH", mock_ring_requests.request_history)
-    )
+    history = list(filter(lambda x: x.method == "PATCH", requests_mock.request_history))
     assert history[0].path == "/devices/v1/devices/987652/settings"
     assert history[0].text == '{"motion_settings": {"motion_detection_enabled": true}}'
     assert history[1].path == "/devices/v1/devices/987652/settings"

@@ -11,6 +11,7 @@ class OAuth:
     SCOPE = ["client"]
 
 
+PACKAGE_NAME = "ring_doorbell"
 # timeout for HTTP requests
 TIMEOUT = 10
 

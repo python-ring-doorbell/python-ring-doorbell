@@ -55,9 +55,18 @@ The CLI is work in progress and at the moment only displays your device info and
     
     $ ring-doorbell
 
+#.  List your device names (with device kind)::
+    
+    $ ring-doorbell list
+
 #.  Either count or download your vidoes or both::
 
     $ ring-doorbell videos --count --download-all
+
+#.  Enable disable motion detection::
+
+    $ ring-doorbell motion-detection --device-name "DEVICENAME" --on
+    $ ring-doorbell motion-detection --device-name "DEVICENAME" --off
 
 #.  Run ``ring-doorbell --help`` or ``ring-doorbell videos --help`` for full options
 

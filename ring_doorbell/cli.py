@@ -4,13 +4,13 @@
 import json
 import getpass
 import asyncio
+import logging
 from pathlib import Path, PurePath
 from oauthlib.oauth2 import MissingTokenError, InvalidGrantError
 import asyncclick as click
-
 from ring_doorbell.auth import Auth
 from ring_doorbell.ring import Ring
-from ring_doorbell.const import USER_AGENT, CLI_TOKEN_FILE
+from ring_doorbell.const import USER_AGENT, CLI_TOKEN_FILE, PACKAGE_NAME
 
 
 def _header():
@@ -45,6 +45,30 @@ class ExceptionHandlerGroup(click.Group):
 
         finally:
             loop.close()
+
+
+class MutuallyExclusiveOption(click.Option):
+    """Prevents incompatable options being supplied, i.e. on and off."""
+
+    def __init__(self, *args, **kwargs):
+        self.mutually_exclusive = set(kwargs.pop("mutually_exclusive", []))
+        _help = kwargs.get("help", "")
+        if self.mutually_exclusive:
+            ex_str = ", ".join(self.mutually_exclusive)
+            kwargs["help"] = _help + (
+                " NOTE: This argument is mutually exclusive with "
+                " arguments: [" + ex_str + "]."
+            )
+        super().__init__(*args, **kwargs)
+
+    async def handle_parse_result(self, ctx, opts, args):
+        if self.mutually_exclusive.intersection(opts) and self.name in opts:
+            raise click.UsageError(
+                "Illegal usage: `{}` is mutually exclusive with "
+                "arguments `{}`.".format(self.name, ", ".join(self.mutually_exclusive))
+            )
+
+        return await super().handle_parse_result(ctx, opts, args)
 
 
 cache_file = Path(CLI_TOKEN_FILE)
@@ -117,6 +141,7 @@ def _get_updated_ring(username, password):
     invoke_without_command=True,
     cls=ExceptionHandlerGroup,
 )
+@click.version_option(package_name="ring_doorbell")
 @click.option(
     "--username",
     default=None,
@@ -131,12 +156,17 @@ def _get_updated_ring(username, password):
     envvar="RING_PASSWORD",
     help="Password for Ring account",
 )
-@click.version_option(package_name="ring_doorbell")
+@click.option("-d", "--debug", default=False, is_flag=True)
 @click.pass_context
-async def cli(ctx, username, password):
+async def cli(ctx, username, password, debug):
     """Command line function."""
 
     _header()
+
+    logging.basicConfig()
+    log_level = logging.DEBUG if debug else logging.INFO
+    logger = logging.getLogger(PACKAGE_NAME)
+    logger.setLevel(log_level)
 
     ring = _get_updated_ring(username, password)
     ctx.obj = ring
@@ -145,13 +175,11 @@ async def cli(ctx, username, password):
         return await ctx.invoke(show)
 
 
-@cli.command()
+@cli.command(name="list")
 @pass_ring
-async def show(ring: Ring):
-    """Display ring devices."""
+async def list_command(ring: Ring):
+    """List ring devices."""
     devices = ring.devices()
-
-    # echo(devices)
 
     doorbells = devices["doorbots"]
     chimes = devices["chimes"]
@@ -163,6 +191,99 @@ async def show(ring: Ring):
         echo(device)
     for device in stickup_cams:
         echo(device)
+
+
+@cli.command()
+@pass_ring
+@click.pass_context
+@click.option(
+    "--on",
+    "turn_on",
+    cls=MutuallyExclusiveOption,
+    is_flag=True,
+    default=None,
+    required=False,
+    mutually_exclusive=["--off"],
+)
+@click.option(
+    "--off",
+    "turn_off",
+    cls=MutuallyExclusiveOption,
+    is_flag=True,
+    default=None,
+    required=False,
+    mutually_exclusive=["--on"],
+)
+@click.option(
+    "--device-name",
+    "-dn",
+    required=True,
+    default=None,
+    help="Name of the ring device",
+)
+async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
+    """Display ring devices."""
+    device = ring.get_device_by_name(device_name)
+
+    if not device:
+        echo(
+            f"No device with name {device_name} found."
+            + " List of found device names (kind) is:"
+        )
+        return await ctx.invoke(list_command)
+    if not device.has_capability("motion_detection"):
+        echo(f"{str(device_name)} is not capable of motion detection")
+        return
+
+    state = "on" if device.motion_detection else "off"
+    if not turn_on and not turn_off:
+        echo(f"{str(device)} has motion detection {state}")
+        return
+    is_on = device.motion_detection
+    if (turn_on and is_on) or (turn_off and not is_on):
+        echo(f"{str(device)} already has motion detection {state}")
+        return
+
+    device.motion_detection = turn_on if turn_on else False
+    state = "on" if device.motion_detection else "off"
+    echo(f"{str(device)} motion detection set to {state}")
+    return
+
+
+@cli.command()
+@click.option(
+    "--device-name",
+    "-dn",
+    required=False,
+    default=None,
+    help="Name of device, if ommited shows all devices",
+)
+@pass_ring
+@click.pass_context
+async def show(ctx, ring: Ring, device_name):
+    """Display ring devices."""
+    devices = None
+
+    if device_name and (device := ring.get_device_by_name(device_name)):
+        devices = [device]
+    elif device_name:
+        echo(
+            f"No device with name {device_name} found. "
+            + "List of found device names (kind) is:"
+        )
+        return await ctx.invoke(list_command)
+    else:
+        devices = ring.get_device_list()
+
+    for dev in devices:
+        dev.update_health_data()
+        echo("Name:       %s" % dev.name)
+        echo("Family:     %s" % dev.family)
+        echo("ID:         %s" % dev.id)
+        echo("Timezone:   %s" % dev.timezone)
+        echo("Wifi Name:  %s" % dev.wifi_name)
+        echo("Wifi RSSI:  %s" % dev.wifi_signal_strength)
+        echo()
 
 
 @cli.command()
@@ -201,24 +322,42 @@ async def show(ring: Ring):
 )
 @click.option(
     "--device-name",
-    required=False,
+    "-dn",
     default=None,
-    help="Name of device, defaults to the first device returned",
+    required=False,
+    help="Name of the ring device, if ommited uses the first device returned",
 )
 @pass_ring
 @click.pass_context
 async def videos(
-    ctx, ring, count, download, download_all, max_count, download_to, device_name
+    ctx, ring: Ring, count, download, download_all, max_count, download_to, device_name
 ):
     """Interact with ring videos."""
-    devices = ring.video_devices()
 
-    names_to_idx = {device.name: idx for (idx, device) in enumerate(devices)}
-    device = (
-        devices[0]
-        if device_name not in names_to_idx
-        else devices[names_to_idx[device_name]]
-    )
+    device = None
+    if device_name and not (device := ring.get_device_by_name(device_name)):
+        echo(
+            f"No device with name {device_name} found. "
+            + "List of found device names (kind) is:"
+        )
+        return await ctx.invoke(list_command)
+    if device and not device.has_capability("video"):
+        echo(f"Device {device.name} is not a video device")
+        return
+    # return the first device is implemented to be consistent with previous cli version
+    if not device:
+        if video_devices := ring.video_devices():
+            device = video_devices[0]
+        else:
+            echo(
+                "No video devices found. "
+                + "List of found device names (with device kind) is:"
+            )
+            return await ctx.invoke(list_command)
+
+    if not count and not download and not download_all:
+        echo("Last recording url is: " + device.recording_url(device.last_recording_id))
+        return
 
     events = None
     if download_all:

@@ -1,6 +1,6 @@
-"""The fakes for the Ring platform."""
+"""Test configuration for the Ring platform."""
 import pytest
-
+import re
 from tests.helpers import load_fixture
 import requests_mock
 
@@ -9,7 +9,7 @@ from ring_doorbell.const import USER_AGENT
 
 
 @pytest.fixture
-def ring(mock_ring_requests):
+def ring(requests_mock):
     """Return ring object."""
     auth = Auth(USER_AGENT)
     auth.fetch_token("foo", "bar")
@@ -18,8 +18,10 @@ def ring(mock_ring_requests):
     return ring
 
 
-@pytest.fixture(autouse=True)
-def mock_ring_requests():
+# setting the fixture name to requests_mock allows other
+# tests to pull in request_mock and append uris
+@pytest.fixture(autouse=True, name="requests_mock")
+def requests_mock_fixture():
     with requests_mock.Mocker() as mock:
         mock.post(
             "https://oauth.ring.com/oauth/token", text=load_fixture("ring_oauth.json")
@@ -33,11 +35,11 @@ def mock_ring_requests():
             text=load_fixture("ring_devices.json"),
         )
         mock.get(
-            "https://api.ring.com/clients_api/chimes/999999/health",
+            re.compile(r"https:\/\/api\.ring\.com\/clients_api\/chimes\/\d+\/health"),
             text=load_fixture("ring_chime_health_attrs.json"),
         )
         mock.get(
-            "https://api.ring.com/clients_api/doorbots/987652/health",
+            re.compile(r"https:\/\/api\.ring\.com\/clients_api\/doorbots\/\d+\/health"),
             text=load_fixture("ring_doorboot_health_attrs.json"),
         )
         mock.get(
@@ -75,7 +77,9 @@ def mock_ring_requests():
             text="ok",
         )
         mock.patch(
-            "https://api.ring.com/devices/v1/devices/987652/settings",
+            re.compile(
+                r"https:\/\/api\.ring\.com\/devices\/v1\/devices\/\d+\/settings"
+            ),
             text="ok",
         )
         mock.get(
