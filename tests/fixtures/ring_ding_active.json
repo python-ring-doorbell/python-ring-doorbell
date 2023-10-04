@@ -1,4 +1,59 @@
-[{
+[ 
+  {
+    "id": 234567890123456,
+    "id_str": "234567890123456",
+    "state": "ringing",
+    "protocol": "sip",
+    "doorbot_id": 123456,
+    "doorbot_description": "Front Floodcam",
+    "device_kind": "floodlight_v2",
+    "motion": false,
+    "snapshot_url": "",
+    "kind": "on_demand_link",
+    "sip_server_ip": "192.168.0.1",
+    "sip_server_port": 8557,
+    "sip_server_tls": true,
+    "sip_session_id": "r.ms.FOO/C+sklfjhweihfkwefnklnew",
+    "sip_from": "sip:1234@ring.com",
+    "sip_to": "sip:r.ms.FOO/C+sklfjhweihfkwefnklnew@192.168.0.1:12345;transport=tls",
+    "audio_jitter_buffer_ms": 300,
+    "video_jitter_buffer_ms": 300,
+    "expires_in": 167,
+    "optimization_level": 3,
+    "now": 1696401245.416,
+    "sip_token": "",
+    "sip_ding_id": "876543121",
+    "ding_encrypted": false,
+    "requested_at": 1696401245416
+  },
+  {
+    "id": 1234567890123456,
+    "id_str": "1234567890123456",
+    "state": "ringing",
+    "protocol": "sip",
+    "doorbot_id": 987652,
+    "doorbot_description": "Front Door",
+    "device_kind": "lpd_v1",
+    "motion": false,
+    "snapshot_url": "",
+    "kind": "motion",
+    "sip_server_ip": "192.168.0.1",
+    "sip_server_port": 1234,
+    "sip_server_tls": true,
+    "sip_session_id": "r.ms.KY00wXB0l/hfiwehjod+wnefwaekjf",
+    "sip_from": "sip:12345@ring.com",
+    "sip_to": "sip:r.ms.KY00wXB0l/hfiwehjod+wnefwaekjf@192.168.0.1:12345;transport=tls",
+    "audio_jitter_buffer_ms": 300,
+    "video_jitter_buffer_ms": 300,
+    "expires_in": 167,
+    "optimization_level": 1,
+    "now": 1696401245.416,
+    "sip_token": "",
+    "sip_ding_id": "987654211335",
+    "ding_encrypted": false,
+    "requested_at": 1696401245416
+  },
+  {
     "audio_jitter_buffer_ms": 0,
     "device_kind": "lpd_v1",
     "doorbot_description": "Front Door",
@@ -23,4 +78,5 @@
     "snapshot_url": "",
     "state": "ringing",
     "video_jitter_buffer_ms": 0
-}]
+  }
+]

@@ -6,7 +6,7 @@ import getpass
 import asyncio
 import logging
 from pathlib import Path, PurePath
-from oauthlib.oauth2 import MissingTokenError, InvalidGrantError
+from oauthlib.oauth2 import MissingTokenError, InvalidGrantError, InvalidClientError
 import asyncclick as click
 from ring_doorbell.auth import Auth
 from ring_doorbell.ring import Ring
@@ -125,7 +125,7 @@ def _get_updated_ring(username, password):
         ring = Ring(auth)
         try:
             ring.update_data()
-        except InvalidGrantError:
+        except (InvalidGrantError, InvalidClientError):
             auth = _do_auth(username, password)
             ring = Ring(auth)
             ring.update_data()
@@ -284,6 +284,130 @@ async def show(ctx, ring: Ring, device_name):
         echo("Wifi Name:  %s" % dev.wifi_name)
         echo("Wifi RSSI:  %s" % dev.wifi_signal_strength)
         echo()
+
+
+@cli.command(name="devices")
+@click.option(
+    "--device-name",
+    "-dn",
+    required=False,
+    default=None,
+    help="Name of device, if ommited shows all devices",
+)
+@click.option(
+    "--json",
+    "json_flag",
+    required=False,
+    is_flag=True,
+    help="Output raw json",
+)
+@pass_ring
+@click.pass_context
+async def devices_command(ctx, ring: Ring, device_name, json_flag):
+    """Get device information."""
+    device_json = None
+    if device_name and (device := ring.get_device_by_name(device_name)):
+        device_json = ring.devices_data[device.family][device.id]
+    elif device_name:
+        echo(
+            f"No device with name {device_name} found. "
+            + "List of found device names (kind) is:"
+        )
+        return await ctx.invoke(list_command)
+
+    if device_json:
+        echo(json.dumps(device_json, indent=2))
+    else:
+        for device_type in ring.devices_data:
+            for device_id in ring.devices_data[device_type]:
+                echo(json.dumps(ring.devices_data[device_type][device_id], indent=2))
+
+
+@cli.command()
+@click.option(
+    "--json",
+    "json_flag",
+    required=False,
+    is_flag=True,
+    help="Output raw json",
+)
+@pass_ring
+async def dings(ring: Ring, json_flag):
+    """Get dings information."""
+    echo(json.dumps(ring.dings_data, indent=2))
+
+
+@cli.command()
+@click.option(
+    "--json",
+    "json_flag",
+    required=False,
+    is_flag=True,
+    help="Output raw json",
+)
+@pass_ring
+async def groups(ring: Ring, json_flag):
+    """Get group information."""
+    for group in ring.groups_data:
+        echo(json.dumps(group, indent=2))
+
+
+@cli.command()
+@click.option(
+    "--url",
+    required=True,
+    type=str,
+    help="Url to query, i.e. /clients_api/dings/active",
+)
+@pass_ring
+async def raw_query(ring: Ring, url):
+    """Directly query a url."""
+    data = ring.query(url).json()
+    echo(json.dumps(data, indent=2))
+
+
+@cli.command(name="history")
+@click.option(
+    "--device-name",
+    "-dn",
+    required=False,
+    default=None,
+    help="Name of device, if ommited shows all devices",
+)
+@click.option(
+    "--limit",
+    required=False,
+    default=5,
+    help="Limit number of records to return",
+)
+@click.option(
+    "--kind",
+    required=False,
+    default=None,
+    type=click.Choice(["ding", "motion"], case_sensitive=False),
+    help="Get devices",
+)
+@click.option(
+    "--json",
+    "json_flag",
+    required=False,
+    is_flag=True,
+    help="Output raw json",
+)
+@pass_ring
+@click.pass_context
+async def history_command(ctx, ring: Ring, device_name, kind, limit, json_flag):
+    """Print raw json."""
+    device = ring.get_device_by_name(device_name)
+    if not device:
+        echo(
+            f"No device with name {device_name} found. "
+            + "List of found device names (kind) is:"
+        )
+        return await ctx.invoke(list_command)
+
+    history = device.history(limit=limit, kind=kind, convert_timezone=False)
+    echo(json.dumps(history, indent=2))
 
 
 @cli.command()

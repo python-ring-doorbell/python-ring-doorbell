@@ -246,6 +246,8 @@ class RingDoorBell(RingGeneric):
         enforce_limit=False,
         older_than=None,
         retry=8,
+        *,
+        convert_timezone=True
     ):
         """
         Return history with datetime objects.
@@ -277,27 +279,30 @@ class RingDoorBell(RingGeneric):
             if kind:
                 response = list(filter(lambda array: array["kind"] == kind, response))
 
-            # convert for specific timezone
-            utc = pytz.utc
-            if timezone:
-                mytz = pytz.timezone(timezone)
-
-            for entry in response:
-                dt_at = datetime.strptime(entry["created_at"], "%Y-%m-%dT%H:%M:%S.000Z")
-                utc_dt = datetime(
-                    dt_at.year,
-                    dt_at.month,
-                    dt_at.day,
-                    dt_at.hour,
-                    dt_at.minute,
-                    dt_at.second,
-                    tzinfo=utc,
-                )
+            if convert_timezone:
+                # convert for specific timezone
+                utc = pytz.utc
                 if timezone:
-                    tz_dt = utc_dt.astimezone(mytz)
-                    entry["created_at"] = tz_dt
-                else:
-                    entry["created_at"] = utc_dt
+                    mytz = pytz.timezone(timezone)
+
+                for entry in response:
+                    dt_at = datetime.strptime(
+                        entry["created_at"], "%Y-%m-%dT%H:%M:%S.000Z"
+                    )
+                    utc_dt = datetime(
+                        dt_at.year,
+                        dt_at.month,
+                        dt_at.day,
+                        dt_at.hour,
+                        dt_at.minute,
+                        dt_at.second,
+                        tzinfo=utc,
+                    )
+                    if timezone:
+                        tz_dt = utc_dt.astimezone(mytz)
+                        entry["created_at"] = tz_dt
+                    else:
+                        entry["created_at"] = utc_dt
 
             if enforce_limit:
                 # return because already matched the number
