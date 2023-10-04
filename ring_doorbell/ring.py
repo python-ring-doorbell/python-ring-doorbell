@@ -3,6 +3,7 @@
 import logging
 from time import time
 
+from ring_doorbell.auth import Auth
 from ring_doorbell.doorbot import RingDoorBell
 from ring_doorbell.chime import RingChime
 from ring_doorbell.stickup_cam import RingStickUpCam
@@ -36,7 +37,7 @@ class Ring(object):
 
     def __init__(self, auth):
         """Initialize the Ring object."""
-        self.auth = auth
+        self.auth: Auth = auth
         self.session = None
         self.devices_data = None
         self.chime_health_data = None
@@ -63,7 +64,7 @@ class Ring(object):
         session_post_data = POST_DATA
         session_post_data["device[hardware_id]"] = self.auth.get_hardware_id()
 
-        self.session = self.query(
+        self.session = self._query(
             NEW_SESSION_ENDPOINT,
             method="POST",
             data=session_post_data,
@@ -71,7 +72,10 @@ class Ring(object):
 
     def update_devices(self):
         """Update device data."""
-        data = self.query(DEVICES_ENDPOINT).json()
+        if self.session is None:
+            self.create_session()
+
+        data = self._query(DEVICES_ENDPOINT).json()
 
         # Index data by device ID.
         self.devices_data = {
@@ -81,10 +85,14 @@ class Ring(object):
 
     def update_dings(self):
         """Update dings data."""
-        self.dings_data = self.query(DINGS_ENDPOINT).json()
+        if self.session is None:
+            self.create_session()
+        self.dings_data = self._query(DINGS_ENDPOINT).json()
 
     def update_groups(self):
         """Update groups data."""
+        if self.session is None:
+            self.create_session()
         # Get all locations
         locations = set()
         for devices in self.devices_data.values():
@@ -96,7 +104,7 @@ class Ring(object):
         self.groups_data = {}
         locations.discard(None)
         for location in locations:
-            data = self.query(GROUPS_ENDPOINT.format(location)).json()
+            data = self._query(GROUPS_ENDPOINT.format(location)).json()
             if data["device_groups"] is not None:
                 for group in data["device_groups"]:
                     self.groups_data[group["device_group_id"]] = group
@@ -105,6 +113,13 @@ class Ring(object):
         self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
     ):
         """Query data from Ring API."""
+        if self.session is None:
+            self.create_session()
+        return self._query(url, method, extra_params, data, json, timeout)
+
+    def _query(
+        self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
+    ):
         _logger.debug(
             "url: %s\nmethod: %s\njson: %s\ndata: %s\n extra_params: %s",
             url,
