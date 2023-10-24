@@ -1,10 +1,13 @@
 """The tests for the Ring platform."""
-import pytest
+import json
 
-from tests.helpers import load_fixture
+import pytest
 import requests_mock
 
-from ring_doorbell import Ring, Auth
+from ring_doorbell import Auth, Ring
+from ring_doorbell.doorbot import RingDoorBell
+from ring_doorbell.listen import can_listen
+from tests.conftest import load_fixture
 
 
 def test_basic_attributes(ring):
@@ -54,8 +57,9 @@ def test_doorbell_attributes(ring):
     assert dev.connection_status == "online"
 
     assert isinstance(dev.history(limit=1, kind="motion"), list)
-    assert len(dev.history(limit=1, kind="ding")) == 0
-    assert len(dev.history(limit=1, kind="ding", enforce_limit=True, retry=50)) == 0
+    assert len(dev.history(kind="ding")) == 1
+    assert len(dev.history(limit=1, kind="motion")) == 2
+    assert len(dev.history(limit=1, kind="motion", enforce_limit=True, retry=50)) == 1
 
     assert dev.existing_doorbell_type == "Mechanical"
 
@@ -143,7 +147,18 @@ def test_motion_detection_enable(ring, requests_mock):
     dev.motion_detection = False
 
     history = list(filter(lambda x: x.method == "PATCH", requests_mock.request_history))
-    assert history[0].path == "/devices/v1/devices/987652/settings"
-    assert history[0].text == '{"motion_settings": {"motion_detection_enabled": true}}'
-    assert history[1].path == "/devices/v1/devices/987652/settings"
-    assert history[1].text == '{"motion_settings": {"motion_detection_enabled": false}}'
+    assert history[len(history) - 2].path == "/devices/v1/devices/987652/settings"
+    assert (
+        history[len(history) - 2].text
+        == '{"motion_settings": {"motion_detection_enabled": true}}'
+    )
+    assert history[len(history) - 1].path == "/devices/v1/devices/987652/settings"
+    assert (
+        history[len(history) - 1].text
+        == '{"motion_settings": {"motion_detection_enabled": false}}'
+    )
+
+    active_dings = ring.active_alerts()
+
+    assert len(active_dings) == 3
+    assert len(ring.active_alerts()) == 3

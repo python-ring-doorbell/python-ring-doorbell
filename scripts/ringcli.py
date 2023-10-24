@@ -12,6 +12,7 @@ Or use the ring-doorbell script if you installed ring_doorbell via poetry or pip
 ring-doorbell videos
 """
 import sys
+
 from ring_doorbell.cli import cli
 
 if __name__ == "__main__":

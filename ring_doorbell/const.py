@@ -24,15 +24,24 @@ DEFAULT_VIDEO_DOWNLOAD_TIMEOUT = 120
 
 
 # API endpoints
-API_VERSION = "9"
+API_VERSION = "11"
 API_URI = "https://api.ring.com"
-USER_AGENT = "RingAPI2023/1.0"
+USER_AGENT = "android:com.ringapp"
+
+# random uuid, used to make a hardware id that doesn't change or clash
+NAMESPACE_UUID = "379378b0-f747-4b67-a10f-3b13327e8879"
+
+DEFAULT_LISTEN_EVENT_EXPIRES_IN = 180
+# for Ring android app.  703521446232 for ring-site
+RING_SENDER_ID = 876313859327
+
 CLI_TOKEN_FILE = "ring_token.cache"
 CHIMES_ENDPOINT = "/clients_api/chimes/{0}"
 DEVICES_ENDPOINT = "/clients_api/ring_devices"
 DINGS_ENDPOINT = "/clients_api/dings/active"
 DOORBELLS_ENDPOINT = "/clients_api/doorbots/{0}"
 PERSIST_TOKEN_ENDPOINT = "/clients_api/device"
+SUBSCRIPTION_ENDPOINT = "/clients_api/device"
 GROUPS_ENDPOINT = "/groups/v1/locations/{0}/groups"
 
 HEALTH_DOORBELL_ENDPOINT = DOORBELLS_ENDPOINT + "/health"
@@ -99,6 +108,11 @@ FILE_EXISTS = "The file {0} already exists."
 MSG_VOL_OUTBOUND = "Must be within the {0}-{1}."
 MSG_ALLOWED_VALUES = "Only the following values are allowed: {0}."
 MSG_EXPECTED_ATTRIBUTE_NOT_FOUND = "Couldn't find expected attribute: {0}."
+
+POST_DATA_JSON = {
+    "api_version": API_VERSION,
+    "device_model": "ring-doorbell",
+}
 
 POST_DATA = {
     "api_version": API_VERSION,

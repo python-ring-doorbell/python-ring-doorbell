@@ -1,11 +1,13 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Auth Class."""
-from uuid import uuid4 as uuid
+import uuid
 from json import dumps as json_dumps
-from requests_oauthlib import OAuth2Session
+
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
-from ring_doorbell.const import OAuth, API_VERSION, TIMEOUT
+from requests_oauthlib import OAuth2Session
+
+from ring_doorbell.const import NAMESPACE_UUID, TIMEOUT, OAuth
 
 
 class Auth:
@@ -20,7 +22,12 @@ class Auth:
 
         self.hardware_id = hardware_id
         if self.hardware_id is None:
-            self.hardware_id = str(uuid())
+            # Generate a UUID that will stay the same
+            # for this physical device to prevent
+            # multiple auth entries in ring.com
+            self.hardware_id = str(
+                uuid.uuid5(uuid.UUID(NAMESPACE_UUID), str(uuid.getnode()))
+            )
 
         self.token_updater = token_updater
         self._oauth = OAuth2Session(
@@ -68,13 +75,20 @@ class Auth:
         return self.hardware_id
 
     def query(
-        self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
+        self,
+        url,
+        method="GET",
+        extra_params=None,
+        data=None,
+        json=None,
+        timeout=None,
+        raise_for_status=True,
     ):
         """Query data from Ring API."""
         if timeout is None:
             timeout = TIMEOUT
 
-        params = {"api_version": API_VERSION}
+        params = {}
 
         if extra_params:
             params.update(extra_params)
@@ -88,6 +102,7 @@ class Auth:
         if method == "POST":
             if json is not None:
                 kwargs["json"] = json
+                kwargs["headers"]["Content-Type"] = "application/json"
             if data is not None:
                 kwargs["data"] = data
 
@@ -95,6 +110,7 @@ class Auth:
             # PATCH method of requests library does not have a json argument
             if json is not None:
                 kwargs["data"] = json_dumps(json)
+                kwargs["headers"]["Content-Type"] = "application/json"
             if data is not None:
                 kwargs["data"] = data
 
@@ -104,6 +120,7 @@ class Auth:
             self._oauth.token = self.refresh_tokens()
             req = getattr(self._oauth, method.lower())(url, **kwargs)
 
-        req.raise_for_status()
+        if raise_for_status:
+            req.raise_for_status()
 
         return req

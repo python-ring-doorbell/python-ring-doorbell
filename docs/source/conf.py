@@ -19,7 +19,6 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
-    "sphinxcontrib.programoutput",
 ]
 
 templates_path = ["_templates"]

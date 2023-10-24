@@ -16,6 +16,12 @@ repos:
   - id: flake8
     files: ^ring_doorbell/|^tests/|^test.py|^scripts/
 
+- repo: https://github.com/pre-commit/mirrors-isort
+  rev: v5.10.1
+  hooks:
+  - id: isort
+    additional_dependencies: [toml]
+
 - repo: local
   hooks:
   - id: pylint

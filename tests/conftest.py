@@ -1,21 +1,61 @@
 """Test configuration for the Ring platform."""
-import pytest
+import json
+import os
 import re
-from tests.helpers import load_fixture
+from time import time
+
+import pytest
 import requests_mock
 
-from ring_doorbell import Ring, Auth
+from ring_doorbell import Auth, Ring
 from ring_doorbell.const import USER_AGENT
+from ring_doorbell.listen import can_listen
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "nolistenmock: mark test to not want the autouse listenmock"
+    )
 
 
 @pytest.fixture
-def ring(requests_mock):
-    """Return ring object."""
+def auth(requests_mock):
+    """Return auth object."""
     auth = Auth(USER_AGENT)
     auth.fetch_token("foo", "bar")
+    return auth
+
+
+@pytest.fixture
+def ring(auth):
+    """Return updated ring object."""
     ring = Ring(auth)
     ring.update_data()
     return ring
+
+
+def _set_dings_to_now(active_dings):
+    dings = json.loads(active_dings)
+    for ding in dings:
+        ding["now"] = time()
+
+    return json.dumps(dings)
+
+
+def load_fixture(filename):
+    """Load a fixture."""
+    path = os.path.join(os.path.dirname(__file__), "fixtures", filename)
+    with open(path) as fdp:
+        return fdp.read()
+
+
+@pytest.fixture(autouse=True)
+def listen_mock(mocker, request):
+    if not can_listen or "nolistenmock" in request.keywords:
+        return
+
+    mocker.patch("firebase_messaging.FcmPushClient.checkin", return_value="foobar")
+    mocker.patch("firebase_messaging.FcmPushClient.connect")
 
 
 # setting the fixture name to requests_mock allows other
@@ -44,11 +84,11 @@ def requests_mock_fixture():
         )
         mock.get(
             "https://api.ring.com/clients_api/doorbots/987652/history",
-            text=load_fixture("ring_doorbots.json"),
+            text=load_fixture("ring_doorbot_history.json"),
         )
         mock.get(
             "https://api.ring.com/clients_api/dings/active",
-            text=load_fixture("ring_ding_active.json"),
+            text=_set_dings_to_now(load_fixture("ring_ding_active.json")),
         )
         mock.put(
             "https://api.ring.com/clients_api/doorbots/987652/floodlight_light_off",
@@ -83,7 +123,8 @@ def requests_mock_fixture():
             text="ok",
         )
         mock.get(
-            "https://api.ring.com/clients_api/dings/987654321/recording",
+            re.compile(r"https:\/\/api\.ring\.com\/clients_api\/dings\/\d+\/recording"),
+            # "https://api.ring.com/clients_api/dings/987654321/recording",
             status_code=200,
             content=b"123456",
         )
@@ -91,5 +132,10 @@ def requests_mock_fixture():
             "https://api.ring.com/clients_api/dings/9876543212/recording",
             status_code=200,
             content=b"123456",
+        )
+        mock.patch(
+            "https://api.ring.com/clients_api/device",
+            status_code=204,
+            content=b"",
         )
         yield mock

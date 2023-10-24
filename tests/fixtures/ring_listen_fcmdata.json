@@ -1,0 +1,8 @@
+{
+    "data": {
+        "gcmData": "ring_listen_gcmdata.json"
+    },
+    "from": "123456789012",
+    "priority": "high",
+    "fcmMessageId": "1234fdeb-1234-bc78-cd12-abcdef123456"
+}
