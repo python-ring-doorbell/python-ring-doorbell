@@ -45,15 +45,29 @@ Installation
     $ pip install \
         git+https://github.com/tchellomello/python-ring-doorbell@master
 
+Event Listener
+++++++++++++++
+
+If you want the ring api to listen for push events from ring.com for dings and motion you
+will need to install with the `listen` extra::
+
+    $ pip install ring_doorbell[listen]
+
+The api will then start listening for push events after you have first called `update_dings()` 
+or `update_data()` but only if there is a running `asyncio <https://docs.python.org/3/library/asyncio.html>`_ event loop (which there will be if using the CLI)
 
 Using the CLI
 -------------
 
-The CLI is work in progress and at the moment only displays your device info and video info.
+The CLI is work in progress and currently has the following commands:
 
 1.  Show your devices::
     
     $ ring-doorbell
+
+    Or::
+
+    $ ring-doorbell show
 
 #.  List your device names (with device kind)::
     
@@ -67,6 +81,26 @@ The CLI is work in progress and at the moment only displays your device info and
 
     $ ring-doorbell motion-detection --device-name "DEVICENAME" --on
     $ ring-doorbell motion-detection --device-name "DEVICENAME" --off
+
+#.  Listen for push notifications like the ones sent to your phone::
+
+    $ ring-doorbell listen
+
+#.  List your ring groups::
+
+    $ ring-doorbell groups
+
+#.  Show your ding history::
+
+    $ ring-doorbell history --device-name "Front Door"
+
+#.  Show your currently active dings::
+
+    $ ring-doorbell dings
+
+#.  Query a ring api url directly::
+
+    $ ring-doorbell raw-query --url /clients_api/dings/active
 
 #.  Run ``ring-doorbell --help`` or ``ring-doorbell videos --help`` for full options
 

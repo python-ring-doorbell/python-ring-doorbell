@@ -1,24 +1,27 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell module."""
+import asyncio
 import logging
 from time import time
 
 from ring_doorbell.auth import Auth
-from ring_doorbell.doorbot import RingDoorBell
 from ring_doorbell.chime import RingChime
-from ring_doorbell.stickup_cam import RingStickUpCam
+from ring_doorbell.doorbot import RingDoorBell
+from ring_doorbell.generic import RingEvent
 from ring_doorbell.group import RingLightGroup
+from ring_doorbell.listen import RingEventListener, can_listen
+from ring_doorbell.stickup_cam import RingStickUpCam
+
 from .const import (
     API_URI,
+    API_VERSION,
     DEVICES_ENDPOINT,
-    NEW_SESSION_ENDPOINT,
     DINGS_ENDPOINT,
-    POST_DATA,
     GROUPS_ENDPOINT,
-    PACKAGE_NAME,
+    NEW_SESSION_ENDPOINT,
 )
 
-_logger = logging.getLogger(PACKAGE_NAME)
+_logger = logging.getLogger(__name__)
 
 
 TYPES = {
@@ -35,15 +38,29 @@ TYPES = {
 class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
-    def __init__(self, auth):
+    def __init__(self, auth: Auth, *, enable_listener=True):
         """Initialize the Ring object."""
         self.auth: Auth = auth
         self.session = None
+        self.subscription = None
         self.devices_data = None
         self.chime_health_data = None
         self.doorbell_health_data = None
         self.dings_data = None
+        self.push_dings_data = []
         self.groups_data = None
+        self.event_listener = None
+        self.init_loop = None
+        self.enable_listener = enable_listener
+        if self.enable_listener:
+            try:
+                self.init_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                pass
+
+    def __del__(self):
+        if self.event_listener:
+            self.event_listener.stop_listen()
 
     def update_data(self):
         """Update all data."""
@@ -59,16 +76,69 @@ class Ring(object):
 
         self.update_groups()
 
+    def on_ring_event(self, ring_event: RingEvent):
+        # Purge expired push_dings
+        now = time()
+        self.push_dings_data = [
+            re for re in self.push_dings_data if now < re.now + re.expires_in
+        ]
+        self.push_dings_data.append(ring_event)
+
     def create_session(self):
         """Create a new Ring session."""
-        session_post_data = POST_DATA
-        session_post_data["device[hardware_id]"] = self.auth.get_hardware_id()
+        session_post_data = {
+            "device": {
+                "hardware_id": self.auth.get_hardware_id(),
+                "metadata": {
+                    "api_version": API_VERSION,
+                    "device_model": "ring-doorbell",
+                },
+                "os": "android",
+            }
+        }
 
         self.session = self._query(
             NEW_SESSION_ENDPOINT,
             method="POST",
-            data=session_post_data,
+            json=session_post_data,
         ).json()
+
+    def add_event_listener_callback(self, callback):
+        if can_listen and self.event_listener:
+            return self.event_listener.add_notification_callback(callback)
+
+        raise RuntimeError(
+            "Listening must be enabled and started in order to add a callback"
+        )
+
+    def remove_event_listener_callback(self, cb_id):
+        if can_listen and self.event_listener:
+            self.event_listener.remove_notification_callback(cb_id)
+        else:
+            raise RuntimeError(
+                "Listening must be enabled and started in order to add a callback"
+            )
+
+    def create_event_listener(
+        self, listener_credentials=None, listener_credentials_callback=None
+    ):
+        if not self.enable_listener:
+            raise RuntimeError(
+                "Listening not enabled as enable_listener = False"
+                + " was passed to the Ring constructor"
+            )
+
+        if not can_listen:
+            raise RuntimeError(
+                "Listening not enabled, ring_doorbell should "
+                + "be installed with extra [listen]"
+            )
+
+        if not self.event_listener:
+            self.event_listener = RingEventListener(
+                self.auth, listener_credentials, listener_credentials_callback
+            )
+            self.event_listener.start_listen(self.on_ring_event, self.init_loop)
 
     def update_devices(self):
         """Update device data."""
@@ -87,7 +157,11 @@ class Ring(object):
         """Update dings data."""
         if self.session is None:
             self.create_session()
+
         self.dings_data = self._query(DINGS_ENDPOINT).json()
+
+        if self.enable_listener and can_listen and self.event_listener is None:
+            self.create_event_listener()
 
     def update_groups(self):
         """Update groups data."""
@@ -193,11 +267,39 @@ class Ring(object):
 
     def active_alerts(self):
         """Get active alerts."""
-        alerts = []
-        for alert in self.dings_data:
-            expires_at = alert.get("now") + alert.get("expires_in")
 
-            if time() < expires_at:
-                alerts.append(alert)
+        now = time()
+        # Purge expired push_dings
+        self.push_dings_data = [
+            re for re in self.push_dings_data if now < re.now + re.expires_in
+        ]
+        # Get unique id dictionary
+        alerts = {}
+        for re in self.push_dings_data:
+            key = (re.doorbot_id, re.id, re.kind)
+            if key not in alerts:
+                alerts[key] = re
+            elif re.now > alerts[key].now:
+                alerts[key] = re
 
-        return alerts
+        for ding_data in self.dings_data:
+            expires_at = ding_data.get("now") + ding_data.get("expires_in")
+
+            if now < expires_at:
+                re = RingEvent(
+                    id=ding_data["id"],
+                    doorbot_id=ding_data["doorbot_id"],
+                    device_name=ding_data["doorbot_description"],
+                    device_kind=ding_data["device_kind"],
+                    now=ding_data["now"],
+                    expires_in=ding_data["expires_in"],
+                    kind=ding_data["kind"],
+                    state=ding_data["state"],
+                )
+                key = (re.doorbot_id, re.id, re.kind)
+                if key not in alerts:
+                    alerts[key] = re
+                elif re.now > alerts[key].now:
+                    alerts[key] = re
+
+        return alerts.values()

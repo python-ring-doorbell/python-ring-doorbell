@@ -3,20 +3,20 @@
 """Python Ring Chime wrapper."""
 import logging
 
-from ring_doorbell.generic import RingGeneric
 from ring_doorbell.const import (
-    CHIMES_ENDPOINT,
-    CHIME_VOL_MIN,
+    CHIME_KINDS,
+    CHIME_PRO_KINDS,
+    CHIME_TEST_SOUND_KINDS,
     CHIME_VOL_MAX,
+    CHIME_VOL_MIN,
+    CHIMES_ENDPOINT,
+    HEALTH_CHIMES_ENDPOINT,
+    KIND_DING,
     LINKED_CHIMES_ENDPOINT,
     MSG_VOL_OUTBOUND,
     TESTSOUND_CHIME_ENDPOINT,
-    CHIME_TEST_SOUND_KINDS,
-    KIND_DING,
-    CHIME_KINDS,
-    CHIME_PRO_KINDS,
-    HEALTH_CHIMES_ENDPOINT,
 )
+from ring_doorbell.generic import RingGeneric
 
 _LOGGER = logging.getLogger(__name__)
 

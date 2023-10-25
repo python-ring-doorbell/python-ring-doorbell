@@ -1,10 +1,10 @@
 """Module to autogenerate the CHANGELOG.rst from GitHub Release Notes."""
 
-from sphinx_github_changelog import changelog
-
 import argparse
-import docutils.utils as du
+
 import docutils.nodes as dn
+import docutils.utils as du
+from sphinx_github_changelog import changelog
 
 option_spec = {
     "changelog-url": "https://python-ring-doorbell.readthedocs.io/en/stable/#changelog",

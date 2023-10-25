@@ -1,16 +1,25 @@
 # vim:sw=4:ts=4:et
 # Many thanks to @troopermax <https://github.com/troopermax>
 """Python Ring command line interface."""
-import json
-import getpass
 import asyncio
+import functools
+import getpass
+import json
 import logging
+import select
+import sys
+import traceback
+from datetime import datetime
 from pathlib import Path, PurePath
-from oauthlib.oauth2 import MissingTokenError, InvalidGrantError, InvalidClientError
+
 import asyncclick as click
+from oauthlib.oauth2 import InvalidClientError, InvalidGrantError, MissingTokenError
+
 from ring_doorbell.auth import Auth
+from ring_doorbell.const import CLI_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
+from ring_doorbell.generic import RingEvent
+from ring_doorbell.listen import can_listen
 from ring_doorbell.ring import Ring
-from ring_doorbell.const import USER_AGENT, CLI_TOKEN_FILE, PACKAGE_NAME
 
 
 def _header():
@@ -36,15 +45,14 @@ class ExceptionHandlerGroup(click.Group):
     def __call__(self, *args, **kwargs):
         """Run the coroutine in the event loop and echo any exceptions."""
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.main(*args, **kwargs))
-
+            asyncio.run(self.main(*args, **kwargs))
+        except asyncio.CancelledError:
+            pass
+        except KeyboardInterrupt:
+            echo("Cli interrupted with keyboard interrupt")
         except Exception as ex:  # pylint: disable=broad-exception-caught
             echo(f"Got error: {ex!r}")
-
-        finally:
-            loop.close()
+            traceback.print_exc()
 
 
 class MutuallyExclusiveOption(click.Option):
@@ -114,25 +122,29 @@ def _do_auth(username, password):
         return auth
 
 
-def _get_updated_ring(username, password):
+def _get_ring(username, password, do_update_data, enable_listener=False):
     # connect to Ring account
+
     if cache_file.is_file():
         auth = Auth(
             USER_AGENT,
             json.loads(cache_file.read_text(encoding="utf-8")),
             token_updated,
         )
-        ring = Ring(auth)
+        ring = Ring(auth, enable_listener=enable_listener)
+        do_method = ring.update_data if do_update_data else ring.create_session
         try:
-            ring.update_data()
+            do_method()
         except (InvalidGrantError, InvalidClientError):
             auth = _do_auth(username, password)
-            ring = Ring(auth)
-            ring.update_data()
+            ring = Ring(auth, enable_listener=enable_listener)
+            do_method = ring.update_data if do_update_data else ring.create_session
+            do_method()
     else:
         auth = _do_auth(username, password)
-        ring = Ring(auth)
-        ring.update_data()
+        ring = Ring(auth, enable_listener=enable_listener)
+        do_method = ring.update_data if do_update_data else ring.create_session
+        do_method()
 
     return ring
 
@@ -167,8 +179,16 @@ async def cli(ctx, username, password, debug):
     log_level = logging.DEBUG if debug else logging.INFO
     logger = logging.getLogger(PACKAGE_NAME)
     logger.setLevel(log_level)
+    if can_listen:
+        logger = logging.getLogger("firebase_messaging")
+        logger.setLevel(log_level)
 
-    ring = _get_updated_ring(username, password)
+    no_update_commands = ["listen"]
+    no_update = ctx.invoked_subcommand in no_update_commands
+
+    ring = _get_ring(
+        username, password, not no_update, ctx.invoked_subcommand == "listen"
+    )
     ctx.obj = ring
 
     if ctx.invoked_subcommand is None:
@@ -305,6 +325,11 @@ async def show(ctx, ring: Ring, device_name):
 @click.pass_context
 async def devices_command(ctx, ring: Ring, device_name, json_flag):
     """Get device information."""
+    if not json_flag:
+        echo(
+            "(Pretty format coming soon, if you want json consistently "
+            + "from this command provide the --json flag)"
+        )
     device_json = None
     if device_name and (device := ring.get_device_by_name(device_name)):
         device_json = ring.devices_data[device.family][device.id]
@@ -334,6 +359,11 @@ async def devices_command(ctx, ring: Ring, device_name, json_flag):
 @pass_ring
 async def dings(ring: Ring, json_flag):
     """Get dings information."""
+    if not json_flag:
+        echo(
+            "(Pretty format coming soon, if you want json consistently "
+            + "from this command provide the --json flag)"
+        )
     echo(json.dumps(ring.dings_data, indent=2))
 
 
@@ -348,8 +378,16 @@ async def dings(ring: Ring, json_flag):
 @pass_ring
 async def groups(ring: Ring, json_flag):
     """Get group information."""
-    for group in ring.groups_data:
-        echo(json.dumps(group, indent=2))
+    if not json_flag:
+        echo(
+            "(Pretty format coming soon, if you want json consistently "
+            + "from this command provide the --json flag)"
+        )
+    if not ring.groups_data:
+        echo("No ring device groups setup")
+    else:
+        for group in ring.groups_data:
+            echo(json.dumps(group, indent=2))
 
 
 @cli.command()
@@ -361,7 +399,7 @@ async def groups(ring: Ring, json_flag):
 )
 @pass_ring
 async def raw_query(ring: Ring, url):
-    """Directly query a url."""
+    """Directly query a url and return json result."""
     data = ring.query(url).json()
     echo(json.dumps(data, indent=2))
 
@@ -398,6 +436,11 @@ async def raw_query(ring: Ring, url):
 @click.pass_context
 async def history_command(ctx, ring: Ring, device_name, kind, limit, json_flag):
     """Print raw json."""
+    if not json_flag:
+        echo(
+            "(Pretty format coming soon, if you want json consistently "
+            + "from this command provide the --json flag)"
+        )
     device = ring.get_device_by_name(device_name)
     if not device:
         echo(
@@ -535,6 +578,102 @@ async def videos(
             echo("\t{}/{} Downloading {}".format(counter, len(events), filename))
 
             device.recording_download(event["id"], filename=filename, override=False)
+
+
+async def ainput(string: str) -> str:
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, lambda s=string: sys.stdout.write(s + " "))
+
+    def read_with_timeout(timeout):
+        if select.select(
+            [
+                sys.stdin,
+            ],
+            [],
+            [],
+            timeout,
+        )[0]:
+            # line = sys.stdin.next()
+            line = sys.stdin.readline()
+            return line
+        return None
+
+    line = None
+    while loop.is_running() and not line:
+        line = await loop.run_in_executor(None, functools.partial(read_with_timeout, 1))
+    return line
+
+
+def get_now_str():
+    return str(datetime.utcnow())
+
+
+@cli.command
+@click.option(
+    "--credentials-file",
+    required=False,
+    default="credentials.json",
+    help=(
+        "File to store push credentials, "
+        + "if not provided credentials will be recreated from scratch"
+    ),
+)
+@click.option(
+    "--store-credentials/--no-store-credentials",
+    default=False,
+    help="Whether or not to store the push credentials, default is false",
+)
+@click.option(
+    "--show-credentials",
+    default=False,
+    is_flag=True,
+    help="Whether or not to store the push credentials, default is false",
+)
+@pass_ring
+@click.pass_context
+async def listen(
+    ctx,
+    ring,
+    store_credentials,
+    credentials_file,
+    show_credentials,
+):
+    """Listen to push notification like the ones sent to your phone."""
+    if not can_listen:
+        echo("Ring is not configured for listening to notifications!")
+        echo("pip install ring_doorbell[listen]")
+        return
+
+    def credentials_updated_callback(credentials):
+        if store_credentials:
+            with open(credentials_file, "w", encoding="utf-8") as f:
+                json.dump(credentials, f)
+        else:
+            echo("New push credentials created:")
+            if show_credentials:
+                echo(credentials)
+
+    def on_event(event: RingEvent):
+        nonlocal ring
+        msg = (
+            get_now_str()
+            + ": "
+            + str(event)
+            + " : Currently active count = "
+            + str(len(ring.push_dings_data))
+        )
+        echo(msg)
+
+    credentials = None
+    if store_credentials and Path(credentials_file).is_file():
+        # already registered, load previous credentials
+        with open(credentials_file, "r", encoding="utf-8") as f:
+            credentials = json.load(f)
+
+    ring.create_event_listener(credentials, credentials_updated_callback)
+    ring.add_event_listener_callback(on_event)
+
+    await ainput("Listening, press enter to cancel\n")
 
 
 if __name__ == "__main__":

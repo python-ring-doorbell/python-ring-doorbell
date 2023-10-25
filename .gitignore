@@ -62,3 +62,5 @@ docs/_build/
 target/
 
 *.cache
+credentials.json
+*.code-workspace

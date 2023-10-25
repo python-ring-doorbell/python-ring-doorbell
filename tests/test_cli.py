@@ -1,30 +1,25 @@
+import getpass
+import json
+import os
+from pathlib import Path
+from unittest.mock import DEFAULT, MagicMock
+
 import pytest
 from asyncclick.testing import CliRunner
-from tests.helpers import load_fixture
+from oauthlib.oauth2 import InvalidGrantError, MissingTokenError
 
-from unittest.mock import MagicMock, DEFAULT
-from pathlib import Path
-import getpass
-from oauthlib.oauth2 import MissingTokenError, InvalidGrantError
+from ring_doorbell import Ring
 from ring_doorbell.cli import (
     cli,
+    devices_command,
+    list_command,
+    listen,
+    motion_detection,
     show,
     videos,
-    list_command,
-    motion_detection,
 )
-
-from ring_doorbell import Auth
-
-# allow mocks to be awaited
-# https://stackoverflow.com/questions/51394411/python-object-magicmock-cant-be-used-in-await-expression/51399767#51399767
-
-
-async def async_magic():
-    pass
-
-
-MagicMock.__await__ = lambda x: async_magic().__await__()
+from ring_doorbell.listen import can_listen
+from tests.conftest import load_fixture
 
 
 async def test_cli_default(ring):
@@ -59,6 +54,26 @@ async def test_show(ring):
         assert expected in res.output
 
 
+async def test_devices(ring):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        res = await runner.invoke(devices_command, obj=ring)
+
+        expected = (
+            "(Pretty format coming soon, if you want json "
+            + "consistently from this command provide the --json flag)\n"
+        )
+        for device_type in ring.devices_data:
+            for device_id in ring.devices_data[device_type]:
+                expected += (
+                    json.dumps(ring.devices_data[device_type][device_id], indent=2)
+                    + "\n"
+                )
+
+        assert res.exit_code == 0
+        assert expected == res.output
+
+
 async def test_list(ring):
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -78,7 +93,7 @@ async def test_videos(ring, mocker):
         ptch = mocker.patch("builtins.open", m, create=True)
         res = await runner.invoke(videos, ["--count", "--download-all"], obj=ring)
         assert ptch.mock_calls[2].args[0] == b"123456"
-        assert "Downloading 2 videos" in res.output
+        assert "Downloading 3 videos" in res.output
 
 
 @pytest.mark.parametrize(
@@ -154,3 +169,55 @@ async def test_motion_detection(ring, requests_mock):
         expected = "Front (hp_cam_v1) motion detection set to on"
         assert res.exit_code == 0
         assert expected in res.output
+
+
+@pytest.mark.skipif(
+    can_listen is False, reason="requires the extra [listen] to be installed"
+)
+@pytest.mark.nolistenmock
+async def test_listen(mocker, auth):
+    # mocker.patch("firebase_messaging.checkin", return_value="foobar")
+    runner = CliRunner()
+    import firebase_messaging
+
+    credentials = json.loads(load_fixture("ring_listen_credentials.json"))
+
+    with runner.isolated_filesystem():
+        mocker.patch(
+            "firebase_messaging.fcmpushclient.gcm_check_in", return_value="foobar"
+        )
+        mocker.patch(
+            "firebase_messaging.FcmPushClient.register", return_value=credentials
+        )
+        mocker.patch("firebase_messaging.FcmPushClient.connect")
+        echomock = mocker.patch("ring_doorbell.cli.echo")
+        mocker.patch(
+            "ring_doorbell.cli.get_now_str", return_value="2023-10-24 09:42:18.789709"
+        )
+
+        ring = Ring(auth)
+        assert not os.path.isfile("credentials.json")
+        await runner.invoke(listen, ["--store-credentials"], obj=ring)
+        assert os.path.isfile("credentials.json")
+        assert firebase_messaging.fcmpushclient.gcm_check_in.call_count == 0
+        assert firebase_messaging.FcmPushClient.register.call_count == 1
+        assert firebase_messaging.FcmPushClient.connect.call_count == 1
+
+        ring = Ring(auth)
+        await runner.invoke(listen, ["--store-credentials"], obj=ring)
+        assert firebase_messaging.fcmpushclient.gcm_check_in.call_count == 1
+        assert firebase_messaging.FcmPushClient.register.call_count == 1
+        assert firebase_messaging.FcmPushClient.connect.call_count == 2
+
+        msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
+        gcmdata = load_fixture("ring_listen_ding.json")
+        msg["data"]["gcmData"] = gcmdata
+        ring.event_listener.on_notification(msg, "1234567")
+        exp = (
+            "2023-10-24 09:42:18.789709: RingEvent(id=12345678901234, "
+            + "doorbot_id=12345678, device_name='Front Floodcam'"
+            + ", device_kind='floodlight_v2', now=1698137483.395,"
+            + " expires_in=180, kind='motion', state='ringing') : "
+            + "Currently active count = 1"
+        )
+        echomock.assert_called_with(exp)
