@@ -1547,4 +1547,4 @@ listen = ["firebase-messaging"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "c552fd1facdd2932afdc5d206669f3a84af4d86f86959b10d7a3522c795f3c4c"
+content-hash = "239dbc911e79f5474b178f03d499db3d6dce423b21f811215c9597f24f125ff1"
