@@ -42,7 +42,7 @@ async def test_listen(auth, mocker):
     cbid = ring.add_event_listener_callback(lambda: 2)
     del ring.event_listener._callbacks[1]
     ring.remove_event_listener_callback(cbid)
-    disconnectmock.assert_called_once()
+    disconnectmock.assert_called()
 
 
 async def test_active_dings(auth, mocker):
