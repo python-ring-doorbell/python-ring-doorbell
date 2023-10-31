@@ -1,6 +1,5 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell module."""
-import asyncio
 import logging
 from time import time
 
@@ -38,7 +37,7 @@ TYPES = {
 class Ring(object):
     """A Python Abstraction object to Ring Door Bell."""
 
-    def __init__(self, auth: Auth, *, enable_listener=True):
+    def __init__(self, auth: Auth):
         """Initialize the Ring object."""
         self.auth: Auth = auth
         self.session = None
@@ -51,12 +50,6 @@ class Ring(object):
         self.groups_data = None
         self.event_listener = None
         self.init_loop = None
-        self.enable_listener = enable_listener
-        if self.enable_listener:
-            try:
-                self.init_loop = asyncio.get_running_loop()
-            except RuntimeError:
-                pass
 
     def __del__(self):
         if self.event_listener:
@@ -91,7 +84,7 @@ class Ring(object):
                 "hardware_id": self.auth.get_hardware_id(),
                 "metadata": {
                     "api_version": API_VERSION,
-                    "device_model": "ring-doorbell",
+                    "device_model": self.auth.get_device_model(),
                 },
                 "os": "android",
             }
@@ -119,15 +112,16 @@ class Ring(object):
                 "Listening must be enabled and started in order to add a callback"
             )
 
-    def create_event_listener(
-        self, listener_credentials=None, listener_credentials_callback=None
-    ):
-        if not self.enable_listener:
-            raise RuntimeError(
-                "Listening not enabled as enable_listener = False"
-                + " was passed to the Ring constructor"
-            )
-
+    def start_event_listener(
+        self,
+        listener_credentials=None,
+        listener_credentials_callback=None,
+        *,
+        listen_loop=None,
+        callback_loop=None,
+        timeout=30,
+    ) -> bool:
+        """Start the event listener for realtime push notifications."""
         if not can_listen:
             raise RuntimeError(
                 "Listening not enabled, ring_doorbell should "
@@ -138,7 +132,18 @@ class Ring(object):
             self.event_listener = RingEventListener(
                 self.auth, listener_credentials, listener_credentials_callback
             )
-            self.event_listener.start_listen(self.on_ring_event, self.init_loop)
+        self.event_listener.start_listen(
+            self.on_ring_event,
+            listen_loop=listen_loop,
+            callback_loop=callback_loop,
+            timeout=timeout,
+        )
+        return self.event_listener.started
+
+    def stop_event_listener(self):
+        if self.event_listener:
+            self.event_listener.stop_listen()
+            self.event_listener = None
 
     def update_devices(self):
         """Update device data."""
@@ -159,9 +164,6 @@ class Ring(object):
             self.create_session()
 
         self.dings_data = self._query(DINGS_ENDPOINT).json()
-
-        if self.enable_listener and can_listen and self.event_listener is None:
-            self.create_event_listener()
 
     def update_groups(self):
         """Update groups data."""

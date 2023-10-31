@@ -48,7 +48,7 @@ asyncclick = ">=8"
 anyio = "*" # see https://github.com/python-trio/asyncclick/issues/18
 sphinx = {version = "<7.2.6", optional = true}
 sphinx-rtd-theme = {version = "^1.3.0", optional = true}
-firebase-messaging = "^0.1.3"
+firebase-messaging = {version = "^0.2.0", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "*"
@@ -63,15 +63,19 @@ tox = "*"
 pytest-asyncio = "*"
 pytest-mock = "*"
 black = "*"
+pytest-socket = "^0.6.0"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-rtd-theme"]
 listen = ["firebase-messaging"]
 
 [tool.pytest.ini_options]
-testpaths = "tests"
+testpaths = [
+    "tests"
+]
 norecursedirs = ".git"
 asyncio_mode = "auto"
+addopts = "--disable-socket --allow-unix-socket"
 
 [tool.pylint]
 disable = ["format", "locally-disabled", "duplicate-code", "cyclic-import", "unused-argument",

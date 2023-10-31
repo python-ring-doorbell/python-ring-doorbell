@@ -109,6 +109,9 @@ MSG_VOL_OUTBOUND = "Must be within the {0}-{1}."
 MSG_ALLOWED_VALUES = "Only the following values are allowed: {0}."
 MSG_EXPECTED_ATTRIBUTE_NOT_FOUND = "Couldn't find expected attribute: {0}."
 
+PUSH_ACTION_DING = "com.ring.push.HANDLE_NEW_DING"
+PUSH_ACTION_MOTION = "com.ring.push.HANDLE_NEW_motion"
+
 POST_DATA_JSON = {
     "api_version": API_VERSION,
     "device_model": "ring-doorbell",

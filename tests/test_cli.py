@@ -189,7 +189,8 @@ async def test_listen(mocker, auth):
         mocker.patch(
             "firebase_messaging.FcmPushClient.register", return_value=credentials
         )
-        mocker.patch("firebase_messaging.FcmPushClient.connect")
+        mocker.patch("firebase_messaging.FcmPushClient.start")
+        mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
         echomock = mocker.patch("ring_doorbell.cli.echo")
         mocker.patch(
             "ring_doorbell.cli.get_now_str", return_value="2023-10-24 09:42:18.789709"
@@ -201,23 +202,23 @@ async def test_listen(mocker, auth):
         assert os.path.isfile("credentials.json")
         assert firebase_messaging.fcmpushclient.gcm_check_in.call_count == 0
         assert firebase_messaging.FcmPushClient.register.call_count == 1
-        assert firebase_messaging.FcmPushClient.connect.call_count == 1
+        assert firebase_messaging.FcmPushClient.start.call_count == 1
 
         ring = Ring(auth)
         await runner.invoke(listen, ["--store-credentials"], obj=ring)
         assert firebase_messaging.fcmpushclient.gcm_check_in.call_count == 1
         assert firebase_messaging.FcmPushClient.register.call_count == 1
-        assert firebase_messaging.FcmPushClient.connect.call_count == 2
+        assert firebase_messaging.FcmPushClient.start.call_count == 2
 
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
-        gcmdata = load_fixture("ring_listen_ding.json")
+        gcmdata = load_fixture("ring_listen_motion.json")
         msg["data"]["gcmData"] = gcmdata
         ring.event_listener.on_notification(msg, "1234567")
         exp = (
             "2023-10-24 09:42:18.789709: RingEvent(id=12345678901234, "
             + "doorbot_id=12345678, device_name='Front Floodcam'"
             + ", device_kind='floodlight_v2', now=1698137483.395,"
-            + " expires_in=180, kind='motion', state='ringing') : "
+            + " expires_in=180, kind='motion', state='human') : "
             + "Currently active count = 1"
         )
         echomock.assert_called_with(exp)

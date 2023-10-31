@@ -5,9 +5,10 @@ import uuid
 from json import dumps as json_dumps
 
 from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
+from requests.adapters import HTTPAdapter, Retry
 from requests_oauthlib import OAuth2Session
 
-from ring_doorbell.const import NAMESPACE_UUID, TIMEOUT, OAuth
+from ring_doorbell.const import API_URI, NAMESPACE_UUID, TIMEOUT, OAuth
 
 
 class Auth:
@@ -26,13 +27,17 @@ class Auth:
             # for this physical device to prevent
             # multiple auth entries in ring.com
             self.hardware_id = str(
-                uuid.uuid5(uuid.UUID(NAMESPACE_UUID), str(uuid.getnode()))
+                uuid.uuid5(uuid.UUID(NAMESPACE_UUID), str(uuid.getnode()) + user_agent)
             )
 
+        self.device_model = "ring-doorbell"
         self.token_updater = token_updater
         self._oauth = OAuth2Session(
             client=LegacyApplicationClient(client_id=OAuth.CLIENT_ID), token=token
         )
+        retries = Retry(connect=5, read=0, backoff_factor=2)
+
+        self._oauth.mount(API_URI, HTTPAdapter(max_retries=retries))
 
     def fetch_token(self, username, password, otp_code=None):
         """Initial token fetch with username/password & 2FA
@@ -73,6 +78,10 @@ class Auth:
     def get_hardware_id(self):
         """Get hardware ID."""
         return self.hardware_id
+
+    def get_device_model(self):
+        """Get device model."""
+        return self.device_model
 
     def query(
         self,

@@ -1,7 +1,7 @@
 """Module for listening to firebase cloud messages and updating dings"""
-import asyncio
 import json
 import logging
+import time
 from datetime import datetime
 
 from ring_doorbell.auth import Auth
@@ -9,6 +9,10 @@ from ring_doorbell.const import (
     API_URI,
     API_VERSION,
     DEFAULT_LISTEN_EVENT_EXPIRES_IN,
+    KIND_DING,
+    KIND_MOTION,
+    PUSH_ACTION_DING,
+    PUSH_ACTION_MOTION,
     RING_SENDER_ID,
     SUBSCRIPTION_ENDPOINT,
 )
@@ -32,23 +36,27 @@ class RingEventListener:
 
         self._callbacks = {}
         self.subscribed = False
-        self.connected = False
+        self.started = False
         self._app_id = auth.get_hardware_id()
+        self._device_model = auth.get_device_model()
 
         self._credentials = credentials
         self._credentials_updated_callback = credentials_updated_callback
 
         self._receiver = None
         self._config = FcmPushClientConfig()
+        self._config.server_heartbeat_interval = 60
+        self._config.client_heartbeat_interval = 120
 
         self._subscription_counter = 1
 
     def add_subscription_to_ring(self, token) -> bool:
+        # "hardware_id": self.auth.get_hardware_id(),
         session_patch_data = {
             "device": {
                 "metadata": {
                     "api_version": API_VERSION,
-                    "device_model": "ring-doorbell",
+                    "device_model": self._device_model,
                     "pn_service": "fcm",
                 },
                 "os": "android",
@@ -93,55 +101,73 @@ class RingEventListener:
         del self._callbacks[subscription_id]
 
         if len(self._callbacks) == 0 and self._receiver:
-            self._receiver.disconnect()
+            self._receiver.stop()
             self._receiver = None
 
     def stop_listen(self):
         if self._receiver:
-            self.connected = False
-            self._receiver.disconnect()
+            self.started = False
+            self._receiver.stop()
             self._receiver = None
 
         self._callbacks = {}
 
-    def start_listen(self, callback, init_loop):
-        current_loop = None
-        try:
-            current_loop = asyncio.get_running_loop()
-        except RuntimeError:
-            # If the ring object wasn't created with a running loop
-            # and there isn't one now then exit
-            if not init_loop:
-                return
-
-        self.add_notification_callback(callback)
-
+    def start_listen(
+        self, callback, *, listen_loop=None, callback_loop=None, timeout=30
+    ):
         if not self._receiver:
             self._receiver = FcmPushClient(
                 credentials=self._credentials,
                 credentials_updated_callback=self._credentials_updated_callback,
                 config=self._config,
             )
-            fcm_token = self._receiver.checkin(RING_SENDER_ID, self._app_id)
-            if not fcm_token:
-                _logger.error("Unable to check in to fcm, event listener not started")
-                return
+        fcm_token = self._receiver.checkin(RING_SENDER_ID, self._app_id)
+        if not fcm_token:
+            _logger.error("Unable to check in to fcm, event listener not started")
+            return False
 
-            self.add_subscription_to_ring(fcm_token)
-            if self.subscribed:
-                if current_loop == init_loop:
-                    self._receiver.connect(self.on_notification)
-                else:
-                    loop = current_loop if current_loop else init_loop
-                    loop.call_soon_threadsafe(
-                        self._receiver.connect, self.on_notification
-                    )
-                self.connected = True
+        self.add_subscription_to_ring(fcm_token)
+        if self.subscribed:
+            self.add_notification_callback(callback)
+
+            self._receiver.start(
+                self.on_notification,
+                listen_event_loop=listen_loop,
+                callback_event_loop=callback_loop,
+            )
+
+            start = time.time()
+            now = start
+            while not self._receiver.is_started() and now - start < timeout:
+                time.sleep(0.1)
+                now = time.time()
+            self.started = self._receiver.is_started()
+
+        return self.subscribed and self.started
 
     def on_notification(self, notification, persistent_id, obj=None):
         gcm_data_json = json.loads(notification["data"]["gcmData"])
+
+        if "ding" not in gcm_data_json:
+            _logger.error(
+                "Cannot find ding in gcmData.  Full message is:\n%s",
+                json.dumps(notification),
+            )
+            return
+
         ding = gcm_data_json["ding"]
-        kind = gcm_data_json["subtype"]
+        action = gcm_data_json["action"]
+        subtype = gcm_data_json["subtype"]
+        if action.lower() == PUSH_ACTION_MOTION.lower():
+            kind = KIND_MOTION
+            state = subtype
+        elif action.lower == PUSH_ACTION_DING.lower():
+            kind = KIND_DING
+            state = "ringing"
+        else:
+            kind = action
+            state = subtype
+
         created_at = ding["created_at"]
         create_seconds = (
             datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f%z")
@@ -154,7 +180,7 @@ class RingEventListener:
             device_kind=ding["device_kind"],
             now=create_seconds,
             expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
-            state="ringing",
+            state=state,
         )
 
         for callback in self._callbacks.values():
