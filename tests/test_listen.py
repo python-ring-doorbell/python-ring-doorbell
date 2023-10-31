@@ -20,13 +20,13 @@ pytestmark = pytest.mark.skipif(
 async def test_listen(auth, mocker):
     import firebase_messaging
 
-    disconnectmock = mocker.patch("firebase_messaging.FcmPushClient.disconnect")
+    disconnectmock = mocker.patch("firebase_messaging.FcmPushClient.stop")
     ring = Ring(auth)
-    ring.update_dings()
+    ring.start_event_listener()
     assert firebase_messaging.FcmPushClient.checkin.call_count == 1
-    assert firebase_messaging.FcmPushClient.connect.call_count == 1
+    assert firebase_messaging.FcmPushClient.start.call_count == 1
     assert ring.event_listener.subscribed is True
-    assert ring.event_listener.connected is True
+    assert ring.event_listener.started is True
 
     cbid = ring.add_event_listener_callback(lambda: 2)
     ring.remove_event_listener_callback(cbid)
@@ -49,11 +49,12 @@ async def test_active_dings(auth, mocker):
     import firebase_messaging
 
     ring = Ring(auth)
+    ring.start_event_listener()
     ring.update_dings()
     assert firebase_messaging.FcmPushClient.checkin.call_count == 1
-    assert firebase_messaging.FcmPushClient.connect.call_count == 1
+    assert firebase_messaging.FcmPushClient.start.call_count == 1
     assert ring.event_listener.subscribed is True
-    assert ring.event_listener.connected is True
+    assert ring.event_listener.started is True
     num_active = len(ring.active_alerts())
     assert num_active == 3
     alertstoadd = 2
@@ -88,7 +89,8 @@ async def test_listen_subscribe_fail(auth, mocker, requests_mock, caplog):
     checkinmock = mocker.patch(
         "firebase_messaging.FcmPushClient.checkin", return_value="foobar"
     )
-    connectmock = mocker.patch("firebase_messaging.FcmPushClient.connect")
+    connectmock = mocker.patch("firebase_messaging.FcmPushClient.start")
+    mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
     requests_mock.patch(
         "https://api.ring.com/clients_api/device",
@@ -97,11 +99,11 @@ async def test_listen_subscribe_fail(auth, mocker, requests_mock, caplog):
     )
 
     ring = Ring(auth)
-    ring.create_event_listener()
+    ring.start_event_listener()
     # Check in gets and error so register is called
     assert checkinmock.call_count == 1
     assert ring.event_listener.subscribed is False
-    assert ring.event_listener.connected is False
+    assert ring.event_listener.started is False
     assert connectmock.call_count == 0
 
     exp = (
@@ -130,15 +132,16 @@ async def test_listen_gcm_fail(auth, mocker, requests_mock, caplog):
     registermock = mocker.patch(
         "firebase_messaging.FcmPushClient.register", return_value=credentials
     )
-    connectmock = mocker.patch("firebase_messaging.FcmPushClient.connect")
+    connectmock = mocker.patch("firebase_messaging.FcmPushClient.start")
+    mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
     ring = Ring(auth)
-    ring.create_event_listener(credentials)
+    ring.start_event_listener(credentials)
     # Check in gets and error so register is called
     assert checkinmock.call_count == 1
     assert registermock.call_count == 1
     assert ring.event_listener.subscribed is True
-    assert ring.event_listener.connected is True
+    assert ring.event_listener.started is True
     assert connectmock.call_count == 1
 
 
@@ -147,15 +150,16 @@ async def test_listen_fcm_fail(auth, mocker, requests_mock, caplog):
     checkinmock = mocker.patch(
         "firebase_messaging.FcmPushClient.checkin", return_value=None
     )
-    connectmock = mocker.patch("firebase_messaging.FcmPushClient.connect")
+    connectmock = mocker.patch("firebase_messaging.FcmPushClient.start")
+    mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
     ring = Ring(auth)
-    ring.create_event_listener()
+    ring.start_event_listener()
     # Check in gets and error so register is called
     assert checkinmock.call_count == 1
 
     assert ring.event_listener.subscribed is False
-    assert ring.event_listener.connected is False
+    assert ring.event_listener.started is False
     assert connectmock.call_count == 0
     exp = "Unable to check in to fcm, event listener not started"
     assert (
@@ -174,16 +178,16 @@ async def test_listen_fcm_fail(auth, mocker, requests_mock, caplog):
 def test_no_event_loop(auth):
     ring = Ring(auth)
     ring.update_dings()
-    assert ring.event_listener is None or ring.event_listener.connected is False
+    assert ring.event_listener is None or ring.event_listener.started is False
 
 
-async def test_no_data_in_executor(auth):
+async def test_run_in_executor(auth):
     import firebase_messaging
 
     ring = Ring(auth)
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, ring.update_dings)
+    await loop.run_in_executor(None, ring.start_event_listener)
 
-    assert ring.event_listener and ring.event_listener.connected
+    assert ring.event_listener and ring.event_listener.started
     assert firebase_messaging.FcmPushClient.checkin.call_count == 1
-    assert firebase_messaging.FcmPushClient.connect.call_count == 1
+    assert firebase_messaging.FcmPushClient.start.call_count == 1

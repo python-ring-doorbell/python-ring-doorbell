@@ -55,7 +55,8 @@ def listen_mock(mocker, request):
         return
 
     mocker.patch("firebase_messaging.FcmPushClient.checkin", return_value="foobar")
-    mocker.patch("firebase_messaging.FcmPushClient.connect")
+    mocker.patch("firebase_messaging.FcmPushClient.start")
+    mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
 
 # setting the fixture name to requests_mock allows other

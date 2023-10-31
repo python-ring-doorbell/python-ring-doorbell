@@ -35,6 +35,8 @@ click.anyio_backend = "asyncio"
 
 pass_ring = click.make_pass_decorator(Ring)
 
+cache_file = Path(CLI_TOKEN_FILE)
+
 
 class ExceptionHandlerGroup(click.Group):
     """Group to capture all exceptions and echo them nicely.
@@ -79,8 +81,6 @@ class MutuallyExclusiveOption(click.Option):
         return await super().handle_parse_result(ctx, opts, args)
 
 
-cache_file = Path(CLI_TOKEN_FILE)
-
 echo = click.echo
 
 
@@ -106,14 +106,14 @@ def _format_filename(device_name, event):
     return filename
 
 
-def _do_auth(username, password):
+def _do_auth(username, password, user_agent=USER_AGENT):
     if not username:
         username = input("Username: ")
 
     if not password:
         password = getpass.getpass("Password: ")
 
-    auth = Auth(USER_AGENT, None, token_updated)
+    auth = Auth(user_agent, None, token_updated)
     try:
         auth.fetch_token(username, password)
         return auth
@@ -122,27 +122,29 @@ def _do_auth(username, password):
         return auth
 
 
-def _get_ring(username, password, do_update_data, enable_listener=False):
+def _get_ring(username, password, do_update_data, user_agent=USER_AGENT):
     # connect to Ring account
-
+    global cache_file
+    if user_agent != USER_AGENT:
+        cache_file = Path(user_agent + ".token.cache")
     if cache_file.is_file():
         auth = Auth(
-            USER_AGENT,
+            user_agent,
             json.loads(cache_file.read_text(encoding="utf-8")),
             token_updated,
         )
-        ring = Ring(auth, enable_listener=enable_listener)
+        ring = Ring(auth)
         do_method = ring.update_data if do_update_data else ring.create_session
         try:
             do_method()
         except (InvalidGrantError, InvalidClientError):
             auth = _do_auth(username, password)
-            ring = Ring(auth, enable_listener=enable_listener)
+            ring = Ring(auth)
             do_method = ring.update_data if do_update_data else ring.create_session
             do_method()
     else:
-        auth = _do_auth(username, password)
-        ring = Ring(auth, enable_listener=enable_listener)
+        auth = _do_auth(username, password, user_agent=user_agent)
+        ring = Ring(auth)
         do_method = ring.update_data if do_update_data else ring.create_session
         do_method()
 
@@ -169,8 +171,15 @@ def _get_ring(username, password, do_update_data, enable_listener=False):
     help="Password for Ring account",
 )
 @click.option("-d", "--debug", default=False, is_flag=True)
+@click.option(
+    "--user-agent",
+    default=USER_AGENT,
+    required=False,
+    envvar="RING_USER_AGENT",
+    help="User agent to send to ring",
+)
 @click.pass_context
-async def cli(ctx, username, password, debug):
+async def cli(ctx, username, password, debug, user_agent):
     """Command line function."""
 
     _header()
@@ -186,9 +195,7 @@ async def cli(ctx, username, password, debug):
     no_update_commands = ["listen"]
     no_update = ctx.invoked_subcommand in no_update_commands
 
-    ring = _get_ring(
-        username, password, not no_update, ctx.invoked_subcommand == "listen"
-    )
+    ring = _get_ring(username, password, not no_update, user_agent)
     ctx.obj = ring
 
     if ctx.invoked_subcommand is None:
@@ -670,7 +677,7 @@ async def listen(
         with open(credentials_file, "r", encoding="utf-8") as f:
             credentials = json.load(f)
 
-    ring.create_event_listener(credentials, credentials_updated_callback)
+    ring.start_event_listener(credentials, credentials_updated_callback)
     ring.add_event_listener_callback(on_event)
 
     await ainput("Listening, press enter to cancel\n")
