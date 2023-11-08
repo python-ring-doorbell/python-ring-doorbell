@@ -6,9 +6,8 @@ from unittest.mock import DEFAULT, MagicMock
 
 import pytest
 from asyncclick.testing import CliRunner
-from oauthlib.oauth2 import InvalidGrantError, MissingTokenError
 
-from ring_doorbell import Ring
+from ring_doorbell import AuthenticationError, Requires2FAError, Ring
 from ring_doorbell.cli import (
     cli,
     devices_command,
@@ -100,8 +99,8 @@ async def test_videos(ring, mocker):
     "affect_method, exception, file_exists",
     [
         (None, None, False),
-        ("ring_doorbell.auth.Auth.fetch_token", MissingTokenError, False),
-        ("ring_doorbell.ring.Ring.update_data", InvalidGrantError, True),
+        ("ring_doorbell.auth.Auth.fetch_token", Requires2FAError, False),
+        ("ring_doorbell.ring.Ring.update_data", AuthenticationError, True),
     ],
     ids=("No 2FA", "Require 2FA", "Invalid Grant"),
 )

@@ -149,10 +149,11 @@ class RingEventListener:
         gcm_data_json = json.loads(notification["data"]["gcmData"])
 
         if "ding" not in gcm_data_json:
-            _logger.error(
-                "Cannot find ding in gcmData.  Full message is:\n%s",
-                json.dumps(notification),
-            )
+            if "community_alert" not in gcm_data_json:
+                _logger.warning(
+                    "Unexpected alert type in gcmData.  Full message is:\n%s",
+                    json.dumps(notification),
+                )
             return
 
         ding = gcm_data_json["ding"]

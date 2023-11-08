@@ -4,11 +4,23 @@
 import uuid
 from json import dumps as json_dumps
 
-from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
+from oauthlib.oauth2 import (
+    LegacyApplicationClient,
+    MissingTokenError,
+    OAuth2Error,
+    TokenExpiredError,
+)
+from requests import HTTPError, Timeout
 from requests.adapters import HTTPAdapter, Retry
 from requests_oauthlib import OAuth2Session
 
 from ring_doorbell.const import API_URI, NAMESPACE_UUID, TIMEOUT, OAuth
+from ring_doorbell.exceptions import (
+    AuthenticationError,
+    Requires2FAError,
+    RingError,
+    RingTimeout,
+)
 
 
 class Auth:
@@ -30,7 +42,7 @@ class Auth:
                 uuid.uuid5(uuid.UUID(NAMESPACE_UUID), str(uuid.getnode()) + user_agent)
             )
 
-        self.device_model = "ring-doorbell"
+        self.device_model = "ring-doorbell:" + user_agent
         self.token_updater = token_updater
         self._oauth = OAuth2Session(
             client=LegacyApplicationClient(client_id=OAuth.CLIENT_ID), token=token
@@ -51,13 +63,18 @@ class Auth:
             headers["2fa-support"] = "true"
             headers["2fa-code"] = otp_code
 
-        token = self._oauth.fetch_token(
-            OAuth.ENDPOINT,
-            username=username,
-            password=password,
-            scope=OAuth.SCOPE,
-            headers=headers,
-        )
+        try:
+            token = self._oauth.fetch_token(
+                OAuth.ENDPOINT,
+                username=username,
+                password=password,
+                scope=OAuth.SCOPE,
+                headers=headers,
+            )
+        except MissingTokenError as ex:
+            raise Requires2FAError from ex
+        except OAuth2Error as ex:
+            raise AuthenticationError(ex) from ex
 
         if self.token_updater is not None:
             self.token_updater(token)
@@ -66,9 +83,12 @@ class Auth:
 
     def refresh_tokens(self):
         """Refreshes the auth tokens"""
-        token = self._oauth.refresh_token(
-            OAuth.ENDPOINT, headers={"User-Agent": self.user_agent}
-        )
+        try:
+            token = self._oauth.refresh_token(
+                OAuth.ENDPOINT, headers={"User-Agent": self.user_agent}
+            )
+        except OAuth2Error as ex:
+            raise AuthenticationError(ex) from ex
 
         if self.token_updater is not None:
             self.token_updater(token)
@@ -122,14 +142,25 @@ class Auth:
                 kwargs["headers"]["Content-Type"] = "application/json"
             if data is not None:
                 kwargs["data"] = data
-
         try:
-            req = getattr(self._oauth, method.lower())(url, **kwargs)
-        except TokenExpiredError:
+            try:
+                resp = getattr(self._oauth, method.lower())(url, **kwargs)
+            except TokenExpiredError:
+                self._oauth.token = self.refresh_tokens()
+                resp = getattr(self._oauth, method.lower())(url, **kwargs)
+        except Timeout as ex:
+            raise RingTimeout(ex) from ex
+        except Exception as ex:
+            raise RingError(ex) from ex
+
+        if resp.status_code == 401:
+            # Check whether there's an issue with the token grant
             self._oauth.token = self.refresh_tokens()
-            req = getattr(self._oauth, method.lower())(url, **kwargs)
 
         if raise_for_status:
-            req.raise_for_status()
+            try:
+                resp.raise_for_status()
+            except HTTPError as ex:
+                raise RingError(ex) from ex
 
-        return req
+        return resp

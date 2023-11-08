@@ -13,10 +13,10 @@ from datetime import datetime
 from pathlib import Path, PurePath
 
 import asyncclick as click
-from oauthlib.oauth2 import InvalidClientError, InvalidGrantError, MissingTokenError
 
 from ring_doorbell.auth import Auth
 from ring_doorbell.const import CLI_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
+from ring_doorbell.exceptions import AuthenticationError, Requires2FAError
 from ring_doorbell.generic import RingEvent
 from ring_doorbell.listen import can_listen
 from ring_doorbell.ring import Ring
@@ -117,7 +117,7 @@ def _do_auth(username, password, user_agent=USER_AGENT):
     try:
         auth.fetch_token(username, password)
         return auth
-    except MissingTokenError:
+    except Requires2FAError:
         auth.fetch_token(username, password, input("2FA Code: "))
         return auth
 
@@ -137,7 +137,7 @@ def _get_ring(username, password, do_update_data, user_agent=USER_AGENT):
         do_method = ring.update_data if do_update_data else ring.create_session
         try:
             do_method()
-        except (InvalidGrantError, InvalidClientError):
+        except AuthenticationError:
             auth = _do_auth(username, password)
             ring = Ring(auth)
             do_method = ring.update_data if do_update_data else ring.create_session
