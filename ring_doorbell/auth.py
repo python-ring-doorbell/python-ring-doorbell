@@ -149,9 +149,9 @@ class Auth:
                 self._oauth.token = self.refresh_tokens()
                 resp = getattr(self._oauth, method.lower())(url, **kwargs)
         except Timeout as ex:
-            raise RingTimeout(ex) from ex
+            raise RingTimeout(f"Timeout error during query of url {url}: {ex}") from ex
         except Exception as ex:
-            raise RingError(ex) from ex
+            raise RingError(f"Unknown error during query of url {url}: {ex}") from ex
 
         if resp.status_code == 401:
             # Check whether there's an issue with the token grant
@@ -161,6 +161,9 @@ class Auth:
             try:
                 resp.raise_for_status()
             except HTTPError as ex:
-                raise RingError(ex) from ex
+                raise RingError(
+                    f"HTTP error with status code {resp.status_code} "
+                    + f"during query of url {url}: {ex}"
+                ) from ex
 
         return resp

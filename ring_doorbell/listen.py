@@ -16,6 +16,7 @@ from ring_doorbell.const import (
     RING_SENDER_ID,
     SUBSCRIPTION_ENDPOINT,
 )
+from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingEvent
 
 try:
@@ -91,12 +92,12 @@ class RingEventListener:
 
     def remove_notification_callback(self, subscription_id):
         if subscription_id == 1:
-            raise ValueError(
+            raise RingError(
                 "Cannot remove the default callback for ring-doorbell with value 1"
             )
 
         if subscription_id not in self._callbacks:
-            raise ValueError(f"ID {subscription_id} is not a valid callback id")
+            raise RingError(f"ID {subscription_id} is not a valid callback id")
 
         del self._callbacks[subscription_id]
 

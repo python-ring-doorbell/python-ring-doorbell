@@ -6,6 +6,7 @@ from time import time
 from ring_doorbell.auth import Auth
 from ring_doorbell.chime import RingChime
 from ring_doorbell.doorbot import RingDoorBell
+from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingEvent
 from ring_doorbell.group import RingLightGroup
 from ring_doorbell.listen import RingEventListener, can_listen
@@ -100,7 +101,7 @@ class Ring(object):
         if can_listen and self.event_listener:
             return self.event_listener.add_notification_callback(callback)
 
-        raise RuntimeError(
+        raise RingError(
             "Listening must be enabled and started in order to add a callback"
         )
 
@@ -108,7 +109,7 @@ class Ring(object):
         if can_listen and self.event_listener:
             self.event_listener.remove_notification_callback(cb_id)
         else:
-            raise RuntimeError(
+            raise RingError(
                 "Listening must be enabled and started in order to add a callback"
             )
 
@@ -123,7 +124,7 @@ class Ring(object):
     ) -> bool:
         """Start the event listener for realtime push notifications."""
         if not can_listen:
-            raise RuntimeError(
+            raise RingError(
                 "Listening not enabled, ring_doorbell should "
                 + "be installed with extra [listen]"
             )
