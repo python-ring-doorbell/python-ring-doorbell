@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
     steps:
       - uses: "actions/checkout@v2"
       - uses: "actions/setup-python@v2"
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
     steps:
       - uses: "actions/checkout@v2"
       - uses: "actions/setup-python@v2"
@@ -73,6 +73,7 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
+          - "3.12"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -96,8 +97,10 @@ jobs:
             echo "::set-output name=toxenv::py39"
           elif [[ '${{ matrix.python-version }}' == '3.10' ]]; then
             echo "::set-output name=toxenv::py310"
-          else
+          elif [[ '${{ matrix.python-version }}' == '3.11' ]]; then
             echo "::set-output name=toxenv::py311"
+          else
+            echo "::set-output name=toxenv::py312"
           fi
       - name: Test with tox
         run: |
@@ -108,6 +111,6 @@ jobs:
         run: |
           coveralls --service=github
         # Only report coverage on latest Python version and skip on prior failures
-        if: ${{ success() && matrix.python-version == '3.11' }}
+        if: ${{ success() && matrix.python-version == '3.12' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
