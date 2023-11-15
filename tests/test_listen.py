@@ -1,13 +1,14 @@
 """The tests for the Ring platform."""
 import asyncio
+import datetime
 import json
-from datetime import datetime
 
 import pytest
 import requests_mock
 
 from ring_doorbell import Auth, Ring
 from ring_doorbell.doorbot import RingDoorBell
+from ring_doorbell.exceptions import RingError
 from ring_doorbell.listen import can_listen
 from tests.conftest import load_fixture
 
@@ -30,11 +31,11 @@ async def test_listen(auth, mocker):
 
     cbid = ring.add_event_listener_callback(lambda: 2)
     ring.remove_event_listener_callback(cbid)
-    with pytest.raises(ValueError, match="ID 10 is not a valid callback id"):
+    with pytest.raises(RingError, match="ID 10 is not a valid callback id"):
         ring.remove_event_listener_callback(10)
 
     with pytest.raises(
-        ValueError,
+        RingError,
         match="Cannot remove the default callback for ring-doorbell with value 1",
     ):
         ring.remove_event_listener_callback(1)
@@ -61,7 +62,7 @@ async def test_active_dings(auth, mocker):
     for i in range(alertstoadd):
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
         gcmdata_dict = json.loads(load_fixture("ring_listen_ding.json"))
-        created_at = datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
         gcmdata_dict["ding"]["created_at"] = created_at
         gcmdata_dict["ding"]["id"] = gcmdata_dict["ding"]["id"] + i
         msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
@@ -74,7 +75,7 @@ async def test_active_dings(auth, mocker):
     for i in range(alertstoadd):
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
         gcmdata_dict = json.loads(load_fixture("ring_listen_ding.json"))
-        created_at = datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
         gcmdata_dict["ding"]["created_at"] = created_at
         gcmdata_dict["ding"]["id"] = gcmdata_dict["ding"]["id"] + 1
         msg["data"]["gcmData"] = json.dumps(gcmdata_dict)

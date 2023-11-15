@@ -37,6 +37,7 @@ from ring_doorbell.const import (
     URL_RECORDING,
     URL_RECORDING_SHARE_PLAY,
 )
+from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
 
 _LOGGER = logging.getLogger(__name__)
@@ -246,7 +247,7 @@ class RingDoorBell(RingGeneric):
         older_than=None,
         retry=8,
         *,
-        convert_timezone=True
+        convert_timezone=True,
     ):
         """
         Return history with datetime objects.
@@ -375,8 +376,9 @@ class RingDoorBell(RingGeneric):
                 else:
                     return req.content
         except IOError as error:
-            _LOGGER.error("%s", error)
-            raise
+            msg = f"Error downloading recording {recording_id}: {error}"
+            _LOGGER.error(msg)
+            raise RingError(msg) from error
         return False
 
     def recording_url(self, recording_id):
