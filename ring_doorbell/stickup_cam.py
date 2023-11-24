@@ -5,8 +5,10 @@ import logging
 
 from ring_doorbell.const import (
     FLOODLIGHT_CAM_KINDS,
+    FLOODLIGHT_CAM_PLUS_KINDS,
     FLOODLIGHT_CAM_PRO_KINDS,
     HEALTH_DOORBELL_ENDPOINT,
+    INDOOR_CAM_GEN2_KINDS,
     INDOOR_CAM_KINDS,
     LIGHTS_ENDPOINT,
     MSG_ALLOWED_VALUES,
@@ -15,10 +17,12 @@ from ring_doorbell.const import (
     SIREN_DURATION_MIN,
     SIREN_ENDPOINT,
     SPOTLIGHT_CAM_BATTERY_KINDS,
+    SPOTLIGHT_CAM_PLUS_KINDS,
     SPOTLIGHT_CAM_WIRED_KINDS,
     STICKUP_CAM_BATTERY_KINDS,
+    STICKUP_CAM_ELITE_KINDS,
+    STICKUP_CAM_GEN3_KINDS,
     STICKUP_CAM_KINDS,
-    STICKUP_CAM_WIRED_KINDS,
 )
 from ring_doorbell.doorbot import RingDoorBell
 
@@ -48,8 +52,12 @@ class RingStickUpCam(RingDoorBell):
             return "Floodlight Cam"
         if self.kind in FLOODLIGHT_CAM_PRO_KINDS:
             return "Floodlight Cam Pro"
+        if self.kind in FLOODLIGHT_CAM_PLUS_KINDS:
+            return "Floodlight Cam Plus"
         if self.kind in INDOOR_CAM_KINDS:
             return "Indoor Cam"
+        if self.kind in INDOOR_CAM_GEN2_KINDS:
+            return "Indoor Cam (2nd Gen)"
         if self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
             return "Spotlight Cam {}".format(
                 self._attrs.get("ring_cam_setup_flow", "battery").title()
@@ -58,12 +66,16 @@ class RingStickUpCam(RingDoorBell):
             return "Spotlight Cam {}".format(
                 self._attrs.get("ring_cam_setup_flow", "wired").title()
             )
+        if self.kind in SPOTLIGHT_CAM_PLUS_KINDS:
+            return "Spotlight Cam Plus"
         if self.kind in STICKUP_CAM_KINDS:
             return "Stick Up Cam"
         if self.kind in STICKUP_CAM_BATTERY_KINDS:
             return "Stick Up Cam Battery"
-        if self.kind in STICKUP_CAM_WIRED_KINDS:
+        if self.kind in STICKUP_CAM_ELITE_KINDS:
             return "Stick Up Cam Wired"
+        if self.kind in STICKUP_CAM_GEN3_KINDS:
+            return "Stick Up Cam (3rd Gen)"
         _LOGGER.error("Unknown kind: %s", self.kind)
         return None
 
@@ -74,33 +86,44 @@ class RingStickUpCam(RingDoorBell):
                 SPOTLIGHT_CAM_BATTERY_KINDS
                 + STICKUP_CAM_KINDS
                 + STICKUP_CAM_BATTERY_KINDS
+                + STICKUP_CAM_GEN3_KINDS
             )
         if capability == "light":
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
                 + FLOODLIGHT_CAM_PRO_KINDS
+                + FLOODLIGHT_CAM_PLUS_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
+                + SPOTLIGHT_CAM_PLUS_KINDS
             )
         if capability == "siren":
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
                 + FLOODLIGHT_CAM_PRO_KINDS
+                + FLOODLIGHT_CAM_PLUS_KINDS
                 + INDOOR_CAM_KINDS
+                + INDOOR_CAM_GEN2_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
+                + SPOTLIGHT_CAM_PLUS_KINDS
                 + STICKUP_CAM_BATTERY_KINDS
-                + STICKUP_CAM_WIRED_KINDS
+                + STICKUP_CAM_ELITE_KINDS
+                + STICKUP_CAM_GEN3_KINDS
             )
         if capability in ("motion_detection", "video"):
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
                 + FLOODLIGHT_CAM_PRO_KINDS
+                + FLOODLIGHT_CAM_PLUS_KINDS
                 + INDOOR_CAM_KINDS
+                + INDOOR_CAM_GEN2_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
+                + SPOTLIGHT_CAM_PLUS_KINDS
                 + STICKUP_CAM_BATTERY_KINDS
-                + STICKUP_CAM_WIRED_KINDS
+                + STICKUP_CAM_ELITE_KINDS
+                + STICKUP_CAM_GEN3_KINDS
             )
         return False
 

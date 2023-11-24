@@ -14,12 +14,16 @@ from ring_doorbell.const import (
     DOORBELL_2_KINDS,
     DOORBELL_3_KINDS,
     DOORBELL_3_PLUS_KINDS,
+    DOORBELL_4_KINDS,
     DOORBELL_ELITE_KINDS,
     DOORBELL_EXISTING_TYPE,
+    DOORBELL_GEN2_KINDS,
     DOORBELL_KINDS,
+    DOORBELL_PRO_2_KINDS,
     DOORBELL_PRO_KINDS,
     DOORBELL_VOL_MAX,
     DOORBELL_VOL_MIN,
+    DOORBELL_WIRED_KINDS,
     DOORBELLS_ENDPOINT,
     FILE_EXISTS,
     HEALTH_DOORBELL_ENDPOINT,
@@ -74,10 +78,18 @@ class RingDoorBell(RingGeneric):
             return "Doorbell 3"
         if self.kind in DOORBELL_3_PLUS_KINDS:
             return "Doorbell 3 Plus"
+        if self.kind in DOORBELL_4_KINDS:
+            return "Doorbell 4"
         if self.kind in DOORBELL_PRO_KINDS:
             return "Doorbell Pro"
+        if self.kind in DOORBELL_PRO_2_KINDS:
+            return "Doorbell Pro 2"
         if self.kind in DOORBELL_ELITE_KINDS:
             return "Doorbell Elite"
+        if self.kind in DOORBELL_WIRED_KINDS:
+            return "Doorbell Wired"
+        if self.kind in DOORBELL_GEN2_KINDS:
+            return "Doorbell (2nd Gen)"
         if self.kind in PEEPHOLE_CAM_KINDS:
             return "Peephole Cam"
         return None
@@ -90,6 +102,8 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_2_KINDS
                 + DOORBELL_3_KINDS
                 + DOORBELL_3_PLUS_KINDS
+                + DOORBELL_4_KINDS
+                + DOORBELL_GEN2_KINDS
                 + PEEPHOLE_CAM_KINDS
             )
         if capability == "knock":
@@ -104,6 +118,11 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_2_KINDS
                 + DOORBELL_3_KINDS
                 + DOORBELL_3_PLUS_KINDS
+                + DOORBELL_4_KINDS
+                + DOORBELL_PRO_KINDS
+                + DOORBELL_PRO_2_KINDS
+                + DOORBELL_WIRED_KINDS
+                + DOORBELL_GEN2_KINDS
                 + PEEPHOLE_CAM_KINDS
             )
         return False
