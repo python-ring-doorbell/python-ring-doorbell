@@ -82,22 +82,31 @@ SIREN_DURATION_MAX = 120
 CHIME_KINDS = ["chime", "chime_v2"]
 CHIME_PRO_KINDS = ["chime_pro", "chime_pro_v2"]
 
-DOORBELL_KINDS = ["doorbot", "doorbell", "doorbell_v3", "cocoa_doorbell"]
+DOORBELL_KINDS = ["doorbot", "doorbell", "doorbell_v3"]
 DOORBELL_2_KINDS = ["doorbell_v4", "doorbell_v5"]
 DOORBELL_3_KINDS = ["doorbell_scallop_lite"]
+DOORBELL_4_KINDS = ["doorbell_oyster"]  # Added
 DOORBELL_3_PLUS_KINDS = ["doorbell_scallop"]
-DOORBELL_PRO_KINDS = ["lpd_v1", "lpd_v2", "lpd_v4"]
+DOORBELL_PRO_KINDS = ["lpd_v1", "lpd_v2", "lpd_v3"]
+DOORBELL_PRO_2_KINDS = ["lpd_v4"]
 DOORBELL_ELITE_KINDS = ["jbox_v1"]
+DOORBELL_WIRED_KINDS = ["doorbell_graham_cracker"]
 PEEPHOLE_CAM_KINDS = ["doorbell_portal"]
+DOORBELL_GEN2_KINDS = ["cocoa_doorbell", "cocoa_doorbell_v2"]
 
-FLOODLIGHT_CAM_KINDS = ["hp_cam_v1", "floodlight_v2", "cocoa_floodlight"]
+FLOODLIGHT_CAM_KINDS = ["hp_cam_v1", "floodlight_v2"]
 FLOODLIGHT_CAM_PRO_KINDS = ["floodlight_pro"]
+FLOODLIGHT_CAM_PLUS_KINDS = ["cocoa_floodlight"]
 INDOOR_CAM_KINDS = ["stickup_cam_mini"]
+INDOOR_CAM_GEN2_KINDS = ["stickup_cam_mini_v2"]
 SPOTLIGHT_CAM_BATTERY_KINDS = ["stickup_cam_v4"]
 SPOTLIGHT_CAM_WIRED_KINDS = ["hp_cam_v2", "spotlightw_v2"]
+SPOTLIGHT_CAM_PLUS_KINDS = ["cocoa_spotlight"]
 STICKUP_CAM_KINDS = ["stickup_cam", "stickup_cam_v3"]
-STICKUP_CAM_BATTERY_KINDS = ["cocoa_camera", "stickup_cam_lunar"]
-STICKUP_CAM_WIRED_KINDS = ["stickup_cam_elite"]
+STICKUP_CAM_BATTERY_KINDS = ["stickup_cam_lunar"]
+STICKUP_CAM_ELITE_KINDS = ["stickup_cam_elite", "stickup_cam_wired"]
+STICKUP_CAM_WIRED_KINDS = STICKUP_CAM_ELITE_KINDS  # Deprecated
+STICKUP_CAM_GEN3_KINDS = ["cocoa_camera"]
 BEAM_KINDS = ["beams_ct200_transformer"]
 
 # error strings
