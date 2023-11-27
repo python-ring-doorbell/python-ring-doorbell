@@ -224,8 +224,8 @@ Showing door bell events
         events = doorbell.history(kind='motion')
 
 
-Downloading the last video triggered by ding
---------------------------------------------
+Downloading the last video triggered by a ding or motion event
+--------------------------------------------------------------
 .. code-block:: python
 
     devices = ring.devices()
