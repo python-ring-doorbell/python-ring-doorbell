@@ -50,8 +50,8 @@ _LOGGER = logging.getLogger(__name__)
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
-    def __init__(self, ring, device_id, shared=False):
-        super().__init__(ring, device_id)
+    def __init__(self, ring, device_api_id, shared=False):
+        super().__init__(ring, device_api_id)
         self.shared = shared
 
     @property
@@ -62,7 +62,7 @@ class RingDoorBell(RingGeneric):
     def update_health_data(self):
         """Update health attrs."""
         self._health_attrs = (
-            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.id))
+            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id))
             .json()
             .get("device_health", {})
         )
@@ -189,7 +189,7 @@ class RingDoorBell(RingGeneric):
             "doorbot[settings][chime_settings][type]": value,
         }
         if self.existing_doorbell_type:
-            url = DOORBELLS_ENDPOINT.format(self.id)
+            url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             self._ring.query(url, extra_params=params, method="PUT")
             self._ring.update_devices()
             return True
@@ -219,7 +219,7 @@ class RingDoorBell(RingGeneric):
                 "doorbot[description]": self.name,
                 "doorbot[settings][chime_settings][enable]": value,
             }
-            url = DOORBELLS_ENDPOINT.format(self.id)
+            url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             self._ring.query(url, extra_params=params, method="PUT")
             self._ring.update_devices()
             return True
@@ -251,7 +251,7 @@ class RingDoorBell(RingGeneric):
                     "doorbot[description]": self.name,
                     "doorbot[settings][chime_settings][duration]": value,
                 }
-                url = DOORBELLS_ENDPOINT.format(self.id)
+                url = DOORBELLS_ENDPOINT.format(self.device_api_id)
                 self._ring.query(url, extra_params=params, method="PUT")
                 self._ring.update_devices()
                 return True
@@ -291,7 +291,7 @@ class RingDoorBell(RingGeneric):
             if older_than:
                 params["older_than"] = older_than
 
-            url = URL_DOORBELL_HISTORY.format(self.id)
+            url = URL_DOORBELL_HISTORY.format(self.device_api_id)
             response = self._ring.query(url, extra_params=params).json()
 
             # cherrypick only the selected kind events
@@ -356,7 +356,7 @@ class RingDoorBell(RingGeneric):
     @property
     def live_streaming_json(self):
         """Return JSON for live streaming."""
-        url = LIVE_STREAMING_ENDPOINT.format(self.id)
+        url = LIVE_STREAMING_ENDPOINT.format(self.device_api_id)
         req = self._ring.query(url, method="POST")
         if req and req.status_code == 200:
             url = DINGS_ENDPOINT
@@ -454,7 +454,7 @@ class RingDoorBell(RingGeneric):
             "doorbot[description]": self.name,
             "doorbot[settings][doorbell_volume]": str(value),
         }
-        url = DOORBELLS_ENDPOINT.format(self.id)
+        url = DOORBELLS_ENDPOINT.format(self.device_api_id)
         self._ring.query(url, extra_params=params, method="PUT")
         self._ring.update_devices()
         return True
@@ -513,7 +513,7 @@ class RingDoorBell(RingGeneric):
             )
             return False
 
-        url = SETTINGS_ENDPOINT.format(self.id)
+        url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"motion_settings": {"motion_detection_enabled": state}}
 
         self._ring.query(url, method="PATCH", json=payload)

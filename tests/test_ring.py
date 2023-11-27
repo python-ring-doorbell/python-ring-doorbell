@@ -119,7 +119,7 @@ def test_light_groups(ring):
 
     assert group.name == "Landscape"
     assert group.family == "group"
-    assert group.device_id == "mock-group-id"
+    assert group.group_id == "mock-group-id"
     assert group.location_id == "mock-location-id"
     assert group.model == "Light Group"
     assert group.has_capability("light") is True

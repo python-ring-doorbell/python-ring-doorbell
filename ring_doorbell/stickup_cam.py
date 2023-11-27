@@ -40,7 +40,7 @@ class RingStickUpCam(RingDoorBell):
     def update_health_data(self):
         """Update health attrs."""
         self._health_attrs = (
-            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.id))
+            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id))
             .json()
             .get("device_health", {})
         )
@@ -140,7 +140,7 @@ class RingStickUpCam(RingDoorBell):
             _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(", ".join(values)))
             return False
 
-        url = LIGHTS_ENDPOINT.format(self.id, state)
+        url = LIGHTS_ENDPOINT.format(self.device_api_id, state)
         self._ring.query(url, method="PUT")
         self._ring.update_devices()
         return True
@@ -170,7 +170,7 @@ class RingStickUpCam(RingDoorBell):
         else:
             state = "off"
             params = {}
-        url = SIREN_ENDPOINT.format(self.id, state)
+        url = SIREN_ENDPOINT.format(self.device_api_id, state)
         self._ring.query(url, extra_params=params, method="PUT")
         self._ring.update_devices()
         return True
