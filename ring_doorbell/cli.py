@@ -351,8 +351,10 @@ async def devices_command(ctx, ring: Ring, device_name, json_flag):
         echo(json.dumps(device_json, indent=2))
     else:
         for device_type in ring.devices_data:
-            for device_id in ring.devices_data[device_type]:
-                echo(json.dumps(ring.devices_data[device_type][device_id], indent=2))
+            for device_api_id in ring.devices_data[device_type]:
+                echo(
+                    json.dumps(ring.devices_data[device_type][device_api_id], indent=2)
+                )
 
 
 @cli.command()

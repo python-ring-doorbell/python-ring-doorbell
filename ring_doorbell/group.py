@@ -2,6 +2,7 @@
 # vim:sw=4:ts=4:et:
 """Python Ring light group wrapper."""
 import logging
+import warnings
 
 from ring_doorbell.const import GROUP_DEVICES_ENDPOINT, MSG_ALLOWED_VALUES
 
@@ -13,10 +14,10 @@ class RingLightGroup:
 
     # pylint:disable=invalid-name
     # pylint: disable=redefined-builtin
-    def __init__(self, ring, id):
-        """Initialize Ring Generic."""
+    def __init__(self, ring, group_id):
+        """Initialize Ring Light Group."""
         self._ring = ring
-        self.id = id  # pylint:disable=invalid-name
+        self.group_id = group_id  # pylint:disable=invalid-name
         self._health_attrs = {}
         self._health_attrs_fetched = False
 
@@ -26,14 +27,19 @@ class RingLightGroup:
 
     def update(self):
         """Update this device info."""
-        url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.id)
+        url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.group_id)
         self._health_attrs = self._ring.query(url).json()
         self._health_attrs_fetched = True
 
     @property
     def _attrs(self):
         """Return attributes."""
-        return self._ring.groups_data[self.id]
+        return self._ring.groups_data[self.group_id]
+
+    @property
+    def id(self):
+        """Return ID."""
+        return self.group_id
 
     @property
     def name(self):
@@ -47,9 +53,11 @@ class RingLightGroup:
 
     @property
     def device_id(self):
-        """Return group ID."""
-        # id field holds group ID
-        return self.id
+        """Return group ID. Deprecated"""
+        warnings.warn(
+            "RingLightGroup.device_id is deprecated; use group_id", DeprecationWarning
+        )
+        return self.group_id
 
     @property
     def location_id(self):
@@ -88,7 +96,7 @@ class RingLightGroup:
             _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(", ".join(values)))
             return False
 
-        url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.id)
+        url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.group_id)
         payload = {"lights_on": {"enabled": state}}
         if duration is not None:
             payload["lights_on"]["duration_seconds"] = duration

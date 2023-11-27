@@ -33,12 +33,12 @@ class RingGeneric(object):
 
     # pylint: disable=redefined-builtin
     # pylint:disable=invalid-name
-    def __init__(self, ring, id):
+    def __init__(self, ring, device_api_id):
         """Initialize Ring Generic."""
         self._ring = ring
         # This is the account ID of the device.
         # Not the same as device ID.
-        self.id = id  # pylint:disable=invalid-name
+        self.device_api_id = device_api_id
         self.capability = False
         self.alert = None
         self._health_attrs = {}
@@ -64,7 +64,12 @@ class RingGeneric(object):
     @property
     def _attrs(self):
         """Return attributes."""
-        return self._ring.devices_data[self.family][self.id]
+        return self._ring.devices_data[self.family][self.device_api_id]
+
+    @property
+    def id(self):
+        """Return ID."""
+        return self.device_api_id
 
     @property
     def name(self):
@@ -73,7 +78,10 @@ class RingGeneric(object):
 
     @property
     def device_id(self):
-        """Return device ID."""
+        """Return device ID.
+
+        This is the device_id returned by the api, usually the MAC.
+        Not to be confused with the id for the device"""
         return self._attrs["device_id"]
 
     @property

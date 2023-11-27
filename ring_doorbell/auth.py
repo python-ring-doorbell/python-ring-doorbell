@@ -148,6 +148,8 @@ class Auth:
             except TokenExpiredError:
                 self._oauth.token = self.refresh_tokens()
                 resp = getattr(self._oauth, method.lower())(url, **kwargs)
+        except AuthenticationError as ex:
+            raise ex  # refresh_tokens will return this error if not valid
         except Timeout as ex:
             raise RingTimeout(f"Timeout error during query of url {url}: {ex}") from ex
         except Exception as ex:

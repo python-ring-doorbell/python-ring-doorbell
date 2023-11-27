@@ -63,9 +63,9 @@ async def test_devices(ring):
             + "consistently from this command provide the --json flag)\n"
         )
         for device_type in ring.devices_data:
-            for device_id in ring.devices_data[device_type]:
+            for device_api_id in ring.devices_data[device_type]:
                 expected += (
-                    json.dumps(ring.devices_data[device_type][device_id], indent=2)
+                    json.dumps(ring.devices_data[device_type][device_api_id], indent=2)
                     + "\n"
                 )
 
