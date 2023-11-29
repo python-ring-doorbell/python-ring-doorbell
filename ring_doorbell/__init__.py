@@ -16,6 +16,7 @@ from ring_doorbell.generic import RingEvent
 from ring_doorbell.group import RingLightGroup
 from ring_doorbell.ring import Ring
 from ring_doorbell.stickup_cam import RingStickUpCam
+from ring_doorbell.other import Other
 
 __all__ = [
     "Ring",
@@ -24,6 +25,7 @@ __all__ = [
     "RingStickUpCam",
     "RingLightGroup",
     "RingDoorBell",
+    "Other",
     "RingEvent",
     "RingError",
     "AuthenticationError",

@@ -43,6 +43,8 @@ DOORBELLS_ENDPOINT = "/clients_api/doorbots/{0}"
 PERSIST_TOKEN_ENDPOINT = "/clients_api/device"
 SUBSCRIPTION_ENDPOINT = "/clients_api/device"
 GROUPS_ENDPOINT = "/groups/v1/locations/{0}/groups"
+LOCATIONS_HISTORY_ENDPOINT = "/evm/v2/history/locations/{0}"
+LOCATIONS_ENDPOINT = "/clients_api/locations/{0}"
 
 HEALTH_DOORBELL_ENDPOINT = DOORBELLS_ENDPOINT + "/health"
 HEALTH_CHIMES_ENDPOINT = CHIMES_ENDPOINT + "/health"
@@ -60,6 +62,11 @@ URL_RECORDING = "/clients_api/dings/{0}/recording"
 URL_RECORDING_SHARE_PLAY = "/clients_api/dings/{0}/share/play"
 GROUP_DEVICES_ENDPOINT = GROUPS_ENDPOINT + "/{1}/devices"
 SETTINGS_ENDPOINT = "/devices/v1/devices/{0}/settings"
+URL_INTERCOM_HISTORY = LOCATIONS_HISTORY_ENDPOINT + "?ringtercom"
+INTERCOM_OPEN_ENDPOINT = "/commands/v1/devices/{0}/device_rpc"
+INTERCOM_INVITATIONS_ENDPOINT = LOCATIONS_ENDPOINT + "/invitations"
+INTERCOM_INVITATIONS_DELETE_ENDPOINT = LOCATIONS_ENDPOINT + "/invitations/{1}"
+INTERCOM_ALLOWED_USERS = LOCATIONS_ENDPOINT + "/users"
 
 # chime test sound kinds
 KIND_DING = "ding"
@@ -72,6 +79,15 @@ CHIME_VOL_MAX = 10
 
 DOORBELL_VOL_MIN = 0
 DOORBELL_VOL_MAX = 11
+
+MIC_VOL_MIN = 0
+MIC_VOL_MAX = 11
+
+VOICE_VOL_MIN = 0
+VOICE_VOL_MAX = 11
+
+OTHER_DOORBELL_VOL_MIN = 0
+OTHER_DOORBELL_VOL_MAX = 8
 
 DOORBELL_EXISTING_TYPE = {0: "Mechanical", 1: "Digital", 2: "Not Present"}
 
@@ -108,6 +124,8 @@ STICKUP_CAM_ELITE_KINDS = ["stickup_cam_elite", "stickup_cam_wired"]
 STICKUP_CAM_WIRED_KINDS = STICKUP_CAM_ELITE_KINDS  # Deprecated
 STICKUP_CAM_GEN3_KINDS = ["cocoa_camera"]
 BEAM_KINDS = ["beams_ct200_transformer"]
+
+INTERCOM_KINDS = ["intercom_handset_audio"]
 
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."

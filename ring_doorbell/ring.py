@@ -11,6 +11,7 @@ from ring_doorbell.generic import RingEvent
 from ring_doorbell.group import RingLightGroup
 from ring_doorbell.listen import RingEventListener, can_listen
 from ring_doorbell.stickup_cam import RingStickUpCam
+from ring_doorbell.other import Other
 
 from .const import (
     API_URI,
@@ -31,6 +32,7 @@ TYPES = {
     "authorized_doorbots": lambda ring, description: RingDoorBell(
         ring, description, shared=True
     ),
+    "other": Other
 }
 
 
@@ -236,6 +238,7 @@ class Ring(object):
             + devices["authorized_doorbots"]
             + devices["stickup_cams"]
             + devices["chimes"]
+            + devices["other"]
         )
 
     def get_device_by_name(self, device_name):
