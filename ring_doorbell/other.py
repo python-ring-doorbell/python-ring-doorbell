@@ -1,31 +1,29 @@
 # coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Other (Intercom) wrapper."""
-import logging
-import time
-import uuid
 import json
-
-from ring_doorbell.generic import RingGeneric
+import logging
+import uuid
 
 from ring_doorbell.const import (
+    DOORBELLS_ENDPOINT,
     HEALTH_DOORBELL_ENDPOINT,
     INTERCOM_ALLOWED_USERS,
     INTERCOM_INVITATIONS_DELETE_ENDPOINT,
     INTERCOM_INVITATIONS_ENDPOINT,
     INTERCOM_KINDS,
     INTERCOM_OPEN_ENDPOINT,
-    OTHER_DOORBELL_VOL_MIN,
-    OTHER_DOORBELL_VOL_MAX,
-    MIC_VOL_MIN,
     MIC_VOL_MAX,
-    DOORBELLS_ENDPOINT,
-    SETTINGS_ENDPOINT,
-    MSG_VOL_OUTBOUND,
+    MIC_VOL_MIN,
     MSG_GENERIC_FAIL,
+    MSG_VOL_OUTBOUND,
+    OTHER_DOORBELL_VOL_MAX,
+    OTHER_DOORBELL_VOL_MIN,
+    SETTINGS_ENDPOINT,
+    VOICE_VOL_MAX,
     VOICE_VOL_MIN,
-    VOICE_VOL_MAX
 )
+from ring_doorbell.generic import RingGeneric
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,18 +102,9 @@ class Other(RingGeneric):
     @property
     def unlock_duration(self):
         """Return time unlock switch is held closed"""
-        json.loads(self._attrs.get("settings").get("intercom_settings").get("config")).get('analog').get('unlock_duration')
-
-    #TODO regex swap out on the string below
-    # @unlock_duration.setter
-    # def unlock_duration(self, value):
-                
-    #     url = SETTINGS_ENDPOINT.format(self.id)
-    #     #payload = {"intercom_settings":{"config":{"analog":{"unlock_duration":value}}}}
-    #     payload = {"intercom_settings":{"config":"{\"intercom_type\":0,\"number_of_wires\":5,\"autounlock_enabled\":false,\"analog\":{\"unlock_duration\":1000,\"common_audio\":false,\"audio_term_io\":3,\"audio_term_out\":3,\"control_data_unlock1\":\"0x0880\",\"control_type_unlock1\":1,\"control_data_unlock2\":\"0x0000\",\"control_type_unlock2\":0,\"control_data_talk\":\"0x0000\",\"control_type_talk\":0,\"control_data_listen\":\"0x0000\",\"control_type_listen\":0,\"min_edge_count\":0,\"ring_detect\":0,\"off_hk_tm\":0}}"}}
-    #     self._ring.query(url, method="PATCH", json=payload)
-    #     self._ring.update_devices()
-    #     return True
+        json.loads(
+            self._attrs.get("settings").get("intercom_settings").get("config")
+        ).get("analog").get("unlock_duration")
 
     @property
     def doorbell_volume(self):
@@ -126,10 +115,16 @@ class Other(RingGeneric):
 
     @doorbell_volume.setter
     def doorbell_volume(self, value):
-        if not ((isinstance(value, int)) and (OTHER_DOORBELL_VOL_MIN <= value <= OTHER_DOORBELL_VOL_MAX)):
-            _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(OTHER_DOORBELL_VOL_MIN, OTHER_DOORBELL_VOL_MAX))
+        if not (
+            (isinstance(value, int))
+            and (OTHER_DOORBELL_VOL_MIN <= value <= OTHER_DOORBELL_VOL_MAX)
+        ):
+            _LOGGER.error(
+                "%s",
+                MSG_VOL_OUTBOUND.format(OTHER_DOORBELL_VOL_MIN, OTHER_DOORBELL_VOL_MAX),
+            )
             return False
-        
+
         params = {
             "doorbot[description]": self.name,
             "doorbot[settings][doorbell_volume]": str(value),
@@ -147,7 +142,6 @@ class Other(RingGeneric):
 
     @keep_alive_auto.setter
     def keep_alive_auto(self, value):
-     
         url = SETTINGS_ENDPOINT.format(self.id)
         payload = {"keep_alive_settings": {"keep_alive_auto": value}}
 
@@ -164,11 +158,10 @@ class Other(RingGeneric):
 
     @mic_volume.setter
     def mic_volume(self, value):
-
         if not ((isinstance(value, int)) and (MIC_VOL_MIN <= value <= MIC_VOL_MAX)):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(MIC_VOL_MIN, MIC_VOL_MAX))
             return False
-        
+
         url = SETTINGS_ENDPOINT.format(self.id)
         payload = {"volume_settings": {"mic_volume": value}}
 
@@ -185,11 +178,10 @@ class Other(RingGeneric):
 
     @voice_volume.setter
     def voice_volume(self, value):
-
         if not ((isinstance(value, int)) and (VOICE_VOL_MIN <= value <= VOICE_VOL_MAX)):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(VOICE_VOL_MIN, VOICE_VOL_MAX))
             return False
-        
+
         url = SETTINGS_ENDPOINT.format(self.id)
         payload = {"volume_settings": {"voice_volume": value}}
 
@@ -200,15 +192,20 @@ class Other(RingGeneric):
     @property
     def clip_length_max(self):
         # this value sets an effective refractory period on consecutive rigns
-        # eg if set to default value of 60, rings occuring with 60 seconds of first will not be detected
+        # eg if set to default value of 60, rings occuring with 60 seconds of
+        # first will not be detected
 
         url = SETTINGS_ENDPOINT.format(self.id)
-        
-        return self._ring.query(url, method="GET").json().get('video_settings').get('clip_length_max')
+
+        return (
+            self._ring.query(url, method="GET")
+            .json()
+            .get("video_settings")
+            .get("clip_length_max")
+        )
 
     @clip_length_max.setter
     def clip_length_max(self, value):
-        
         url = SETTINGS_ENDPOINT.format(self.id)
         payload = {"video_settings": {"clip_length_max": value}}
         try:
@@ -216,7 +213,7 @@ class Other(RingGeneric):
             self._ring.update_devices()
             return True
         except Exception as E:
-            _LOGGER.error("%s", '{}: {}'.format(MSG_GENERIC_FAIL, E))
+            _LOGGER.error("%s", "{}: {}".format(MSG_GENERIC_FAIL, E))
             return False
 
     @property
@@ -248,7 +245,7 @@ class Other(RingGeneric):
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_OPEN_ENDPOINT.format(self.id)
             request_id = str(uuid.uuid4())
-            request_timestamp = int(time.time() * 1000)
+            # request_timestamp = int(time.time() * 1000)
             payload = {
                 "command_name": "device_rpc",
                 "request": {
@@ -256,9 +253,9 @@ class Other(RingGeneric):
                     "jsonrpc": "2.0",
                     "method": "unlock_door",
                     "params": {
-                        #"command_timeout": 5,
+                        # "command_timeout": 5,
                         "door_id": 0,
-                        #"issue_time": request_timestamp,
+                        # "issue_time": request_timestamp,
                         "user_id": 64658594,
                     },
                 },
