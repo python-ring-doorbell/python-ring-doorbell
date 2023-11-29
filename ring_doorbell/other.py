@@ -15,7 +15,6 @@ from ring_doorbell.const import (
     INTERCOM_OPEN_ENDPOINT,
     MIC_VOL_MAX,
     MIC_VOL_MIN,
-    MSG_GENERIC_FAIL,
     MSG_VOL_OUTBOUND,
     OTHER_DOORBELL_VOL_MAX,
     OTHER_DOORBELL_VOL_MIN,
@@ -23,6 +22,7 @@ from ring_doorbell.const import (
     VOICE_VOL_MAX,
     VOICE_VOL_MIN,
 )
+from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
 
 _LOGGER = logging.getLogger(__name__)
@@ -212,9 +212,8 @@ class Other(RingGeneric):
             self._ring.query(url, method="PATCH", json=payload)
             self._ring.update_devices()
             return True
-        except Exception as E:
-            _LOGGER.error("%s", "{}: {}".format(MSG_GENERIC_FAIL, E))
-            return False
+        except Exception as ex:
+            raise RingError(f"Unknown error during query of url {url}: {ex}") from ex
 
     @property
     def connection_status(self):
