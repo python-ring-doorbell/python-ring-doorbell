@@ -208,12 +208,15 @@ async def list_command(ring: Ring):
     doorbells = devices["doorbots"]
     chimes = devices["chimes"]
     stickup_cams = devices["stickup_cams"]
+    other = devices["other"]
 
     for device in doorbells:
         echo(device)
     for device in chimes:
         echo(device)
     for device in stickup_cams:
+        echo(device)
+    for device in other:
         echo(device)
 
 
