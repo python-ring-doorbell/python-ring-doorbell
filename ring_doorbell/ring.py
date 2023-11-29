@@ -10,8 +10,8 @@ from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingEvent
 from ring_doorbell.group import RingLightGroup
 from ring_doorbell.listen import RingEventListener, can_listen
-from ring_doorbell.stickup_cam import RingStickUpCam
 from ring_doorbell.other import Other
+from ring_doorbell.stickup_cam import RingStickUpCam
 
 from .const import (
     API_URI,
@@ -32,7 +32,7 @@ TYPES = {
     "authorized_doorbots": lambda ring, description: RingDoorBell(
         ring, description, shared=True
     ),
-    "other": Other
+    "other": Other,
 }
 
 
