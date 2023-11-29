@@ -31,8 +31,8 @@ _LOGGER = logging.getLogger(__name__)
 class Other(RingGeneric):
     """Implementation for Ring Intercom."""
 
-    def __init__(self, ring, device_id, shared=False):
-        super().__init__(ring, device_id)
+    def __init__(self, ring, device_api_id, shared=False):
+        super().__init__(ring, device_api_id)
         self.shared = shared
 
     @property
@@ -43,7 +43,7 @@ class Other(RingGeneric):
     def update_health_data(self):
         """Update health attrs."""
         self._health_attrs = (
-            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.id))
+            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id))
             .json()
             .get("device_health", {})
         )
@@ -129,7 +129,7 @@ class Other(RingGeneric):
             "doorbot[description]": self.name,
             "doorbot[settings][doorbell_volume]": str(value),
         }
-        url = DOORBELLS_ENDPOINT.format(self.id)
+        url = DOORBELLS_ENDPOINT.format(self.device_api_id)
         self._ring.query(url, extra_params=params, method="PUT")
         self._ring.update_devices()
         return True
@@ -142,7 +142,7 @@ class Other(RingGeneric):
 
     @keep_alive_auto.setter
     def keep_alive_auto(self, value):
-        url = SETTINGS_ENDPOINT.format(self.id)
+        url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"keep_alive_settings": {"keep_alive_auto": value}}
 
         self._ring.query(url, method="PATCH", json=payload)
@@ -162,7 +162,7 @@ class Other(RingGeneric):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(MIC_VOL_MIN, MIC_VOL_MAX))
             return False
 
-        url = SETTINGS_ENDPOINT.format(self.id)
+        url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"volume_settings": {"mic_volume": value}}
 
         self._ring.query(url, method="PATCH", json=payload)
@@ -182,7 +182,7 @@ class Other(RingGeneric):
             _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(VOICE_VOL_MIN, VOICE_VOL_MAX))
             return False
 
-        url = SETTINGS_ENDPOINT.format(self.id)
+        url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"volume_settings": {"voice_volume": value}}
 
         self._ring.query(url, method="PATCH", json=payload)
@@ -195,7 +195,7 @@ class Other(RingGeneric):
         # eg if set to default value of 60, rings occuring with 60 seconds of
         # first will not be detected
 
-        url = SETTINGS_ENDPOINT.format(self.id)
+        url = SETTINGS_ENDPOINT.format(self.device_api_id)
 
         return (
             self._ring.query(url, method="GET")
@@ -206,7 +206,7 @@ class Other(RingGeneric):
 
     @clip_length_max.setter
     def clip_length_max(self, value):
-        url = SETTINGS_ENDPOINT.format(self.id)
+        url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"video_settings": {"clip_length_max": value}}
         try:
             self._ring.query(url, method="PATCH", json=payload)
@@ -242,7 +242,7 @@ class Other(RingGeneric):
         """Open the door"""
 
         if self.kind in INTERCOM_KINDS:
-            url = INTERCOM_OPEN_ENDPOINT.format(self.id)
+            url = INTERCOM_OPEN_ENDPOINT.format(self.device_api_id)
             request_id = str(uuid.uuid4())
             # request_timestamp = int(time.time() * 1000)
             payload = {
@@ -274,7 +274,7 @@ class Other(RingGeneric):
             url = INTERCOM_INVITATIONS_ENDPOINT.format(self.location_id)
             payload = {
                 "invitation": {
-                    "doorbot_ids": [self.id],
+                    "doorbot_ids": [self.device_api_id],
                     "invited_email": email,
                     "group_ids": [],
                 }
