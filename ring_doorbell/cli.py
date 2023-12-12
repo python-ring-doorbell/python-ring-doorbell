@@ -259,7 +259,7 @@ async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
         )
         return await ctx.invoke(list_command)
     if not device.has_capability("motion_detection"):
-        echo(f"{str(device_name)} is not capable of motion detection")
+        echo(f"{str(device)} is not capable of motion detection")
         return
 
     state = "on" if device.motion_detection else "off"
