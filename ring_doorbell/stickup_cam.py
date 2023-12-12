@@ -18,6 +18,7 @@ from ring_doorbell.const import (
     SIREN_ENDPOINT,
     SPOTLIGHT_CAM_BATTERY_KINDS,
     SPOTLIGHT_CAM_PLUS_KINDS,
+    SPOTLIGHT_CAM_PRO_KINDS,
     SPOTLIGHT_CAM_WIRED_KINDS,
     STICKUP_CAM_BATTERY_KINDS,
     STICKUP_CAM_ELITE_KINDS,
@@ -68,6 +69,8 @@ class RingStickUpCam(RingDoorBell):
             )
         if self.kind in SPOTLIGHT_CAM_PLUS_KINDS:
             return "Spotlight Cam Plus"
+        if self.kind in SPOTLIGHT_CAM_PRO_KINDS:
+            return "Spotlight Cam Pro"
         if self.kind in STICKUP_CAM_KINDS:
             return "Stick Up Cam"
         if self.kind in STICKUP_CAM_BATTERY_KINDS:
@@ -96,6 +99,7 @@ class RingStickUpCam(RingDoorBell):
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
                 + SPOTLIGHT_CAM_PLUS_KINDS
+                + SPOTLIGHT_CAM_PRO_KINDS
             )
         if capability == "siren":
             return self.kind in (
@@ -107,6 +111,7 @@ class RingStickUpCam(RingDoorBell):
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
                 + SPOTLIGHT_CAM_PLUS_KINDS
+                + SPOTLIGHT_CAM_PRO_KINDS
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_ELITE_KINDS
                 + STICKUP_CAM_GEN3_KINDS
@@ -121,6 +126,8 @@ class RingStickUpCam(RingDoorBell):
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
                 + SPOTLIGHT_CAM_PLUS_KINDS
+                + SPOTLIGHT_CAM_PRO_KINDS
+                + STICKUP_CAM_KINDS
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_ELITE_KINDS
                 + STICKUP_CAM_GEN3_KINDS
