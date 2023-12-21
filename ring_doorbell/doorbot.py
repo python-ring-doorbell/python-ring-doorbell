@@ -306,7 +306,7 @@ class RingDoorBell(RingGeneric):
 
                 for entry in response:
                     dt_at = datetime.strptime(
-                        entry["created_at"], "%Y-%m-%dT%H:%M:%S.000Z"
+                        entry["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
                     )
                     utc_dt = datetime(
                         dt_at.year,
