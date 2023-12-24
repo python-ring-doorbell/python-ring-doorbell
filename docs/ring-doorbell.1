@@ -1,0 +1,85 @@
+.TH RING-DOORBELL  1
+.SH NAME
+ring-doorbell \- Command Line Interface to operate on the Ring devices
+.SH SYNOPSIS
+\fBring-doorbell [OPTIONS] COMMAND [ARGS]...\fR
+.SH DESCRIPTION
+\fBring_doorbell\fR is a Python module to manage Ring devices. The \fBring-doorbell\fR executable can be used to interact with them. 
+
+This manual page is for the \fBring-doorbell\fR executable. See the section "SEE ALSO" for more documentation.
+
+.SS COMMANDS
+
+Executing \fBring-doorbell\fR will start an interactive session.
+
+.TP
+\fBdevices\fR
+Get device information.
+
+.TP
+\fBdings\fR
+Get dings information.
+
+.TP
+\fBgroups\fR
+Get group information.
+
+.TP
+\fBhistory\fR
+Print raw json.
+
+.TP
+\fBlist\fR
+List ring devices.
+
+.TP
+\fBlisten\fR
+Listen to push notification like the ones sent to...
+
+.TP
+\fBmotion-detection\fR
+Display ring devices.
+
+.TP
+\fBraw-query\fR
+Directly query a url and return json result.
+
+.TP
+\fBshow\fR
+Display ring devices.
+
+.TP
+\fBvideos\fR
+Interact with ring videos.
+
+.SS OPTIONS
+.TP
+\fB--version\fR
+Show the version and exit.
+
+.TP
+\fB--username TEXT\fR
+Username for Ring account.
+
+.TP
+\fB--password TEXT\fR
+Password for Ring account.
+
+.TP
+\fB-d, --debug\fR
+Enable debugging information.
+
+.TP
+\fB--user-agent TEXT\fR
+User agent to send to ring.
+
+.TP
+\fB--help\fR
+Show this message and exit.
+
+.SH AUTHOR
+This manual page was written by Carles Pina i Estany <carles@pina.cat> for the \fBDebian\fR system (but may be used by others). Permission is granted to copy, distribute and/or modify this document under the terms of the GNU General Public License, Version 3 any later version published by the Free Software Foundation.
+
+.SH SEE ALSO
+See \fBring_doorbell\fR more documentation in <https://python-ring-doorbell.readthedocs.io/> or available locally in </usr/share/doc/python3-ring-doorbell/README.md.gz> and </usr/share/doc/python3-ring-doorbell/html/>.
+
