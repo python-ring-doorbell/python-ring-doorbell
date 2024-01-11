@@ -275,4 +275,4 @@ Credits && Thanks
 * The creators of mitmproxy (https://mitmproxy.org/) great http and https traffic inspector
 * @mfussenegger for his post on mitmproxy and virtualbox https://zignar.net/2015/12/31/sniffing-vbox-traffic-mitmproxy/
 * To the project http://www.android-x86.org/ which allowed me to install Android on KVM.
-* Many thanks to Carles Pina I Estany <carles@pina.cat) for creating the python-ring-doorbell Debian Package (https://tracker.debian.org/pkg/python-ring-doorbell). 
+* Many thanks to Carles Pina I Estany <carles@pina.cat> for creating the python-ring-doorbell Debian Package (https://tracker.debian.org/pkg/python-ring-doorbell). 
