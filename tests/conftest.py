@@ -139,4 +139,25 @@ def requests_mock_fixture():
             status_code=204,
             content=b"",
         )
+        mock.put(
+            "https://api.ring.com/clients_api/doorbots/185036587",
+            status_code=204,
+            content=b""
+        )
+        mock.get(
+            "https://api.ring.com/devices/v1/devices/185036587/settings",
+            text=load_fixture("ring_intercom_settings.json"),
+        )
+        mock.get(
+            "https://api.ring.com/clients_api/locations/mock-location-id/users",
+            text=load_fixture("ring_intercom_users.json"),
+        )
+        mock.post(
+            "https://api.ring.com/clients_api/locations/mock-location-id/invitations",
+            text="ok"
+        )
+        mock.delete(
+            "https://api.ring.com/clients_api/locations/mock-location-id/invitations/123456789",
+            text="ok"
+        )
         yield mock

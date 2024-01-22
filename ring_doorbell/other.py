@@ -86,13 +86,6 @@ class Other(RingGeneric):
         return None
 
     @property
-    def subscriptions(self):
-        """Return event type subscriptions."""
-        if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("subscriptions", []).get("event_types", [])
-        return None
-
-    @property
     def has_subscription(self):
         """Return boolean if the account has subscription."""
         if self.kind in INTERCOM_KINDS:
@@ -104,7 +97,7 @@ class Other(RingGeneric):
         """Return time unlock switch is held closed"""
         json.loads(
             self._attrs.get("settings").get("intercom_settings").get("config")
-        ).get("analog").get("unlock_duration")
+        ).get("analog", {}).get("unlock_duration")
 
     @property
     def doorbell_volume(self):
@@ -126,7 +119,6 @@ class Other(RingGeneric):
             return False
 
         params = {
-            "doorbot[description]": self.name,
             "doorbot[settings][doorbell_volume]": str(value),
         }
         url = DOORBELLS_ENDPOINT.format(self.device_api_id)
