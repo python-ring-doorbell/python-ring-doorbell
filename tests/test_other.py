@@ -62,3 +62,15 @@ def test_other_invitations(ring, requests_mock):
     history = list(filter(lambda x: x.method == "DELETE", requests_mock.request_history))
     assert history[0].path == "/clients_api/locations/mock-location-id/invitations/123456789"
 
+def test_other_open_door(ring, requests_mock):
+    dev = ring.devices()["other"][0]
+
+    import uuid
+    uuid.uuid4 = lambda: "987654321"
+
+    dev.open_door(15)
+    history = list(filter(lambda x: x.method == "PUT", requests_mock.request_history))
+    assert history[0].path == "/commands/v1/devices/185036587/device_rpc"
+    assert history[0].text == ('{"command_name": "device_rpc", "request": ' 
+                                '{"id": "987654321", "jsonrpc": "2.0", "method": "unlock_door", "params": '
+                                '{"door_id": 0, "user_id": 15}}}')

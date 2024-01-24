@@ -230,7 +230,7 @@ class Other(RingGeneric):
 
         return None
 
-    def open_door(self):
+    def open_door(self, user_id = -1):
         """Open the door"""
 
         if self.kind in INTERCOM_KINDS:
@@ -247,14 +247,14 @@ class Other(RingGeneric):
                         # "command_timeout": 5,
                         "door_id": 0,
                         # "issue_time": request_timestamp,
-                        "user_id": 64658594,
+                        "user_id": user_id,
                     },
                 },
             }
 
             response = self._ring.query(url, method="PUT", json=payload).json()
             self._ring.update_devices()
-            if response.get("result", -1).get("code", -1) == 0:
+            if response.get("result", {}).get("code", -1) == 0:
                 return True
 
         return False

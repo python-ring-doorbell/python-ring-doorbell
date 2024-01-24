@@ -160,4 +160,8 @@ def requests_mock_fixture():
             "https://api.ring.com/clients_api/locations/mock-location-id/invitations/123456789",
             text="ok"
         )
+        mock.put(
+            "https://api.ring.com/commands/v1/devices/185036587/device_rpc",
+            text='{"result": {"code": 0}, "id": "44529542-3ed7-41da-807e-c170a01bac1d", "jsonrpc": "2.0"}'
+        )
         yield mock
