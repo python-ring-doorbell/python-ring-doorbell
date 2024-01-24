@@ -9,7 +9,7 @@ from ring_doorbell.doorbot import RingDoorBell
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingEvent
 from ring_doorbell.group import RingLightGroup
-from ring_doorbell.listen import RingEventListener, can_listen
+from ring_doorbell.listen import RingEventListener, RingEventListenerConfig, can_listen
 from ring_doorbell.stickup_cam import RingStickUpCam
 
 from .const import (
@@ -121,6 +121,7 @@ class Ring(object):
         listen_loop=None,
         callback_loop=None,
         timeout=30,
+        config: RingEventListenerConfig = RingEventListenerConfig.default_config,
     ) -> bool:
         """Start the event listener for realtime push notifications."""
         if not can_listen:
@@ -131,7 +132,10 @@ class Ring(object):
 
         if not self.event_listener:
             self.event_listener = RingEventListener(
-                self.auth, listener_credentials, listener_credentials_callback
+                self.auth,
+                listener_credentials,
+                listener_credentials_callback,
+                config=config,
             )
         self.event_listener.start_listen(
             self.on_ring_event,

@@ -29,10 +29,31 @@ except ImportError:  # pragma: no cover
 _logger = logging.getLogger(__name__)
 
 
+class RingEventListenerConfig(FcmPushClientConfig):
+    """Configuration class for event listener."""
+
+    @classmethod
+    @property
+    def default_config(cls) -> "RingEventListenerConfig":
+        "Return the default configuration for listening to ring alerts."
+        config = RingEventListenerConfig()
+        config.server_heartbeat_interval = 60
+        config.client_heartbeat_interval = 120
+        config.monitor_interval = 15
+        return config
+
+
 class RingEventListener:
     """Class to connect to firebase cloud messaging."""
 
-    def __init__(self, auth: Auth, credentials=None, credentials_updated_callback=None):
+    def __init__(
+        self,
+        auth: Auth,
+        credentials=None,
+        credentials_updated_callback=None,
+        *,
+        config: RingEventListenerConfig = RingEventListenerConfig.default_config,
+    ):
         self._auth = auth
 
         self._callbacks = {}
@@ -45,9 +66,7 @@ class RingEventListener:
         self._credentials_updated_callback = credentials_updated_callback
 
         self._receiver = None
-        self._config = FcmPushClientConfig()
-        self._config.server_heartbeat_interval = 60
-        self._config.client_heartbeat_interval = 120
+        self._config = config or RingEventListenerConfig.default_config
 
         self._subscription_counter = 1
 
