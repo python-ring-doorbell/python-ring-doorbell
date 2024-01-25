@@ -142,7 +142,7 @@ def requests_mock_fixture():
         mock.put(
             "https://api.ring.com/clients_api/doorbots/185036587",
             status_code=204,
-            content=b""
+            content=b"",
         )
         mock.get(
             "https://api.ring.com/devices/v1/devices/185036587/settings",
@@ -154,14 +154,18 @@ def requests_mock_fixture():
         )
         mock.post(
             "https://api.ring.com/clients_api/locations/mock-location-id/invitations",
-            text="ok"
+            text="ok",
         )
         mock.delete(
-            "https://api.ring.com/clients_api/locations/mock-location-id/invitations/123456789",
-            text="ok"
+            (
+                "https://api.ring.com/clients_api/locations/"
+                "mock-location-id/invitations/123456789"
+            ),
+            text="ok",
         )
+        requestid = "44529542-3ed7-41da-807e-c170a01bac1d"
         mock.put(
             "https://api.ring.com/commands/v1/devices/185036587/device_rpc",
-            text='{"result": {"code": 0}, "id": "44529542-3ed7-41da-807e-c170a01bac1d", "jsonrpc": "2.0"}'
+            text='{"result": {"code": 0}, "id": "' + requestid + '", "jsonrpc": "2.0"}',
         )
         yield mock

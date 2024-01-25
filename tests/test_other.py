@@ -1,5 +1,6 @@
 """The tests for the Ring platform."""
 
+
 def test_other_attributes(ring):
     """Test the Ring Other class and methods."""
     dev = ring.devices()["other"][0]
@@ -16,17 +17,18 @@ def test_other_attributes(ring):
     assert dev.doorbell_volume == 8
     assert dev.mic_volume == 11
     assert dev.clip_length_max == 60
-    assert dev.connection_status == 'online'
+    assert dev.connection_status == "online"
     assert len(dev.allowed_users) == 2
-    assert dev.subscribed == True
-    assert dev.has_subscription == True
-    assert dev.unlock_duration == None
+    assert dev.subscribed is True
+    assert dev.has_subscription is True
+    assert dev.unlock_duration is None
     assert dev.keep_alive_auto == 45.0
 
     dev.update_health_data()
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
     assert dev.wifi_signal_strength != 100
+
 
 def test_other_controls(ring, requests_mock):
     dev = ring.devices()["other"][0]
@@ -50,27 +52,40 @@ def test_other_controls(ring, requests_mock):
     assert history[3].path == "/devices/v1/devices/185036587/settings"
     assert history[3].text == '{"keep_alive_settings": {"keep_alive_auto": 32.2}}'
 
+
 def test_other_invitations(ring, requests_mock):
     dev = ring.devices()["other"][0]
 
     dev.invite_access("test@example.com")
     history = list(filter(lambda x: x.method == "POST", requests_mock.request_history))
     assert history[2].path == "/clients_api/locations/mock-location-id/invitations"
-    assert history[2].text == '{"invitation": {"doorbot_ids": [185036587], "invited_email": "test@example.com", "group_ids": []}}'
+    assert history[2].text == (
+        '{"invitation": {"doorbot_ids": [185036587],'
+        ' "invited_email": "test@example.com", "group_ids": []}}'
+    )
 
     dev.remove_access(123456789)
-    history = list(filter(lambda x: x.method == "DELETE", requests_mock.request_history))
-    assert history[0].path == "/clients_api/locations/mock-location-id/invitations/123456789"
+    history = list(
+        filter(lambda x: x.method == "DELETE", requests_mock.request_history)
+    )
+    assert (
+        history[0].path
+        == "/clients_api/locations/mock-location-id/invitations/123456789"
+    )
+
 
 def test_other_open_door(ring, requests_mock):
     dev = ring.devices()["other"][0]
 
     import uuid
+
     uuid.uuid4 = lambda: "987654321"
 
     dev.open_door(15)
     history = list(filter(lambda x: x.method == "PUT", requests_mock.request_history))
     assert history[0].path == "/commands/v1/devices/185036587/device_rpc"
-    assert history[0].text == ('{"command_name": "device_rpc", "request": ' 
-                                '{"id": "987654321", "jsonrpc": "2.0", "method": "unlock_door", "params": '
-                                '{"door_id": 0, "user_id": 15}}}')
+    assert history[0].text == (
+        '{"command_name": "device_rpc", "request": '
+        '{"id": "987654321", "jsonrpc": "2.0", "method": "unlock_door", "params": '
+        '{"door_id": 0, "user_id": 15}}}'
+    )

@@ -28,7 +28,7 @@ from ring_doorbell.generic import RingGeneric
 _LOGGER = logging.getLogger(__name__)
 
 
-class Other(RingGeneric):
+class RingOther(RingGeneric):
     """Implementation for Ring Intercom."""
 
     def __init__(self, ring, device_api_id, shared=False):
@@ -230,7 +230,7 @@ class Other(RingGeneric):
 
         return None
 
-    def open_door(self, user_id = -1):
+    def open_door(self, user_id=-1):
         """Open the door"""
 
         if self.kind in INTERCOM_KINDS:

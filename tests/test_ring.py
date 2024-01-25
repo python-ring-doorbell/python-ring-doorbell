@@ -1,5 +1,6 @@
 """The tests for the Ring platform."""
 
+
 def test_basic_attributes(ring):
     """Test the Ring class and methods."""
     data = ring.devices()
