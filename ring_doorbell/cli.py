@@ -14,12 +14,9 @@ from pathlib import Path, PurePath
 
 import asyncclick as click
 
-from ring_doorbell.auth import Auth
+from ring_doorbell import Auth, AuthenticationError, Requires2FAError, Ring, RingEvent
 from ring_doorbell.const import CLI_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
-from ring_doorbell.exceptions import AuthenticationError, Requires2FAError
-from ring_doorbell.generic import RingEvent
 from ring_doorbell.listen import can_listen
-from ring_doorbell.ring import Ring
 
 
 def _header():
@@ -617,6 +614,21 @@ def get_now_str():
     return str(datetime.utcnow())
 
 
+class _event_handler:  # pylint:disable=invalid-name
+    def __init__(self, ring: Ring):
+        self.ring = ring
+
+    def on_event(self, event: RingEvent):
+        msg = (
+            get_now_str()
+            + ": "
+            + str(event)
+            + " : Currently active count = "
+            + str(len(self.ring.push_dings_data))
+        )
+        echo(msg)
+
+
 @cli.command
 @click.option(
     "--credentials-file",
@@ -653,6 +665,10 @@ async def listen(
         echo("pip install ring_doorbell[listen]")
         return
 
+    from ring_doorbell.listen import (  # pylint:disable=import-outside-toplevel
+        RingEventListener,
+    )
+
     def credentials_updated_callback(credentials):
         if store_credentials:
             with open(credentials_file, "w", encoding="utf-8") as f:
@@ -662,27 +678,19 @@ async def listen(
             if show_credentials:
                 echo(credentials)
 
-    def on_event(event: RingEvent):
-        nonlocal ring
-        msg = (
-            get_now_str()
-            + ": "
-            + str(event)
-            + " : Currently active count = "
-            + str(len(ring.push_dings_data))
-        )
-        echo(msg)
-
     credentials = None
     if store_credentials and Path(credentials_file).is_file():
         # already registered, load previous credentials
         with open(credentials_file, "r", encoding="utf-8") as f:
             credentials = json.load(f)
 
-    ring.start_event_listener(credentials, credentials_updated_callback)
-    ring.add_event_listener_callback(on_event)
+    event_listener = RingEventListener(ring, credentials, credentials_updated_callback)
+    event_listener.start()
+    event_listener.add_notification_callback(_event_handler(ring).on_event)
 
     await ainput("Listening, press enter to cancel\n")
+
+    event_listener.stop()
 
 
 if __name__ == "__main__":

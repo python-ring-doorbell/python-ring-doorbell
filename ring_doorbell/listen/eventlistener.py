@@ -4,7 +4,8 @@ import logging
 import time
 from datetime import datetime
 
-from ring_doorbell.auth import Auth
+from firebase_messaging import FcmPushClient
+
 from ring_doorbell.const import (
     API_URI,
     API_VERSION,
@@ -17,14 +18,10 @@ from ring_doorbell.const import (
     SUBSCRIPTION_ENDPOINT,
 )
 from ring_doorbell.exceptions import RingError
-from ring_doorbell.generic import RingEvent
+from ring_doorbell.ring import Ring
 
-try:
-    from firebase_messaging import FcmPushClient, FcmPushClientConfig
-
-    can_listen = True  # pylint:disable=invalid-name
-except ImportError:  # pragma: no cover
-    can_listen = False  # pylint:disable=invalid-name
+from ..event import RingEvent
+from .listenerconfig import RingEventListenerConfig
 
 _logger = logging.getLogger(__name__)
 
@@ -32,27 +29,35 @@ _logger = logging.getLogger(__name__)
 class RingEventListener:
     """Class to connect to firebase cloud messaging."""
 
-    def __init__(self, auth: Auth, credentials=None, credentials_updated_callback=None):
-        self._auth = auth
+    def __init__(
+        self,
+        ring: Ring,
+        credentials=None,
+        credentials_updated_callback=None,
+        *,
+        config: RingEventListenerConfig = RingEventListenerConfig.default_config,
+    ):
+        self._ring = ring
 
         self._callbacks = {}
         self.subscribed = False
         self.started = False
-        self._app_id = auth.get_hardware_id()
-        self._device_model = auth.get_device_model()
+        self._app_id = self._ring.auth.get_hardware_id()
+        self._device_model = self._ring.auth.get_device_model()
 
         self._credentials = credentials
         self._credentials_updated_callback = credentials_updated_callback
 
         self._receiver = None
-        self._config = FcmPushClientConfig()
-        self._config.server_heartbeat_interval = 60
-        self._config.client_heartbeat_interval = 120
+        self._config = config or RingEventListenerConfig.default_config
 
         self._subscription_counter = 1
 
     def add_subscription_to_ring(self, token) -> bool:
         # "hardware_id": self.auth.get_hardware_id(),
+        if not self._ring.session:
+            self._ring.create_session()
+
         session_patch_data = {
             "device": {
                 "metadata": {
@@ -64,7 +69,7 @@ class RingEventListener:
                 "push_notification_token": token,
             }
         }
-        resp = self._auth.query(
+        resp = self._ring.auth.query(
             API_URI + SUBSCRIPTION_ENDPOINT,
             method="PATCH",
             json=session_patch_data,
@@ -105,7 +110,7 @@ class RingEventListener:
             self._receiver.stop()
             self._receiver = None
 
-    def stop_listen(self):
+    def stop(self):
         if self._receiver:
             self.started = False
             self._receiver.stop()
@@ -113,9 +118,10 @@ class RingEventListener:
 
         self._callbacks = {}
 
-    def start_listen(
-        self, callback, *, listen_loop=None, callback_loop=None, timeout=30
-    ):
+    def start(self, callback=None, *, listen_loop=None, callback_loop=None, timeout=30):
+        if not callback:
+            callback = self._ring.add_event_to_dings_data
+
         if not self._receiver:
             self._receiver = FcmPushClient(
                 credentials=self._credentials,

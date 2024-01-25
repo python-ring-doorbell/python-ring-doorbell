@@ -9,6 +9,7 @@ from asyncclick.testing import CliRunner
 
 from ring_doorbell import AuthenticationError, Requires2FAError, Ring
 from ring_doorbell.cli import (
+    _event_handler,
     cli,
     devices_command,
     list_command,
@@ -174,10 +175,12 @@ async def test_motion_detection(ring, requests_mock):
     can_listen is False, reason="requires the extra [listen] to be installed"
 )
 @pytest.mark.nolistenmock
-async def test_listen(mocker, auth):
+async def test_listen_store_credentials(mocker, auth):
     # mocker.patch("firebase_messaging.checkin", return_value="foobar")
     runner = CliRunner()
     import firebase_messaging
+
+    from ring_doorbell.listen import RingEventListener
 
     credentials = json.loads(load_fixture("ring_listen_credentials.json"))
 
@@ -190,13 +193,10 @@ async def test_listen(mocker, auth):
         )
         mocker.patch("firebase_messaging.FcmPushClient.start")
         mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
-        echomock = mocker.patch("ring_doorbell.cli.echo")
-        mocker.patch(
-            "ring_doorbell.cli.get_now_str", return_value="2023-10-24 09:42:18.789709"
-        )
 
         ring = Ring(auth)
         assert not os.path.isfile("credentials.json")
+
         await runner.invoke(listen, ["--store-credentials"], obj=ring)
         assert os.path.isfile("credentials.json")
         assert firebase_messaging.fcmpushclient.gcm_check_in.call_count == 0
@@ -209,15 +209,32 @@ async def test_listen(mocker, auth):
         assert firebase_messaging.FcmPushClient.register.call_count == 1
         assert firebase_messaging.FcmPushClient.start.call_count == 2
 
-        msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
-        gcmdata = load_fixture("ring_listen_motion.json")
-        msg["data"]["gcmData"] = gcmdata
-        ring.event_listener.on_notification(msg, "1234567")
-        exp = (
-            "2023-10-24 09:42:18.789709: RingEvent(id=12345678901234, "
-            + "doorbot_id=12345678, device_name='Front Floodcam'"
-            + ", device_kind='floodlight_v2', now=1698137483.395,"
-            + " expires_in=180, kind='motion', state='human') : "
-            + "Currently active count = 1"
-        )
-        echomock.assert_called_with(exp)
+
+@pytest.mark.skipif(
+    can_listen is False, reason="requires the extra [listen] to be installed"
+)
+async def test_listen_event_handler(mocker, auth):
+    # mocker.patch("firebase_messaging.checkin", return_value="foobar")
+    from ring_doorbell.listen import RingEventListener
+
+    ring = Ring(auth)
+    listener = RingEventListener(ring)
+    listener.start()
+    listener.add_notification_callback(_event_handler(ring).on_event)
+
+    msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
+    gcmdata = load_fixture("ring_listen_motion.json")
+    msg["data"]["gcmData"] = gcmdata
+    echomock = mocker.patch("ring_doorbell.cli.echo")
+    mocker.patch(
+        "ring_doorbell.cli.get_now_str", return_value="2023-10-24 09:42:18.789709"
+    )
+    listener.on_notification(msg, "1234567")
+    exp = (
+        "2023-10-24 09:42:18.789709: RingEvent(id=12345678901234, "
+        + "doorbot_id=12345678, device_name='Front Floodcam'"
+        + ", device_kind='floodlight_v2', now=1698137483.395,"
+        + " expires_in=180, kind='motion', state='human') : "
+        + "Currently active count = 1"
+    )
+    echomock.assert_called_with(exp)

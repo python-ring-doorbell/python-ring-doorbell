@@ -2,14 +2,13 @@
 """Python Ring Doorbell module."""
 import logging
 from time import time
+from typing import List
 
+from ring_doorbell import RingEvent
 from ring_doorbell.auth import Auth
 from ring_doorbell.chime import RingChime
 from ring_doorbell.doorbot import RingDoorBell
-from ring_doorbell.exceptions import RingError
-from ring_doorbell.generic import RingEvent
 from ring_doorbell.group import RingLightGroup
-from ring_doorbell.listen import RingEventListener, can_listen
 from ring_doorbell.stickup_cam import RingStickUpCam
 
 from .const import (
@@ -49,12 +48,7 @@ class Ring(object):
         self.dings_data = None
         self.push_dings_data = []
         self.groups_data = None
-        self.event_listener = None
         self.init_loop = None
-
-    def __del__(self):
-        if self.event_listener:
-            self.event_listener.stop_listen()
 
     def update_data(self):
         """Update all data."""
@@ -70,7 +64,7 @@ class Ring(object):
 
         self.update_groups()
 
-    def on_ring_event(self, ring_event: RingEvent):
+    def add_event_to_dings_data(self, ring_event: RingEvent):
         # Purge expired push_dings
         now = time()
         self.push_dings_data = [
@@ -96,55 +90,6 @@ class Ring(object):
             method="POST",
             json=session_post_data,
         ).json()
-
-    def add_event_listener_callback(self, callback):
-        if can_listen and self.event_listener:
-            return self.event_listener.add_notification_callback(callback)
-
-        raise RingError(
-            "Listening must be enabled and started in order to add a callback"
-        )
-
-    def remove_event_listener_callback(self, cb_id):
-        if can_listen and self.event_listener:
-            self.event_listener.remove_notification_callback(cb_id)
-        else:
-            raise RingError(
-                "Listening must be enabled and started in order to add a callback"
-            )
-
-    def start_event_listener(
-        self,
-        listener_credentials=None,
-        listener_credentials_callback=None,
-        *,
-        listen_loop=None,
-        callback_loop=None,
-        timeout=30,
-    ) -> bool:
-        """Start the event listener for realtime push notifications."""
-        if not can_listen:
-            raise RingError(
-                "Listening not enabled, ring_doorbell should "
-                + "be installed with extra [listen]"
-            )
-
-        if not self.event_listener:
-            self.event_listener = RingEventListener(
-                self.auth, listener_credentials, listener_credentials_callback
-            )
-        self.event_listener.start_listen(
-            self.on_ring_event,
-            listen_loop=listen_loop,
-            callback_loop=callback_loop,
-            timeout=timeout,
-        )
-        return self.event_listener.started
-
-    def stop_event_listener(self):
-        if self.event_listener:
-            self.event_listener.stop_listen()
-            self.event_listener = None
 
     def update_devices(self):
         """Update device data."""
@@ -268,7 +213,7 @@ class Ring(object):
 
         return groups
 
-    def active_alerts(self):
+    def active_alerts(self) -> List[RingEvent]:
         """Get active alerts."""
 
         now = time()
