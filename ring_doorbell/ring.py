@@ -9,7 +9,6 @@ from ring_doorbell.auth import Auth
 from ring_doorbell.chime import RingChime
 from ring_doorbell.doorbot import RingDoorBell
 from ring_doorbell.group import RingLightGroup
-from ring_doorbell.listen import RingEventListener, can_listen
 from ring_doorbell.other import RingOther
 from ring_doorbell.stickup_cam import RingStickUpCam
 
