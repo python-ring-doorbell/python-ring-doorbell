@@ -22,7 +22,6 @@ from ring_doorbell.const import (
     VOICE_VOL_MAX,
     VOICE_VOL_MIN,
 )
-from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
 
 _LOGGER = logging.getLogger(__name__)
@@ -200,12 +199,9 @@ class RingOther(RingGeneric):
     def clip_length_max(self, value):
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"video_settings": {"clip_length_max": value}}
-        try:
-            self._ring.query(url, method="PATCH", json=payload)
-            self._ring.update_devices()
-            return True
-        except Exception as ex:
-            raise RingError(f"Unknown error during query of url {url}: {ex}") from ex
+        self._ring.query(url, method="PATCH", json=payload)
+        self._ring.update_devices()
+        return True
 
     @property
     def connection_status(self):
