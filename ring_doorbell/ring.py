@@ -254,3 +254,8 @@ class Ring(object):
                     alerts[key] = re
 
         return alerts.values()
+
+    def test_cov_function(self):
+        fd = 2
+        bd = 3
+        return fd + bd
