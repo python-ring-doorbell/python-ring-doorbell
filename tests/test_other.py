@@ -74,12 +74,10 @@ def test_other_invitations(ring, requests_mock):
     )
 
 
-def test_other_open_door(ring, requests_mock):
+def test_other_open_door(ring, requests_mock, mocker):
     dev = ring.devices()["other"][0]
 
-    import uuid
-
-    uuid.uuid4 = lambda: "987654321"
+    mocker.patch("uuid.uuid4", return_value="987654321")
 
     dev.open_door(15)
     history = list(filter(lambda x: x.method == "PUT", requests_mock.request_history))
