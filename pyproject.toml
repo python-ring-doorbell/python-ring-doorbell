@@ -96,6 +96,10 @@ profile = "black"
 known_first_party = "ring_doorbell"
 known_third_party = ["asyncclick", "pytest"]
 
+[tool.coverage.run]
+source = ["ring_doorbell"]
+branch = true
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
