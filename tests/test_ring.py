@@ -1,13 +1,4 @@
 """The tests for the Ring platform."""
-import json
-
-import pytest
-import requests_mock
-
-from ring_doorbell import Auth, Ring
-from ring_doorbell.doorbot import RingDoorBell
-from ring_doorbell.listen import can_listen
-from tests.conftest import load_fixture
 
 
 def test_basic_attributes(ring):
@@ -17,6 +8,7 @@ def test_basic_attributes(ring):
     assert len(data["doorbots"]) == 1
     assert len(data["authorized_doorbots"]) == 1
     assert len(data["stickup_cams"]) == 1
+    assert len(data["other"]) == 1
 
 
 def test_chime_attributes(ring):

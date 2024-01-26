@@ -1,0 +1,34 @@
+[
+  {
+    "id": 115201490,
+    "verified": true,
+    "first_name": "John",
+    "last_name": "Carter",
+    "email": "john@cart.er",
+    "object_type": "user",
+    "devices": [
+      {
+        "id": 185036587,
+        "role": "owner",
+        "device_type": "intercom_handset_audio",
+        "permissions": null
+      }
+    ]
+  },
+  {
+    "id": 194872097,
+    "verified": true,
+    "first_name": "Bob",
+    "last_name": "Meloni",
+    "email": "bob@melo.ni",
+    "object_type": "user",
+    "devices": [
+      {
+        "id": 185036587,
+        "role": "shared_user",
+        "device_type": "intercom_handset_audio",
+        "permissions": null
+      }
+    ]
+  }
+]
