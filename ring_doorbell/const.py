@@ -1,4 +1,3 @@
-# coding: utf-8
 # vim:sw=4:ts=4:et:
 """Constants."""
 
@@ -35,12 +34,12 @@ DEFAULT_LISTEN_EVENT_EXPIRES_IN = 180
 # for Ring android app.  703521446232 for ring-site
 RING_SENDER_ID = 876313859327
 
-CLI_TOKEN_FILE = "ring_token.cache"
+CLI_TOKEN_FILE = "ring_token.cache"  # noqa: S105
 CHIMES_ENDPOINT = "/clients_api/chimes/{0}"
 DEVICES_ENDPOINT = "/clients_api/ring_devices"
 DINGS_ENDPOINT = "/clients_api/dings/active"
 DOORBELLS_ENDPOINT = "/clients_api/doorbots/{0}"
-PERSIST_TOKEN_ENDPOINT = "/clients_api/device"
+PERSIST_TOKEN_ENDPOINT = "/clients_api/device"  # noqa: S105
 SUBSCRIPTION_ENDPOINT = "/clients_api/device"
 GROUPS_ENDPOINT = "/groups/v1/locations/{0}/groups"
 LOCATIONS_HISTORY_ENDPOINT = "/evm/v2/history/locations/{0}"
@@ -130,7 +129,7 @@ INTERCOM_KINDS = ["intercom_handset_audio"]
 
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."
-MSG_EXISTING_TYPE = "Integer value where {0}.".format(DOORBELL_EXISTING_TYPE)
+MSG_EXISTING_TYPE = f"Integer value where {DOORBELL_EXISTING_TYPE}."
 MSG_GENERIC_FAIL = "Sorry.. Something went wrong..."
 FILE_EXISTS = "The file {0} already exists."
 MSG_VOL_OUTBOUND = "Must be within the {0}-{1}."

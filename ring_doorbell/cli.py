@@ -90,10 +90,7 @@ def _format_filename(device_name, event):
     if not isinstance(event, dict):
         return None
 
-    if event["answered"]:
-        answered_status = "answered"
-    else:
-        answered_status = "not_answered"
+    answered_status = "answered" if event["answered"] else "not_answered"
 
     filename = "{}_{}_{}_{}_{}".format(
         device_name, event["created_at"], event["kind"], answered_status, event["id"]
@@ -178,7 +175,6 @@ def _get_ring(username, password, do_update_data, user_agent=USER_AGENT):
 @click.pass_context
 async def cli(ctx, username, password, debug, user_agent):
     """Command line function."""
-
     _header()
 
     logging.basicConfig()
@@ -509,7 +505,6 @@ async def videos(
     ctx, ring: Ring, count, download, download_all, max_count, download_to, device_name
 ):
     """Interact with ring videos."""
-
     device = None
     if device_name and not (device := ring.get_device_by_name(device_name)):
         echo(
@@ -563,10 +558,10 @@ async def videos(
         ding = len([m["kind"] for m in events if m["kind"] == "ding"])
         on_demand = len([m["kind"] for m in events if m["kind"] == "on_demand"])
 
-        echo("\tTotal videos: {}".format(len(events)))
-        echo("\tDing triggered: {}".format(ding))
-        echo("\tMotion triggered: {}".format(motion))
-        echo("\tOn-Demand triggered: {}".format(on_demand))
+        echo(f"\tTotal videos: {len(events)}")
+        echo(f"\tDing triggered: {ding}")
+        echo(f"\tMotion triggered: {motion}")
+        echo(f"\tOn-Demand triggered: {on_demand}")
 
     if download:
         if events is None:
@@ -584,7 +579,7 @@ async def videos(
         for event in events:
             counter += 1
             filename = str(PurePath(download_to, _format_filename(device.name, event)))
-            echo("\t{}/{} Downloading {}".format(counter, len(events), filename))
+            echo(f"\t{counter}/{len(events)} Downloading {filename}")
 
             device.recording_download(event["id"], filename=filename, override=False)
 
@@ -684,7 +679,7 @@ async def listen(
     credentials = None
     if store_credentials and Path(credentials_file).is_file():
         # already registered, load previous credentials
-        with open(credentials_file, "r", encoding="utf-8") as f:
+        with open(credentials_file, encoding="utf-8") as f:
             credentials = json.load(f)
 
     event_listener = RingEventListener(ring, credentials, credentials_updated_callback)

@@ -4,32 +4,9 @@ repos:
     hooks:
     -   id: poetry-check
 
-- repo: https://github.com/python/black
-  rev: 23.3.0
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.3
   hooks:
-  - id: black
-    files: ^ring_doorbell/|^tests/|^test.py|^scripts/
-    
-- repo: https://github.com/pycqa/flake8
-  rev: 6.0.0
-  hooks:
-  - id: flake8
-    files: ^ring_doorbell/|^tests/|^test.py|^scripts/
-
-- repo: https://github.com/pre-commit/mirrors-isort
-  rev: v5.10.1
-  hooks:
-  - id: isort
-    additional_dependencies: [toml]
-
-- repo: local
-  hooks:
-  - id: pylint
-    name: pylint
-    entry: pylint
-    language: system
-    types: [python]
-    require_serial: true
-    files: ^ring_doorbell/
-
-
+    - id: ruff
+      args: [--fix, --exit-non-zero-on-fix]
+    - id: ruff-format  

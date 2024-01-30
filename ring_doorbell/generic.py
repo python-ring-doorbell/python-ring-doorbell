@@ -1,10 +1,9 @@
-# coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring RingGeneric wrapper."""
 
 
 # pylint: disable=useless-object-inheritance
-class RingGeneric(object):
+class RingGeneric:
     """Generic Implementation for Ring Chime/Doorbell."""
 
     # pylint: disable=redefined-builtin
@@ -24,7 +23,7 @@ class RingGeneric(object):
 
     def __repr__(self):
         """Return __repr__."""
-        return "<{0}: {1}>".format(self.__class__.__name__, self.name)
+        return f"<{self.__class__.__name__}: {self.name}>"
 
     def __str__(self):
         return f"{self.name} ({self.kind})"
@@ -57,7 +56,8 @@ class RingGeneric(object):
         """Return device ID.
 
         This is the device_id returned by the api, usually the MAC.
-        Not to be confused with the id for the device"""
+        Not to be confused with the id for the device
+        """
         return self._attrs["device_id"]
 
     @property

@@ -36,7 +36,7 @@ TYPES = {
 
 
 # pylint: disable=useless-object-inheritance
-class Ring(object):
+class Ring:
     """A Python Abstraction object to Ring Door Bell."""
 
     def __init__(self, auth: Auth):
@@ -218,7 +218,6 @@ class Ring(object):
 
     def active_alerts(self) -> List[RingEvent]:
         """Get active alerts."""
-
         now = time()
         # Purge expired push_dings
         self.push_dings_data = [
@@ -228,9 +227,7 @@ class Ring(object):
         alerts = {}
         for re in self.push_dings_data:
             key = (re.doorbot_id, re.id, re.kind)
-            if key not in alerts:
-                alerts[key] = re
-            elif re.now > alerts[key].now:
+            if key not in alerts or re.now > alerts[key].now:
                 alerts[key] = re
 
         for ding_data in self.dings_data:
@@ -248,9 +245,7 @@ class Ring(object):
                     state=ding_data["state"],
                 )
                 key = (re.doorbot_id, re.id, re.kind)
-                if key not in alerts:
-                    alerts[key] = re
-                elif re.now > alerts[key].now:
+                if key not in alerts or re.now > alerts[key].now:
                     alerts[key] = re
 
         return alerts.values()

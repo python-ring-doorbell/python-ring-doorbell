@@ -1,4 +1,3 @@
-# coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring light group wrapper."""
 import logging
@@ -23,7 +22,7 @@ class RingLightGroup:
 
     def __repr__(self):
         """Return __repr__."""
-        return "<{0}: {1}>".format(self.__class__.__name__, self.name)
+        return f"<{self.__class__.__name__}: {self.name}>"
 
     def update(self):
         """Update this device info."""
@@ -55,7 +54,9 @@ class RingLightGroup:
     def device_id(self):
         """Return group ID. Deprecated"""
         warnings.warn(
-            "RingLightGroup.device_id is deprecated; use group_id", DeprecationWarning
+            "RingLightGroup.device_id is deprecated; use group_id",
+            DeprecationWarning,
+            stacklevel=1,
         )
         return self.group_id
 

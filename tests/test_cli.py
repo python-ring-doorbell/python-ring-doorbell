@@ -1,8 +1,7 @@
-import getpass
 import json
 import os
 from pathlib import Path
-from unittest.mock import DEFAULT, MagicMock
+from unittest.mock import DEFAULT
 
 import pytest
 from asyncclick.testing import CliRunner
@@ -179,8 +178,6 @@ async def test_listen_store_credentials(mocker, auth):
     # mocker.patch("firebase_messaging.checkin", return_value="foobar")
     runner = CliRunner()
     import firebase_messaging
-
-    from ring_doorbell.listen import RingEventListener
 
     credentials = json.loads(load_fixture("ring_listen_credentials.json"))
 
