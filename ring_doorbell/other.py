@@ -1,4 +1,3 @@
-# coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Other (Intercom) wrapper."""
 import json
@@ -228,7 +227,6 @@ class RingOther(RingGeneric):
 
     def open_door(self, user_id=-1):
         """Open the door"""
-
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_OPEN_ENDPOINT.format(self.device_api_id)
             request_id = str(uuid.uuid4())
@@ -257,7 +255,6 @@ class RingOther(RingGeneric):
 
     def invite_access(self, email):
         """Invite user"""
-
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_ENDPOINT.format(self.location_id)
             payload = {
@@ -274,7 +271,6 @@ class RingOther(RingGeneric):
 
     def remove_access(self, user_id):
         """Remove user access or invitation"""
-
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_DELETE_ENDPOINT.format(self.location_id, user_id)
             self._ring.query(url, method="DELETE")

@@ -1,4 +1,3 @@
-# coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Auth Class."""
 import uuid

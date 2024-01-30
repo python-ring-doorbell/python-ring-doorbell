@@ -1,4 +1,3 @@
-# coding: utf-8
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell wrapper."""
 import logging
@@ -180,8 +179,7 @@ class RingDoorBell(RingGeneric):
         1: Digital
         2: Not Present
         """
-        # pylint:disable=consider-iterating-dictionary
-        if value not in DOORBELL_EXISTING_TYPE.keys():
+        if value not in DOORBELL_EXISTING_TYPE:
             _LOGGER.error("%s", MSG_EXISTING_TYPE)
             return False
         params = {
@@ -228,9 +226,11 @@ class RingDoorBell(RingGeneric):
     @property
     def existing_doorbell_type_duration(self):
         """Return duration for Digital chime."""
-        if self.existing_doorbell_type:
-            if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[1]:
-                return self._attrs.get("settings").get("chime_settings").get("duration")
+        if (
+            self.existing_doorbell_type
+            and self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[1]
+        ):
+            return self._attrs.get("settings").get("chime_settings").get("duration")
         return None
 
     @existing_doorbell_type_duration.setter
@@ -394,7 +394,7 @@ class RingDoorBell(RingGeneric):
                         return True
                 else:
                     return req.content
-        except IOError as error:
+        except OSError as error:
             msg = f"Error downloading recording {recording_id}: {error}"
             _LOGGER.error(msg)
             raise RingError(msg) from error

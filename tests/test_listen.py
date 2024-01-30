@@ -4,11 +4,8 @@ import datetime
 import json
 
 import pytest
-import requests_mock
 
-from ring_doorbell import Auth, Ring
-from ring_doorbell.doorbot import RingDoorBell
-from ring_doorbell.event import RingEvent
+from ring_doorbell import Ring
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.listen import can_listen
 from tests.conftest import load_fixture
@@ -19,7 +16,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 if can_listen:
-    from ring_doorbell.listen import RingEventListener, RingEventListenerConfig
+    from ring_doorbell.listen import RingEventListener
 
 
 async def test_listen(auth, mocker):
