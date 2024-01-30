@@ -82,15 +82,6 @@ filterwarnings = [
     "ignore:.*datetime.datetime.utcnow.*:DeprecationWarning"
 ]
 
-[tool.pylint]
-disable = ["format", "locally-disabled", "duplicate-code", "cyclic-import", "unused-argument",
-  "global-statement","too-many-arguments", "too-many-branches", "too-many-instance-attributes",
-  "too-many-locals", "too-many-public-methods", "too-many-return-statements", "too-many-statements",
-  "too-many-lines", "too-few-public-methods", "abstract-method", "consider-using-f-string",
-  "import-error", "missing-function-docstring"
-]
-overgeneral-exceptions = ["builtins.Exception"]
-
 [tool.coverage.run]
 source = ["ring_doorbell"]
 branch = true
