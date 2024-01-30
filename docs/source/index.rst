@@ -6,6 +6,7 @@
 Welcome to python-ring-doorbell's documentation!
 ================================================
 
+
 .. include:: ../../README.rst
 
 .. toctree::
@@ -16,4 +17,6 @@ Welcome to python-ring-doorbell's documentation!
    Home <self>
    contributing
    changelog
+
+   
 

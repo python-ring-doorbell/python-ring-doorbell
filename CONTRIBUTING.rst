@@ -138,3 +138,20 @@ the install script above or pipx.
 
 See `poetry documentation <https://python-poetry.org/>`_ for more info
 
+Documentation
+^^^^^^^^^^^^^
+
+To build the docs install with the docs extra::
+
+    $ poetry install --extras docs
+
+Then generate a `Github access token <https://github.com/settings/tokens/new?description=GitHub%20Changelog%20Generator%20token>`_
+(no permissions are needed) and export it as follows::
+
+    $ export CHANGELOG_GITHUB_TOKEN="«your-40-digit-github-token»"
+
+Then build::
+
+    $ make -C html
+
+You can add the token to your shell profile to avoid having to export it each time. (e.g., .env, ~/.bash_profile, ~/.bashrc, ~/.zshrc, etc)

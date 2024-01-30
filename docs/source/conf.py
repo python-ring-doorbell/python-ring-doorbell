@@ -33,4 +33,5 @@ exclude_patterns = []
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+master_doc = "index"
 sphinx_github_changelog_token = os.environ.get("CHANGELOG_GITHUB_TOKEN")
