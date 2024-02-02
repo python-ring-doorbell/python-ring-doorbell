@@ -158,6 +158,9 @@ class RingGeneric:
         :param older_than: return older objects than the passed event_id
         :param retry: determine the max number of attempts to archive the limit
         """
+        if not self.has_capability("history"):
+            return []
+
         queries = 0
         original_limit = limit
 

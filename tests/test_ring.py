@@ -27,6 +27,8 @@ def test_chime_attributes(ring):
     assert dev.timezone == "America/New_York"
     assert dev.volume == 2
 
+    assert len(dev.history()) == 0
+
     dev.update_health_data()
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
