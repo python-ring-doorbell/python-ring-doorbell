@@ -3,9 +3,6 @@
 import logging
 import os
 import time
-from datetime import datetime
-
-import pytz
 
 from ring_doorbell.const import (
     DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
@@ -36,7 +33,6 @@ from ring_doorbell.const import (
     SETTINGS_ENDPOINT,
     SNAPSHOT_ENDPOINT,
     SNAPSHOT_TIMESTAMP_ENDPOINT,
-    URL_DOORBELL_HISTORY,
     URL_RECORDING,
     URL_RECORDING_SHARE_PLAY,
 )
@@ -109,7 +105,7 @@ class RingDoorBell(RingGeneric):
             return self.kind in PEEPHOLE_CAM_KINDS
         if capability == "pre-roll":
             return self.kind in DOORBELL_3_PLUS_KINDS
-        if capability == "volume":
+        if capability in ("volume", "history"):
             return True
         if capability in ("motion_detection", "video"):
             return self.kind in (
@@ -256,94 +252,6 @@ class RingDoorBell(RingGeneric):
                 self._ring.update_devices()
                 return True
         return None
-
-    def history(
-        self,
-        limit=30,
-        timezone=None,
-        kind=None,
-        enforce_limit=False,
-        older_than=None,
-        retry=8,
-        *,
-        convert_timezone=True,
-    ):
-        """
-        Return history with datetime objects.
-
-        :param limit: specify number of objects to be returned
-        :param timezone: determine which timezone to convert data objects
-        :param kind: filter by kind (ding, motion, on_demand)
-        :param enforce_limit: when True, this will enforce the limit and kind
-        :param older_than: return older objects than the passed event_id
-        :param retry: determine the max number of attempts to archive the limit
-        """
-        queries = 0
-        original_limit = limit
-
-        # set cap for max queries
-        # pylint:disable=consider-using-min-builtin
-        if retry > 10:
-            retry = 10
-
-        while True:
-            params = {"limit": str(limit)}
-            if older_than:
-                params["older_than"] = older_than
-
-            url = URL_DOORBELL_HISTORY.format(self.device_api_id)
-            response = self._ring.query(url, extra_params=params).json()
-
-            # cherrypick only the selected kind events
-            if kind:
-                response = list(filter(lambda array: array["kind"] == kind, response))
-
-            if convert_timezone:
-                # convert for specific timezone
-                utc = pytz.utc
-                if timezone:
-                    mytz = pytz.timezone(timezone)
-
-                for entry in response:
-                    dt_at = datetime.strptime(
-                        entry["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
-                    utc_dt = datetime(
-                        dt_at.year,
-                        dt_at.month,
-                        dt_at.day,
-                        dt_at.hour,
-                        dt_at.minute,
-                        dt_at.second,
-                        tzinfo=utc,
-                    )
-                    if timezone:
-                        tz_dt = utc_dt.astimezone(mytz)
-                        entry["created_at"] = tz_dt
-                    else:
-                        entry["created_at"] = utc_dt
-
-            if enforce_limit:
-                # return because already matched the number
-                # of events by kind
-                if len(response) >= original_limit:
-                    return response[:original_limit]
-
-                # ensure the loop will exit after max queries
-                queries += 1
-                if queries == retry:
-                    _LOGGER.debug(
-                        "Could not find total of %s of kind %s", original_limit, kind
-                    )
-                    break
-
-                # ensure the kind objects returned to match limit
-                limit = limit * 2
-
-            else:
-                break
-
-        return response
 
     @property
     def last_recording_id(self):

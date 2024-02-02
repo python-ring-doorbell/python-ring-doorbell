@@ -427,7 +427,7 @@ async def raw_query(ring: Ring, url):
     "--kind",
     required=False,
     default=None,
-    type=click.Choice(["ding", "motion"], case_sensitive=False),
+    type=click.Choice(["ding", "motion", "on_demand"], case_sensitive=False),
     help="Get devices",
 )
 @click.option(

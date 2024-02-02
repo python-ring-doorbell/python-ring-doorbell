@@ -55,7 +55,7 @@ class RingOther(RingGeneric):
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
-        if capability == "open":
+        if capability in ("open", "history"):
             return self.kind in INTERCOM_KINDS
         return False
 
