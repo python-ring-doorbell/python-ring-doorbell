@@ -28,7 +28,9 @@ def test_other_attributes(ring):
     assert isinstance(dev.history(limit=1, kind="on_demand"), list)
     assert len(dev.history(kind="ding")) == 1
     assert len(dev.history(limit=1, kind="on_demand")) == 2
-    assert len(dev.history(limit=1, kind="on_demand", enforce_limit=True, retry=50)) == 1
+    assert (
+        len(dev.history(limit=1, kind="on_demand", enforce_limit=True, retry=50)) == 1
+    )
 
     dev.update_health_data()
     assert dev.wifi_name == "ring_mock_wifi"

@@ -12,6 +12,7 @@ from ring_doorbell.const import URL_DOORBELL_HISTORY
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class RingGeneric:
     """Generic Implementation for Ring Chime/Doorbell."""
 
