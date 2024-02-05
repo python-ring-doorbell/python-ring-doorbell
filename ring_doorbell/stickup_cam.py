@@ -83,6 +83,8 @@ class RingStickUpCam(RingDoorBell):
 
     def has_capability(self, capability):
         """Return if device has specific capability."""
+        if capability == "history":
+            return True
         if capability == "battery":
             return self.kind in (
                 SPOTLIGHT_CAM_BATTERY_KINDS

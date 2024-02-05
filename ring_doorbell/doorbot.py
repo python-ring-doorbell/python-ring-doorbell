@@ -107,6 +107,8 @@ class RingDoorBell(RingGeneric):
             return self.kind in DOORBELL_3_PLUS_KINDS
         if capability in ("volume", "history"):
             return True
+        if capability == "history":
+            return True
         if capability in ("motion_detection", "video"):
             return self.kind in (
                 DOORBELL_KINDS
