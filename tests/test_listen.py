@@ -53,7 +53,6 @@ async def test_active_dings(auth, mocker):
     ring = Ring(auth)
     listener = RingEventListener(ring)
     listener.start()
-    ring.update_dings()
     assert firebase_messaging.FcmPushClient.checkin.call_count == 1
     assert firebase_messaging.FcmPushClient.start.call_count == 1
     assert listener.subscribed is True
@@ -85,6 +84,31 @@ async def test_active_dings(auth, mocker):
 
     dings = ring.active_alerts()
     assert len(dings) == num_active + alertstoadd
+    listener.stop()
+
+
+async def test_intercom_unlock(auth, mocker):
+    import firebase_messaging
+
+    ring = Ring(auth)
+    listener = RingEventListener(ring)
+    listener.start()
+    assert firebase_messaging.FcmPushClient.checkin.call_count == 1
+    assert firebase_messaging.FcmPushClient.start.call_count == 1
+    assert listener.subscribed is True
+    assert listener.started is True
+    num_active = len(ring.active_alerts())
+    assert num_active == 3
+    alertstoadd = 2
+    for i in range(alertstoadd):
+        msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
+        gcmdata_dict = json.loads(load_fixture("ring_listen_intercom_unlock.json"))
+        msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
+        listener.on_notification(msg, "1234567" + str(i))
+
+    dings = ring.active_alerts()
+    assert len(dings) == num_active + alertstoadd
+
     listener.stop()
 
 

@@ -1,0 +1,10 @@
+{
+    "aps": {
+        "alert": "Your Ingresso in Casetta was used to unlock the entrance on 2\\/2\\/24 at 12:10 PM"
+    },
+    "action": "com.ring.push.INTERCOM_UNLOCK_FROM_APP",
+    "alarm_meta": {
+        "device_zid": 185036587,
+        "location_id": "1234abcd-12cd-123f-de12-0123456789ab"
+    }
+}

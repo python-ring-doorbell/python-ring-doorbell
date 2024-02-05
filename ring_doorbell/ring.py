@@ -197,6 +197,19 @@ class Ring:
         )
         return device
 
+    def get_device_by_api_id(self, device_api_id):
+        """Return a device using it's id."""
+        all_devices = self.get_device_list()
+        api_id_to_idx = {
+            device.device_api_id: idx for (idx, device) in enumerate(all_devices)
+        }
+        device = (
+            None
+            if device_api_id not in api_id_to_idx
+            else all_devices[api_id_to_idx[device_api_id]]
+        )
+        return device
+
     def video_devices(self):
         """Get all devices."""
         devices = self.devices()
