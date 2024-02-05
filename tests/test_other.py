@@ -12,6 +12,7 @@ def test_other_attributes(ring):
     assert dev.location_id == "mock-location-id"
     assert dev.has_capability("battery") is False
     assert dev.has_capability("open") is True
+    assert dev.has_capability("history") is False
     assert dev.timezone == "Europe/Rome"
     assert dev.battery_life == 52
     assert dev.doorbell_volume == 8
