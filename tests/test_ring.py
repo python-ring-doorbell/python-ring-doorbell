@@ -22,6 +22,7 @@ def test_chime_attributes(ring):
     assert dev.model == "Chime"
     assert dev.has_capability("battery") is False
     assert dev.has_capability("volume") is True
+    assert dev.has_capability("history") is False
     assert dev.latitude is not None
     assert dev.timezone == "America/New_York"
     assert dev.volume == 2
@@ -42,6 +43,7 @@ def test_doorbell_attributes(ring):
     assert dev.model == "Doorbell Pro"
     assert dev.has_capability("battery") is False
     assert dev.has_capability("volume") is True
+    assert dev.has_capability("history") is True
     assert dev.longitude == -70.12345
     assert dev.timezone == "America/New_York"
     assert dev.volume == 1
@@ -73,6 +75,7 @@ def test_shared_doorbell_attributes(ring):
     assert dev.model == "Doorbell Pro"
     assert dev.has_capability("battery") is False
     assert dev.has_capability("volume") is True
+    assert dev.has_capability("history") is True
     assert dev.longitude == -70.12345
     assert dev.timezone == "America/New_York"
     assert dev.volume == 5
@@ -85,6 +88,7 @@ def test_stickup_cam_attributes(ring):
     assert dev.model == "Floodlight Cam"
     assert dev.has_capability("battery") is False
     assert dev.has_capability("light") is True
+    assert dev.has_capability("history") is True
     assert dev.lights == "off"
     assert dev.siren == 0
 
