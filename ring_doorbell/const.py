@@ -61,6 +61,7 @@ URL_RECORDING = "/clients_api/dings/{0}/recording"
 URL_RECORDING_SHARE_PLAY = "/clients_api/dings/{0}/share/play"
 GROUP_DEVICES_ENDPOINT = GROUPS_ENDPOINT + "/{1}/devices"
 SETTINGS_ENDPOINT = "/devices/v1/devices/{0}/settings"
+# Alternative API for Intercom history, not used in favor of the DoorBell API
 URL_INTERCOM_HISTORY = LOCATIONS_HISTORY_ENDPOINT + "?ringtercom"
 INTERCOM_OPEN_ENDPOINT = "/commands/v1/devices/{0}/device_rpc"
 INTERCOM_INVITATIONS_ENDPOINT = LOCATIONS_ENDPOINT + "/invitations"

@@ -12,7 +12,7 @@ def test_other_attributes(ring):
     assert dev.location_id == "mock-location-id"
     assert dev.has_capability("battery") is False
     assert dev.has_capability("open") is True
-    assert dev.has_capability("history") is False
+    assert dev.has_capability("history") is True
     assert dev.timezone == "Europe/Rome"
     assert dev.battery_life == 52
     assert dev.doorbell_volume == 8
@@ -24,6 +24,13 @@ def test_other_attributes(ring):
     assert dev.has_subscription is True
     assert dev.unlock_duration is None
     assert dev.keep_alive_auto == 45.0
+
+    assert isinstance(dev.history(limit=1, kind="on_demand"), list)
+    assert len(dev.history(kind="ding")) == 1
+    assert len(dev.history(limit=1, kind="on_demand")) == 2
+    assert (
+        len(dev.history(limit=1, kind="on_demand", enforce_limit=True, retry=50)) == 1
+    )
 
     dev.update_health_data()
     assert dev.wifi_name == "ring_mock_wifi"

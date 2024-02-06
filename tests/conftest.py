@@ -88,6 +88,10 @@ def requests_mock_fixture():
             text=load_fixture("ring_doorbot_history.json"),
         )
         mock.get(
+            "https://api.ring.com/clients_api/doorbots/185036587/history",
+            text=load_fixture("ring_intercom_history.json"),
+        )
+        mock.get(
             "https://api.ring.com/clients_api/dings/active",
             text=_set_dings_to_now(load_fixture("ring_ding_active.json")),
         )
