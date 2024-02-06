@@ -105,7 +105,7 @@ class RingDoorBell(RingGeneric):
             return self.kind in PEEPHOLE_CAM_KINDS
         if capability == "pre-roll":
             return self.kind in DOORBELL_3_PLUS_KINDS
-        if capability in ("volume", "history"):
+        if capability == "volume":
             return True
         if capability == "history":
             return True
