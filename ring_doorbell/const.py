@@ -67,9 +67,10 @@ INTERCOM_INVITATIONS_ENDPOINT = LOCATIONS_ENDPOINT + "/invitations"
 INTERCOM_INVITATIONS_DELETE_ENDPOINT = LOCATIONS_ENDPOINT + "/invitations/{1}"
 INTERCOM_ALLOWED_USERS = LOCATIONS_ENDPOINT + "/users"
 
-# chime test sound kinds
 KIND_DING = "ding"
 KIND_MOTION = "motion"
+KIND_INTERCOM_UNLOCK = "intercom_unlock"
+# chime test sound kinds
 CHIME_TEST_SOUND_KINDS = (KIND_DING, KIND_MOTION)
 
 # default values
@@ -138,6 +139,7 @@ MSG_EXPECTED_ATTRIBUTE_NOT_FOUND = "Couldn't find expected attribute: {0}."
 
 PUSH_ACTION_DING = "com.ring.push.HANDLE_NEW_DING"
 PUSH_ACTION_MOTION = "com.ring.push.HANDLE_NEW_motion"
+PUSH_ACTION_INTERCOM_UNLOCK = "com.ring.push.INTERCOM_UNLOCK_FROM_APP"
 
 POST_DATA_JSON = {
     "api_version": API_VERSION,

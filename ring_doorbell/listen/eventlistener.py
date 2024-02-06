@@ -11,8 +11,10 @@ from ring_doorbell.const import (
     API_VERSION,
     DEFAULT_LISTEN_EVENT_EXPIRES_IN,
     KIND_DING,
+    KIND_INTERCOM_UNLOCK,
     KIND_MOTION,
     PUSH_ACTION_DING,
+    PUSH_ACTION_INTERCOM_UNLOCK,
     PUSH_ACTION_MOTION,
     RING_SENDER_ID,
     SUBSCRIPTION_ENDPOINT,
@@ -21,6 +23,7 @@ from ring_doorbell.exceptions import RingError
 from ring_doorbell.ring import Ring
 
 from ..event import RingEvent
+from ..generic import RingGeneric
 from .listenerconfig import RingEventListenerConfig
 
 _logger = logging.getLogger(__name__)
@@ -52,6 +55,7 @@ class RingEventListener:
         self._config = config or RingEventListenerConfig.default_config
 
         self._subscription_counter = 1
+        self._intercom_unlock_counter = {}
 
     def add_subscription_to_ring(self, token) -> bool:
         # "hardware_id": self.auth.get_hardware_id(),
@@ -86,6 +90,11 @@ class RingEventListener:
             return
 
         self.subscribed = True
+        # Update devices for the intercom unlock events
+        if not self._ring.devices_data:
+            self._ring.update_devices()
+        if self._ring.dings_data is None:
+            self._ring.update_dings()
 
     def add_notification_callback(self, callback):
         sub_id = self._subscription_counter
@@ -152,20 +161,10 @@ class RingEventListener:
 
         return self.subscribed and self.started
 
-    def on_notification(self, notification, persistent_id, obj=None):
-        gcm_data_json = json.loads(notification["data"]["gcmData"])
-
-        if "ding" not in gcm_data_json:
-            if "community_alert" not in gcm_data_json:
-                _logger.warning(
-                    "Unexpected alert type in gcmData.  Full message is:\n%s",
-                    json.dumps(notification),
-                )
-            return
-
-        ding = gcm_data_json["ding"]
-        action = gcm_data_json["action"]
-        subtype = gcm_data_json["subtype"]
+    def _get_ding_event(self, gcm_data):
+        ding = gcm_data["ding"]
+        action = gcm_data["action"]
+        subtype = gcm_data["subtype"]
         if action.lower() == PUSH_ACTION_MOTION.lower():
             kind = KIND_MOTION
             state = subtype
@@ -190,6 +189,40 @@ class RingEventListener:
             expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
             state=state,
         )
+        return re
+
+    def _get_intercom_unlock_event(self, gcm_data):
+        device_api_id = gcm_data["alarm_meta"]["device_zid"]
+        device: RingGeneric = self._ring.get_device_by_api_id(device_api_id)
+
+        if device_api_id not in self._intercom_unlock_counter:
+            self._intercom_unlock_counter[device_api_id] = 0
+        self._intercom_unlock_counter[device_api_id] += 1
+        re = RingEvent(
+            id=self._intercom_unlock_counter[device_api_id],
+            kind=KIND_INTERCOM_UNLOCK,
+            doorbot_id=device_api_id,
+            device_name=device.name,
+            device_kind=device.kind,
+            now=time.time(),
+            expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
+            state="unlock",
+        )
+        return re
+
+    def on_notification(self, notification, persistent_id, obj=None):
+        gcm_data = json.loads(notification["data"]["gcmData"])
+
+        if "ding" in gcm_data:
+            re = self._get_ding_event(gcm_data)
+        elif gcm_data.get("action") == PUSH_ACTION_INTERCOM_UNLOCK:
+            re = self._get_intercom_unlock_event(gcm_data)
+        elif "community_alert" not in gcm_data:
+            _logger.debug(
+                "Unexpected alert type in gcmData.  Full message is:\n%s",
+                json.dumps(notification),
+            )
+            return
 
         for callback in self._callbacks.values():
             callback(re)
