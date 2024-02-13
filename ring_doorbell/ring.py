@@ -145,11 +145,14 @@ class Ring:
         data: bytes | None = None,
         json: dict[Any, Any] | None = None,
         timeout: float | None = None,
+        base_uri: str = API_URI,
     ) -> Auth.Response:
         """Query data from Ring API."""
         if self.session is None:
             await self.async_create_session()
-        return await self._async_query(url, method, extra_params, data, json, timeout)
+        return await self._async_query(
+            url, method, extra_params, data, json, timeout, base_uri
+        )
 
     async def _async_query(  # noqa: PLR0913
         self,
@@ -159,6 +162,7 @@ class Ring:
         data: bytes | None = None,
         json: dict[Any, Any] | None = None,
         timeout: float | None = None,
+        base_uri: str = API_URI,
     ) -> Auth.Response:
         _logger.debug(
             "url: %s\nmethod: %s\njson: %s\ndata: %s\n extra_params: %s",
@@ -168,16 +172,14 @@ class Ring:
             data,
             extra_params,
         )
-        response = await self.auth.async_query(
-            API_URI + url,
+        return await self.auth.async_query(
+            base_uri + url,
             method=method,
             extra_params=extra_params,
             data=data,
             json=json,
             timeout=timeout,
         )
-        _logger.debug("response_text %s", response.text)
-        return response
 
     def devices(self) -> RingDevices:
         """Get all devices."""

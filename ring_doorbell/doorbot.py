@@ -30,6 +30,7 @@ from ring_doorbell.const import (
     DOORBELLS_ENDPOINT,
     FILE_EXISTS,
     HEALTH_DOORBELL_ENDPOINT,
+    ICE_SERVERS,
     LIVE_STREAMING_ENDPOINT,
     MSG_ALLOWED_VALUES,
     MSG_BOOLEAN_REQUIRED,
@@ -46,6 +47,7 @@ from ring_doorbell.const import (
 )
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
+from ring_doorbell.rtcstream import RingWebRtcStream
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,6 +62,7 @@ class RingDoorBell(RingGeneric):
         """Initialise the doorbell."""
         super().__init__(ring, device_api_id)
         self.shared = shared
+        self._rtc_stream: RingWebRtcStream | None = None
 
     @property
     def family(self) -> str:
@@ -275,7 +278,9 @@ class RingDoorBell(RingGeneric):
     async def async_get_live_streaming_json(self) -> dict[str, Any] | None:
         """Return JSON for live streaming."""
         url = LIVE_STREAMING_ENDPOINT.format(self.device_api_id)
-        req = await self._ring.async_query(url, method="POST")
+        req = await self._ring.async_query(
+            url, method="POST", base_uri="https://app.ring.com"
+        )
         if req and req.status_code == 200:
             url = DINGS_ENDPOINT
             try:
@@ -438,6 +443,22 @@ class RingDoorBell(RingGeneric):
 
         await self._ring.async_query(url, method="PATCH", json=payload)
         await self._ring.async_update_devices()
+
+    async def generate_rtc_stream(self, sdp_offer: str) -> str:
+        """Generate the rtc stream."""
+        self._rtc_stream = RingWebRtcStream(self._ring, self.device_api_id)
+        return await self._rtc_stream.generate(sdp_offer)
+
+    async def close_rtc_stream(self) -> None:
+        """Close the rtc stream."""
+        rtc_stream = self._rtc_stream
+        self._rtc_stream = None
+        if rtc_stream:
+            await rtc_stream.close()
+
+    def get_ice_servers(self) -> list[str]:
+        """Return the ICE servers."""
+        return ICE_SERVERS
 
     DEPRECATED_API_QUERIES: ClassVar = {
         *RingGeneric.DEPRECATED_API_QUERIES,
