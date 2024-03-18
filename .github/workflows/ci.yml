@@ -19,19 +19,42 @@ jobs:
       matrix:
         python-version: ["3.12"]
     steps:
-      - uses: "actions/checkout@v2"
-      - uses: "actions/setup-python@v2"
+      - uses: "actions/checkout@v4"
+      - uses: "actions/setup-python@v5"
+        id: setup-python
         with:
           python-version: "${{ matrix.python-version }}"
-      - name: "Install dependencies"
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            .github/workflows/ci.yml
+      - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --user pipx
-          python3 -m pipx ensurepath
           pipx install poetry==$POETRY_VERSION
           pipx install tox==$TOX_VERSION
+      - name: Read poetry cache location
+        id: poetry-cache-location
+        shell: bash
+        run: |
+          echo "POETRY_VENV_LOCATION=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
+      - name: Poetry cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.poetry-cache-location.outputs.POETRY_VENV_LOCATION }}
+          key: linting-${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
+      - name: Read pre-commit version
+        id: pre-commit-version
+        run: >-
+          echo "PRE_COMMIT_VERSION=$(poetry run pre-commit -V | awk '{print $2}')" >> $GITHUB_OUTPUT
+      - name: Pre-commit cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit/
+          key: ${{ runner.os }}-pre-commit-${{ steps.pre-commit-version.outputs.PRE_COMMIT_VERSION }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}          
       - name: Lint with tox
         run: |
+          poetry env use python
           tox
         env: 
           TOXENV: lint
@@ -44,19 +67,32 @@ jobs:
       matrix:
         python-version: ["3.12"]
     steps:
-      - uses: "actions/checkout@v2"
-      - uses: "actions/setup-python@v2"
+      - uses: "actions/checkout@v4"
+      - uses: "actions/setup-python@v5"
+        id: setup-python
         with:
           python-version: "${{ matrix.python-version }}"
-      - name: "Install dependencies"
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            .github/workflows/ci.yml
+      - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --user pipx
-          python3 -m pipx ensurepath
           pipx install poetry==$POETRY_VERSION
           pipx install tox==$TOX_VERSION
+      - name: Read poetry cache location
+        id: poetry-cache-location
+        shell: bash
+        run: |
+          echo "POETRY_VENV_LOCATION=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.poetry-cache-location.outputs.POETRY_VENV_LOCATION }}
+          key: docs-${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
       - name: Make docs with tox
         run: |
+          poetry env use python
           tox
         env: 
           TOXENV: docs
@@ -75,19 +111,31 @@ jobs:
           - "3.11"
           - "3.12"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
+        id: setup-python
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+          cache: 'pip'
+          cache-dependency-path: |
+            pyproject.toml
+            .github/workflows/ci.yml
+      - name: "Install dependencies"
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --user pipx
-          python3 -m pipx ensurepath
           pipx install poetry==$POETRY_VERSION
           pipx install tox==$TOX_VERSION
           pipx install coveralls==$COVERALLS_VERSION
+      - name: Read poetry cache location
+        id: poetry-cache-location
+        shell: bash
+        run: |
+          echo "POETRY_VENV_LOCATION=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.poetry-cache-location.outputs.POETRY_VENV_LOCATION }}
+          key: test-${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}          
       - name: Prepare toxenv
         id: toxenv
         run: |
@@ -104,6 +152,7 @@ jobs:
           fi
       - name: Test with tox
         run: |
+          poetry env use python
           tox
         env:
           TOXENV: ${{ steps.toxenv.outputs.toxenv }}
