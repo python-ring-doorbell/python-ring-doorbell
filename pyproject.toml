@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ring-doorbell"
-version = "0.8.7"
+version = "0.8.8"
 description = "A Python library to communicate with Ring Door Bell (https://ring.com/)"
 authors = ["Marcelo Moreira de Mello <tchello.mello@gmail.com>"]
 license = "LGPLv3+"
