@@ -3,6 +3,7 @@ import json
 import logging
 import time
 from datetime import datetime
+from typing import Callable, Dict, Optional
 
 from firebase_messaging import FcmPushClient
 
@@ -28,6 +29,8 @@ from .listenerconfig import RingEventListenerConfig
 
 _logger = logging.getLogger(__name__)
 
+OnNotificationCallable = Callable[[RingEvent], None]
+
 
 class RingEventListener:
     """Class to connect to firebase cloud messaging."""
@@ -38,11 +41,11 @@ class RingEventListener:
         credentials=None,
         credentials_updated_callback=None,
         *,
-        config: RingEventListenerConfig = RingEventListenerConfig.default_config,
+        config: Optional[RingEventListenerConfig] = None,
     ):
         self._ring = ring
 
-        self._callbacks = {}
+        self._callbacks: Dict[int, OnNotificationCallable] = {}
         self.subscribed = False
         self.started = False
         self._app_id = self._ring.auth.get_hardware_id()
@@ -52,12 +55,12 @@ class RingEventListener:
         self._credentials_updated_callback = credentials_updated_callback
 
         self._receiver = None
-        self._config = config or RingEventListenerConfig.default_config
+        self._config = config or RingEventListenerConfig.default_config()
 
         self._subscription_counter = 1
-        self._intercom_unlock_counter = {}
+        self._intercom_unlock_counter: Dict[int, int] = {}
 
-    def add_subscription_to_ring(self, token) -> bool:
+    def add_subscription_to_ring(self, token):
         # "hardware_id": self.auth.get_hardware_id(),
         if not self._ring.session:
             self._ring.create_session()
@@ -93,7 +96,7 @@ class RingEventListener:
         # Update devices for the intercom unlock events
         if not self._ring.devices_data:
             self._ring.update_devices()
-        if self._ring.dings_data is None:
+        if not self._ring.dings_data:
             self._ring.update_dings()
 
     def add_notification_callback(self, callback):

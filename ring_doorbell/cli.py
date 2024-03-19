@@ -11,10 +11,19 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path, PurePath
+from typing import Optional, Sequence, cast
 
 import asyncclick as click
 
-from ring_doorbell import Auth, AuthenticationError, Requires2FAError, Ring, RingEvent
+from ring_doorbell import (
+    Auth,
+    AuthenticationError,
+    Requires2FAError,
+    Ring,
+    RingDoorBell,
+    RingEvent,
+    RingGeneric,
+)
 from ring_doorbell.const import CLI_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
 from ring_doorbell.listen import can_listen
 
@@ -200,19 +209,16 @@ async def cli(ctx, username, password, debug, user_agent):
 async def list_command(ring: Ring):
     """List ring devices."""
     devices = ring.devices()
-
-    doorbells = devices["doorbots"]
-    chimes = devices["chimes"]
-    stickup_cams = devices["stickup_cams"]
-    other = devices["other"]
-
-    for device in doorbells:
+    device: Optional[RingGeneric] = None
+    for device in devices.doorbots:
         echo(device)
-    for device in chimes:
+    for device in devices.authorized_doorbots:
         echo(device)
-    for device in stickup_cams:
+    for device in devices.chimes:
         echo(device)
-    for device in other:
+    for device in devices.stickup_cams:
+        echo(device)
+    for device in devices.other:
         echo(device)
 
 
@@ -257,7 +263,7 @@ async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
     if not device.has_capability("motion_detection"):
         echo(f"{str(device)} is not capable of motion detection")
         return
-
+    device = cast(RingDoorBell, device)
     state = "on" if device.motion_detection else "off"
     if not turn_on and not turn_off:
         echo(f"{str(device)} has motion detection {state}")
@@ -285,7 +291,7 @@ async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
 @click.pass_context
 async def show(ctx, ring: Ring, device_name):
     """Display ring devices."""
-    devices = None
+    devices: Optional[Sequence[RingGeneric]] = None
 
     if device_name and (device := ring.get_device_by_name(device_name)):
         devices = [device]
@@ -506,7 +512,7 @@ async def videos(
 ):
     """Interact with ring videos."""
     device = None
-    if device_name and not (device := ring.get_device_by_name(device_name)):
+    if device_name and not (device := ring.get_video_device_by_name(device_name)):
         echo(
             f"No device with name {device_name} found. "
             + "List of found device names (kind) is:"
@@ -526,8 +532,15 @@ async def videos(
             )
             return await ctx.invoke(list_command)
 
-    if not count and not download and not download_all:
-        echo("Last recording url is: " + device.recording_url(device.last_recording_id))
+    if not device:  # Make mypy happy
+        return
+    if (
+        not count
+        and not download
+        and not download_all
+        and (url := device.recording_url(device.last_recording_id))
+    ):
+        echo("Last recording url is: " + url)
         return
 
     events = None
@@ -584,9 +597,9 @@ async def videos(
             device.recording_download(event["id"], filename=filename, override=False)
 
 
-async def ainput(string: str) -> str:
+async def ainput(string: str):
     loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, lambda s=string: sys.stdout.write(s + " "))
+    await loop.run_in_executor(None, lambda s=string: sys.stdout.write(s + " "))  # type: ignore[misc]
 
     def read_with_timeout(timeout):
         if select.select(

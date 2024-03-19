@@ -3,6 +3,7 @@
 import logging
 import os
 import time
+from typing import Optional
 
 from ring_doorbell.const import (
     DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
@@ -310,19 +311,19 @@ class RingDoorBell(RingGeneric):
             raise RingError(msg) from error
         return False
 
-    def recording_url(self, recording_id):
+    def recording_url(self, recording_id) -> Optional[str]:
         """Return HTTPS recording URL."""
         if not self.has_subscription:
             msg = "Your Ring account does not have an active subscription."
             _LOGGER.warning(msg)
-            return False
+            return None
 
         url = URL_RECORDING_SHARE_PLAY.format(recording_id)
         req = self._ring.query(url)
         data = req.json()
         if req and req.status_code == 200 and data is not None:
             return data["url"]
-        return False
+        return None
 
     @property
     def subscribed(self):

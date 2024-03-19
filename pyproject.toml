@@ -49,7 +49,7 @@ anyio = "*" # see https://github.com/python-trio/asyncclick/issues/18
 sphinx = {version = "<7.2.6", optional = true}
 sphinx-rtd-theme = {version = "^1.3.0", optional = true}
 sphinx-github-changelog = {version = "^1.2.1", optional = true}
-firebase-messaging = {version = "^0.2.0", optional = true}
+firebase-messaging = {version = "^0.2.1", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "*"
@@ -121,6 +121,18 @@ convention = "pep257"
     "D100",
     "D103",
 ]
+
+[tool.mypy]
+exclude = [
+    '/scripts/',  # TOML literal string (single-quotes, no escaping necessary)
+    'tests/.*',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "requests_oauthlib"
+]
+ignore_missing_imports = true
 
 [build-system]
 requires = ["poetry-core"]

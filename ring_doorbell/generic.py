@@ -5,6 +5,7 @@
 # pylint: disable=useless-object-inheritance
 import logging
 from datetime import datetime
+from typing import Any, Dict, List
 
 import pytz
 
@@ -148,7 +149,7 @@ class RingGeneric:
         retry=8,
         *,
         convert_timezone=True,
-    ):
+    ) -> List[Dict[str, Any]]:
         """
         Return history with datetime objects.
 

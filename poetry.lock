@@ -145,7 +145,7 @@ files = [
 name = "cffi"
 version = "1.16.0"
 description = "Foreign Function Interface for Python calling C code."
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "cffi-1.16.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:6b3d6606d369fc1da4fd8c357d026317fbb9c9b75d36dc16e90e84c26854b088"},
@@ -422,7 +422,7 @@ toml = ["tomli"]
 name = "cryptography"
 version = "42.0.0"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "cryptography-42.0.0-cp37-abi3-macosx_10_12_universal2.whl", hash = "sha256:c640b0ef54138fde761ec99a6c7dc4ce05e80420262c20fa239e694ca371d434"},
@@ -540,13 +540,13 @@ typing = ["typing-extensions (>=4.7.1)"]
 
 [[package]]
 name = "firebase-messaging"
-version = "0.2.0"
+version = "0.2.1"
 description = "FCM/GCM push notification client"
 optional = true
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "firebase_messaging-0.2.0-py3-none-any.whl", hash = "sha256:7be0bb21debfa7324a62c1c1000e034fb26e89b499e8938b84c04f33779284ad"},
-    {file = "firebase_messaging-0.2.0.tar.gz", hash = "sha256:18ad828a7ee2ce7f1972b129b38442d7b698f1f8d32347e5531c64d722322ff1"},
+    {file = "firebase_messaging-0.2.1-py3-none-any.whl", hash = "sha256:46961137d131ab9d1603508e1111438a1ed4fb97093be7dbfbe789bc8424dd7c"},
+    {file = "firebase_messaging-0.2.1.tar.gz", hash = "sha256:16d754c16edfd872eceae8ba85b8989fab811f4ff2654f9fcfd988ea565c326d"},
 ]
 
 [package.dependencies]
@@ -931,7 +931,7 @@ files = [
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 files = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
@@ -1137,7 +1137,6 @@ files = [
     {file = "PyYAML-6.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:bf07ee2fef7014951eeb99f56f39c9bb4af143d8aa3c21b1677805985307da34"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:855fb52b0dc35af121542a76b9a84f8d1cd886ea97c84703eaa6d88e37a2ad28"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:40df9b996c2b73138957fe23a16a4f0ba614f4c0efce1e9406a184b6d07fa3a9"},
-    {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a08c6f0fe150303c1c6b71ebcd7213c2858041a7e01975da3a99aed1e7a378ef"},
     {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c22bec3fbe2524cde73d7ada88f6566758a8f7227bfbf93a408a9d86bcc12a0"},
     {file = "PyYAML-6.0.1-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8d4e9c88387b0f5c7d5f281e55304de64cf7f9c0021a3525bd3b1c542da3b0e4"},
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
@@ -1571,4 +1570,4 @@ listen = ["firebase-messaging"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "5a0289d7837829f26da51ae589718313616bc10558e8b58921f3f8dae1f25e32"
+content-hash = "a07ae4148967196704837d99b8baa490f9ae53baafc2f45f8766cab0a5b6c108"

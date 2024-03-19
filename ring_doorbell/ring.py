@@ -1,13 +1,16 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell module."""
 import logging
+from itertools import chain
 from time import time
-from typing import List
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from ring_doorbell import RingEvent
 from ring_doorbell.auth import Auth
 from ring_doorbell.chime import RingChime
 from ring_doorbell.doorbot import RingDoorBell
+from ring_doorbell.exceptions import RingError
+from ring_doorbell.generic import RingGeneric
 from ring_doorbell.group import RingLightGroup
 from ring_doorbell.other import RingOther
 from ring_doorbell.stickup_cam import RingStickUpCam
@@ -24,18 +27,6 @@ from .const import (
 _logger = logging.getLogger(__name__)
 
 
-TYPES = {
-    "stickup_cams": RingStickUpCam,
-    "chimes": RingChime,
-    "doorbots": RingDoorBell,
-    "authorized_doorbots": lambda ring, description: RingDoorBell(
-        ring, description, shared=True
-    ),
-    "other": RingOther,
-}
-
-
-# pylint: disable=useless-object-inheritance
 class Ring:
     """A Python Abstraction object to Ring Door Bell."""
 
@@ -44,11 +35,11 @@ class Ring:
         self.auth: Auth = auth
         self.session = None
         self.subscription = None
-        self.devices_data = None
+        self.devices_data: Dict[str, Dict[int, Dict[str, Any]]] = {}
         self.chime_health_data = None
         self.doorbell_health_data = None
-        self.dings_data = None
-        self.push_dings_data = []
+        self.dings_data: Dict[Any, Any] = {}
+        self.push_dings_data: List[RingEvent] = []
         self.groups_data = None
         self.init_loop = None
 
@@ -74,7 +65,7 @@ class Ring:
         ]
         self.push_dings_data.append(ring_event)
 
-    def create_session(self):
+    def create_session(self) -> None:
         """Create a new Ring session."""
         session_post_data = {
             "device": {
@@ -93,12 +84,12 @@ class Ring:
             json=session_post_data,
         ).json()
 
-    def update_devices(self):
+    def update_devices(self) -> None:
         """Update device data."""
         if self.session is None:
             self.create_session()
 
-        data = self._query(DEVICES_ENDPOINT).json()
+        data: Dict[Any, Any] = self._query(DEVICES_ENDPOINT).json()
 
         # Index data by device ID.
         self.devices_data = {
@@ -106,7 +97,7 @@ class Ring:
             for device_type, devices in data.items()
         }
 
-    def update_dings(self):
+    def update_dings(self) -> None:
         """Update dings data."""
         if self.session is None:
             self.create_session()
@@ -163,30 +154,24 @@ class Ring:
         _logger.debug("response_text %s", response.text)
         return response
 
-    def devices(self):
+    def devices(self) -> "RingDevices":
         """Get all devices."""
-        devices = {}
+        return RingDevices(self, self.devices_data)
 
-        for dev_type, convertor in TYPES.items():
-            devices[dev_type] = [
-                convertor(self, obj["id"])
-                for obj in self.devices_data.get(dev_type, {}).values()
-            ]
-
-        return devices
-
-    def get_device_list(self):
+    def get_device_list(self) -> Sequence[RingGeneric]:
         """Get a combined list of all devices."""
         devices = self.devices()
-        return (
-            devices["doorbots"]
-            + devices["authorized_doorbots"]
-            + devices["stickup_cams"]
-            + devices["chimes"]
-            + devices["other"]
+        return list(
+            chain(
+                devices["doorbots"],
+                devices["authorized_doorbots"],
+                devices["stickup_cams"],
+                devices["chimes"],
+                devices["other"],
+            )
         )
 
-    def get_device_by_name(self, device_name):
+    def get_device_by_name(self, device_name) -> Optional[RingGeneric]:
         """Return a device using it's name."""
         all_devices = self.get_device_list()
         names_to_idx = {device.name: idx for (idx, device) in enumerate(all_devices)}
@@ -197,7 +182,21 @@ class Ring:
         )
         return device
 
-    def get_device_by_api_id(self, device_api_id):
+    def get_video_device_by_name(self, device_name) -> Optional[RingDoorBell]:
+        """Return a device using it's name."""
+        devices = self.devices()
+        video_devices = list(
+            chain(devices.doorbots, devices.authorized_doorbots, devices.stickup_cams)
+        )
+        names_to_idx = {device.name: idx for (idx, device) in enumerate(video_devices)}
+        device = (
+            None
+            if device_name not in names_to_idx
+            else video_devices[names_to_idx[device_name]]
+        )
+        return device
+
+    def get_device_by_api_id(self, device_api_id) -> Optional[RingGeneric]:
         """Return a device using it's id."""
         all_devices = self.get_device_list()
         api_id_to_idx = {
@@ -229,7 +228,7 @@ class Ring:
 
         return groups
 
-    def active_alerts(self) -> List[RingEvent]:
+    def active_alerts(self) -> Sequence[RingEvent]:
         """Get active alerts."""
         now = time()
         # Purge expired push_dings
@@ -237,7 +236,7 @@ class Ring:
             re for re in self.push_dings_data if now < re.now + re.expires_in
         ]
         # Get unique id dictionary
-        alerts = {}
+        alerts: Dict[Tuple[int, int, str], RingEvent] = {}
         for re in self.push_dings_data:
             key = (re.doorbot_id, re.id, re.kind)
             if key not in alerts or re.now > alerts[key].now:
@@ -261,4 +260,70 @@ class Ring:
                 if key not in alerts or re.now > alerts[key].now:
                     alerts[key] = re
 
-        return alerts.values()
+        return list(alerts.values())
+
+
+class RingDevices:
+    """Class to represent collection of devices."""
+
+    def __init__(
+        self, ring: "Ring", devices_data: Dict[str, Dict[int, Dict[str, Any]]]
+    ) -> None:
+        self._stickup_cams: List[RingStickUpCam] = []
+        self._chimes: List[RingChime] = []
+        self._doorbots: List[RingDoorBell] = []
+        self._authorized_doorbots: List[RingDoorBell] = []
+        self._other: List[RingOther] = []
+
+        for device_type, devices in devices_data.items():
+            if device_type == "stickup_cams":
+                self._stickup_cams = [
+                    RingStickUpCam(ring, device_id) for device_id in devices
+                ]
+            if device_type == "chimes":
+                self._chimes = [RingChime(ring, device_id) for device_id in devices]
+            if device_type == "doorbots":
+                self._doorbots = [
+                    RingDoorBell(ring, device_id) for device_id in devices
+                ]
+            if device_type == "authorized_doorbots":
+                self._authorized_doorbots = [
+                    RingDoorBell(ring, device_id, shared=True) for device_id in devices
+                ]
+            if device_type == "other":
+                self._other = [
+                    RingOther(ring, device_id, shared=True) for device_id in devices
+                ]
+
+    def __getitem__(self, device_type: str) -> Sequence[RingGeneric]:
+        if device_type == "stickup_cams":
+            return self._stickup_cams
+        if device_type == "chimes":
+            return self._chimes
+        if device_type == "doorbots":
+            return self._doorbots
+        if device_type == "authorized_doorbots":
+            return self._authorized_doorbots
+        if device_type == "other":
+            return self._other
+        raise RingError(f"Invalid device_type {device_type}")
+
+    @property
+    def stickup_cams(self) -> Sequence[RingStickUpCam]:
+        return self._stickup_cams
+
+    @property
+    def chimes(self) -> Sequence[RingChime]:
+        return self._chimes
+
+    @property
+    def doorbots(self) -> Sequence[RingDoorBell]:
+        return self._doorbots
+
+    @property
+    def authorized_doorbots(self) -> Sequence[RingDoorBell]:
+        return self._authorized_doorbots
+
+    @property
+    def other(self) -> Sequence[RingOther]:
+        return self._other

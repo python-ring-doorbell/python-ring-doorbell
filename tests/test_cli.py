@@ -78,7 +78,7 @@ async def test_list(ring):
     with runner.isolated_filesystem():
         res = await runner.invoke(list_command, obj=ring)
 
-        expected = "Front Door (lpd_v1)\nDownstairs (chime)\nFront (hp_cam_v1)\n"
+        expected = "Front Door (lpd_v1)\nBack Door (lpd_v1)\nDownstairs (chime)\nFront (hp_cam_v1)\nIngress (intercom_handset_audio)\n"
 
         assert res.exit_code == 0
         assert expected in res.output
