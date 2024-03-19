@@ -24,7 +24,7 @@ from ring_doorbell import (
     RingEvent,
     RingGeneric,
 )
-from ring_doorbell.const import CLI_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
+from ring_doorbell.const import CLI_TOKEN_FILE, GCM_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
 from ring_doorbell.listen import can_listen
 
 
@@ -42,6 +42,7 @@ click.anyio_backend = "asyncio"  # type: ignore[attr-defined]
 pass_ring = click.make_pass_decorator(Ring)
 
 cache_file = Path(CLI_TOKEN_FILE)
+gcm_cache_file = Path(GCM_TOKEN_FILE)
 
 
 class ExceptionHandlerGroup(click.Group):
@@ -127,9 +128,10 @@ def _do_auth(username, password, user_agent=USER_AGENT):
 
 def _get_ring(username, password, do_update_data, user_agent=USER_AGENT):
     # connect to Ring account
-    global cache_file
+    global cache_file, gcm_cache_file
     if user_agent != USER_AGENT:
         cache_file = Path(user_agent + ".token.cache")
+        gcm_cache_file = Path(user_agent + ".gcm_token.cache")
     if cache_file.is_file():
         auth = Auth(
             user_agent,
@@ -647,7 +649,7 @@ class _event_handler:  # pylint:disable=invalid-name
 @click.option(
     "--credentials-file",
     required=False,
-    default="credentials.json",
+    default=None,
     help=(
         "File to store push credentials, "
         + "if not provided credentials will be recreated from scratch"
@@ -655,14 +657,14 @@ class _event_handler:  # pylint:disable=invalid-name
 )
 @click.option(
     "--store-credentials/--no-store-credentials",
-    default=False,
+    default=True,
     help="Whether or not to store the push credentials, default is false",
 )
 @click.option(
     "--show-credentials",
     default=False,
     is_flag=True,
-    help="Whether or not to store the push credentials, default is false",
+    help="Whether or not to show the push credentials, default is false",
 )
 @pass_ring
 @click.pass_context
@@ -692,8 +694,13 @@ async def listen(
             if show_credentials:
                 echo(credentials)
 
+    if not credentials_file:
+        credentials_file = gcm_cache_file
+    else:
+        credentials_file = Path(credentials_file)
+
     credentials = None
-    if store_credentials and Path(credentials_file).is_file():
+    if store_credentials and credentials_file.is_file():
         # already registered, load previous credentials
         with open(credentials_file, encoding="utf-8") as f:
             credentials = json.load(f)
