@@ -6,7 +6,7 @@ class RingEventListenerConfig(FcmPushClientConfig):
     """Configuration class for event listener."""
 
     @staticmethod
-    def default_config():
+    def default_config() -> "RingEventListenerConfig":
         config = RingEventListenerConfig()
         config.server_heartbeat_interval = 60
         config.client_heartbeat_interval = 120

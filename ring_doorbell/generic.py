@@ -5,11 +5,11 @@
 # pylint: disable=useless-object-inheritance
 import logging
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import pytz
 
-from ring_doorbell.const import URL_DOORBELL_HISTORY
+from ring_doorbell.const import URL_DOORBELL_HISTORY, RingCapability
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,9 +17,10 @@ _LOGGER = logging.getLogger(__name__)
 class RingGeneric:
     """Generic Implementation for Ring Chime/Doorbell."""
 
-    # pylint: disable=redefined-builtin
-    # pylint:disable=invalid-name
-    def __init__(self, ring, device_api_id):
+    if TYPE_CHECKING:
+        from ring_doorbell.ring import Ring
+
+    def __init__(self, ring: "Ring", device_api_id: int) -> None:
         """Initialize Ring Generic."""
         self._ring = ring
         # This is the account ID of the device.
@@ -27,43 +28,43 @@ class RingGeneric:
         self.device_api_id = device_api_id
         self.capability = False
         self.alert = None
-        self._health_attrs = {}
+        self._health_attrs: Dict[str, Any] = {}
 
         # alerts notifications
         self.alert_expires_at = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return __repr__."""
         return f"<{self.__class__.__name__}: {self.name}>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} ({self.kind})"
 
-    def update(self):
+    def update(self) -> None:
         """Update this device info."""
         self.update_health_data()
 
-    def update_health_data(self):
+    def update_health_data(self) -> None:
         """Update the health data."""
         raise NotImplementedError
 
     @property
-    def _attrs(self):
+    def _attrs(self) -> Dict[str, Any]:
         """Return attributes."""
         return self._ring.devices_data[self.family][self.device_api_id]
 
     @property
-    def id(self):
+    def id(self) -> int:
         """Return ID."""
         return self.device_api_id
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return name."""
         return self._attrs["description"]
 
     @property
-    def device_id(self):
+    def device_id(self) -> str:
         """Return device ID.
 
         This is the device_id returned by the api, usually the MAC.
@@ -72,51 +73,56 @@ class RingGeneric:
         return self._attrs["device_id"]
 
     @property
-    def family(self):
+    def family(self) -> str:
         """Return Ring device family type."""
         raise NotImplementedError
 
     @property
-    def model(self):
+    def model(self) -> str:
         """Return Ring device model name."""
         raise NotImplementedError
 
-    def has_capability(self, capability):
+    @property
+    def battery_life(self) -> Optional[int]:
+        """Return battery life."""
+        raise NotImplementedError
+
+    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""
         return self.capability
 
     @property
-    def address(self):
+    def address(self) -> Optional[str]:
         """Return address."""
         return self._attrs.get("address")
 
     @property
-    def firmware(self):
+    def firmware(self) -> Optional[str]:
         """Return firmware."""
         return self._attrs.get("firmware_version")
 
     @property
-    def latitude(self):
+    def latitude(self) -> Optional[float]:
         """Return latitude attr."""
         return self._attrs.get("latitude")
 
     @property
-    def longitude(self):
+    def longitude(self) -> Optional[float]:
         """Return longitude attr."""
         return self._attrs.get("longitude")
 
     @property
-    def kind(self):
+    def kind(self) -> str:
         """Return kind attr."""
-        return self._attrs.get("kind")
+        return self._attrs["kind"]
 
     @property
-    def timezone(self):
+    def timezone(self) -> Optional[str]:
         """Return timezone."""
         return self._attrs.get("time_zone")
 
     @property
-    def wifi_name(self):
+    def wifi_name(self) -> Optional[str]:
         """Return wifi ESSID name.
 
         Requires health data to be updated.
@@ -124,7 +130,7 @@ class RingGeneric:
         return self._health_attrs.get("wifi_name")
 
     @property
-    def wifi_signal_strength(self):
+    def wifi_signal_strength(self) -> Optional[int]:
         """Return wifi RSSI.
 
         Requires health data to be updated.
@@ -132,7 +138,7 @@ class RingGeneric:
         return self._health_attrs.get("latest_signal_strength")
 
     @property
-    def wifi_signal_category(self):
+    def wifi_signal_category(self) -> Optional[str]:
         """Return wifi signal category.
 
         Requires health data to be updated.
@@ -141,14 +147,14 @@ class RingGeneric:
 
     def history(
         self,
-        limit=30,
-        timezone=None,
-        kind=None,
-        enforce_limit=False,
-        older_than=None,
-        retry=8,
+        limit: int = 30,
+        timezone: Optional[str] = None,
+        kind: Optional[str] = None,
+        enforce_limit: bool = False,
+        older_than: Optional[int] = None,
+        retry: int = 8,
         *,
-        convert_timezone=True,
+        convert_timezone: bool = True,
     ) -> List[Dict[str, Any]]:
         """
         Return history with datetime objects.
@@ -174,7 +180,7 @@ class RingGeneric:
         while True:
             params = {"limit": str(limit)}
             if older_than:
-                params["older_than"] = older_than
+                params["older_than"] = str(older_than)
 
             url = URL_DOORBELL_HISTORY.format(self.device_api_id)
             response = self._ring.query(url, extra_params=params).json()

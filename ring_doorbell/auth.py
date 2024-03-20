@@ -2,6 +2,7 @@
 """Python Ring Auth Class."""
 import uuid
 from json import dumps as json_dumps
+from typing import Any, Callable, Dict, Optional
 
 from oauthlib.oauth2 import (
     LegacyApplicationClient,
@@ -9,7 +10,7 @@ from oauthlib.oauth2 import (
     OAuth2Error,
     TokenExpiredError,
 )
-from requests import HTTPError, Timeout
+from requests import HTTPError, Response, Timeout
 from requests.adapters import HTTPAdapter, Retry
 from requests_oauthlib import OAuth2Session
 
@@ -25,15 +26,22 @@ from ring_doorbell.exceptions import (
 class Auth:
     """A Python Auth class for Ring"""
 
-    def __init__(self, user_agent, token=None, token_updater=None, hardware_id=None):
+    def __init__(
+        self,
+        user_agent: str,
+        token: Optional[Dict[str, Any]] = None,
+        token_updater: Optional[Callable[[Dict[str, Any]], None]] = None,
+        hardware_id: Optional[str] = None,
+    ) -> None:
         """
         :type token: Optional[Dict[str, str]]
         :type token_updater: Optional[Callable[[str], None]]
         """
         self.user_agent = user_agent
 
-        self.hardware_id = hardware_id
-        if self.hardware_id is None:
+        if hardware_id:
+            self.hardware_id = hardware_id
+        else:
             # Generate a UUID that will stay the same
             # for this physical device to prevent
             # multiple auth entries in ring.com
@@ -50,7 +58,9 @@ class Auth:
 
         self._oauth.mount(API_URI, HTTPAdapter(max_retries=retries))
 
-    def fetch_token(self, username, password, otp_code=None):
+    def fetch_token(
+        self, username: str, password: str, otp_code: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Initial token fetch with username/password & 2FA
         :type username: str
         :type password: str
@@ -80,7 +90,7 @@ class Auth:
 
         return token
 
-    def refresh_tokens(self):
+    def refresh_tokens(self) -> Dict[str, Any]:
         """Refreshes the auth tokens"""
         try:
             token = self._oauth.refresh_token(
@@ -94,24 +104,24 @@ class Auth:
 
         return token
 
-    def get_hardware_id(self):
+    def get_hardware_id(self) -> str:
         """Get hardware ID."""
         return self.hardware_id
 
-    def get_device_model(self):
+    def get_device_model(self) -> str:
         """Get device model."""
         return self.device_model
 
     def query(
         self,
-        url,
-        method="GET",
-        extra_params=None,
-        data=None,
-        json=None,
-        timeout=None,
-        raise_for_status=True,
-    ):
+        url: str,
+        method: str = "GET",
+        extra_params: Optional[Dict[str, Any]] = None,
+        data: Optional[bytes] = None,
+        json: Optional[Dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+        raise_for_status: bool = True,
+    ) -> Response:
         """Query data from Ring API."""
         if timeout is None:
             timeout = TIMEOUT
@@ -121,7 +131,7 @@ class Auth:
         if extra_params:
             params.update(extra_params)
 
-        kwargs = {
+        kwargs: Dict[str, Any] = {
             "params": params,
             "headers": {"User-Agent": self.user_agent},
             "timeout": timeout,
@@ -130,7 +140,7 @@ class Auth:
         if method in ["POST", "PUT"]:
             if json is not None:
                 kwargs["json"] = json
-                kwargs["headers"]["Content-Type"] = "application/json"
+                kwargs["headers"]["Content-Type"] = "application/json"  # type: ignore[index]
             if data is not None:
                 kwargs["data"] = data
 
@@ -143,10 +153,10 @@ class Auth:
                 kwargs["data"] = data
         try:
             try:
-                resp = getattr(self._oauth, method.lower())(url, **kwargs)
+                resp = self._oauth.request(method, url, **kwargs)
             except TokenExpiredError:
                 self._oauth.token = self.refresh_tokens()
-                resp = getattr(self._oauth, method.lower())(url, **kwargs)
+                resp = self._oauth.request(method, url, **kwargs)
         except AuthenticationError as ex:
             raise ex  # refresh_tokens will return this error if not valid
         except Timeout as ex:

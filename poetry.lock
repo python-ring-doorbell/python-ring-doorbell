@@ -1501,6 +1501,68 @@ docs = ["furo (>=2023.8.19)", "sphinx (>=7.2.4)", "sphinx-argparse-cli (>=1.11.1
 testing = ["build[virtualenv] (>=0.10)", "covdefaults (>=2.3)", "detect-test-pollution (>=1.1.1)", "devpi-process (>=1)", "diff-cover (>=7.7)", "distlib (>=0.3.7)", "flaky (>=3.7)", "hatch-vcs (>=0.3)", "hatchling (>=1.18)", "psutil (>=5.9.5)", "pytest (>=7.4)", "pytest-cov (>=4.1)", "pytest-mock (>=3.11.1)", "pytest-xdist (>=3.3.1)", "re-assert (>=1.1)", "time-machine (>=2.12)", "wheel (>=0.41.2)"]
 
 [[package]]
+name = "types-click"
+version = "7.1.8"
+description = "Typing stubs for click"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-click-7.1.8.tar.gz", hash = "sha256:b6604968be6401dc516311ca50708a0a28baa7a0cb840efd7412f0dbbff4e092"},
+    {file = "types_click-7.1.8-py3-none-any.whl", hash = "sha256:8cb030a669e2e927461be9827375f83c16b8178c365852c060a34e24871e7e81"},
+]
+
+[[package]]
+name = "types-oauthlib"
+version = "3.2.0.20240217"
+description = "Typing stubs for oauthlib"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-oauthlib-3.2.0.20240217.tar.gz", hash = "sha256:2b58e68b549f37ea1fe725cd7e78661a58679c16d2e83d53f1e531588ad72223"},
+    {file = "types_oauthlib-3.2.0.20240217-py3-none-any.whl", hash = "sha256:aa8b50a6737a0c75ea2a19e4598cfabd767ca5fba8d5310dc736afaa179db14d"},
+]
+
+[[package]]
+name = "types-pytz"
+version = "2024.1.0.20240203"
+description = "Typing stubs for pytz"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-pytz-2024.1.0.20240203.tar.gz", hash = "sha256:c93751ee20dfc6e054a0148f8f5227b9a00b79c90a4d3c9f464711a73179c89e"},
+    {file = "types_pytz-2024.1.0.20240203-py3-none-any.whl", hash = "sha256:9679eef0365db3af91ef7722c199dbb75ee5c1b67e3c4dd7bfbeb1b8a71c21a3"},
+]
+
+[[package]]
+name = "types-requests"
+version = "2.31.0.20240311"
+description = "Typing stubs for requests"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-requests-2.31.0.20240311.tar.gz", hash = "sha256:b1c1b66abfb7fa79aae09097a811c4aa97130eb8831c60e47aee4ca344731ca5"},
+    {file = "types_requests-2.31.0.20240311-py3-none-any.whl", hash = "sha256:47872893d65a38e282ee9f277a4ee50d1b28bd592040df7d1fdaffdf3779937d"},
+]
+
+[package.dependencies]
+urllib3 = ">=2"
+
+[[package]]
+name = "types-requests-oauthlib"
+version = "1.3.0.0"
+description = "Typing stubs for requests-oauthlib"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-requests-oauthlib-1.3.0.0.tar.gz", hash = "sha256:66f3138dac647dd33012c31477da1c98229d858cf9c2ef932ad2807656a32895"},
+    {file = "types_requests_oauthlib-1.3.0.0-py3-none-any.whl", hash = "sha256:e858d9189eed76eb236ec7fdee64621aa87f8d23d2d52727350fd93a85da8662"},
+]
+
+[package.dependencies]
+types-oauthlib = "*"
+types-requests = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.8.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -1570,4 +1632,4 @@ listen = ["firebase-messaging"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "a07ae4148967196704837d99b8baa490f9ae53baafc2f45f8766cab0a5b6c108"
+content-hash = "845ec6c50eb91e969cbf96b9115f25f3a1a33a5401af8483454340d29e04bb34"

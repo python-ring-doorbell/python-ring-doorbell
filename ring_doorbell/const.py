@@ -1,5 +1,9 @@
 # vim:sw=4:ts=4:et:
-"""Constants."""
+"""Constants and enums."""
+
+from enum import Enum, auto
+
+from ring_doorbell.exceptions import RingError
 
 
 class OAuth:
@@ -8,6 +12,38 @@ class OAuth:
     ENDPOINT = "https://oauth.ring.com/oauth/token"
     CLIENT_ID = "ring_official_android"
     SCOPE = ["client"]
+
+
+class RingEventKind(Enum):
+    """Enum of available ring events."""
+
+    DING = "ding"
+    MOTION = "motion"
+    INTERCOM_UNLOCK = "intercom_unlock"
+
+
+class RingCapability(Enum):
+    """Enum of available ring events."""
+
+    VIDEO = auto()
+    MOTION_DETECTION = auto()
+    HISTORY = auto()
+    LIGHT = auto()
+    SIREN = auto()
+    VOLUME = auto()
+    BATTERY = auto()
+    OPEN = auto()
+    KNOCK = auto()
+    PRE_ROLL = auto()
+
+    @staticmethod
+    def from_name(name: str) -> "RingCapability":
+        """Return ring capability from string value."""
+        capability = name.replace("-", "_").upper()
+        for ring_capability in RingCapability:
+            if ring_capability.name == capability:
+                return ring_capability
+        raise RingError(f"Unknown ring capability {name}")
 
 
 PACKAGE_NAME = "ring_doorbell"

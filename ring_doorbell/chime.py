@@ -1,6 +1,7 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Chime wrapper."""
 import logging
+from typing import Any, Dict, Union
 
 from ring_doorbell.const import (
     CHIME_KINDS,
@@ -10,11 +11,13 @@ from ring_doorbell.const import (
     CHIME_VOL_MIN,
     CHIMES_ENDPOINT,
     HEALTH_CHIMES_ENDPOINT,
-    KIND_DING,
     LINKED_CHIMES_ENDPOINT,
     MSG_VOL_OUTBOUND,
     TESTSOUND_CHIME_ENDPOINT,
+    RingCapability,
+    RingEventKind,
 )
+from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,11 +27,11 @@ class RingChime(RingGeneric):
     """Implementation for Ring Chime."""
 
     @property
-    def family(self):
+    def family(self) -> str:
         """Return Ring device family type."""
         return "chimes"
 
-    def update_health_data(self):
+    def update_health_data(self) -> None:
         """Update health attrs."""
         self._health_attrs = (
             self._ring.query(HEALTH_CHIMES_ENDPOINT.format(self.device_api_id))
@@ -37,30 +40,34 @@ class RingChime(RingGeneric):
         )
 
     @property
-    def model(self):
+    def model(self) -> str:
         """Return Ring device model name."""
         if self.kind in CHIME_KINDS:
             return "Chime"
         if self.kind in CHIME_PRO_KINDS:
             return "Chime Pro"
-        return None
+        return "Unknown"
 
-    def has_capability(self, capability):
+    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""
-        if capability == "volume":
+        capability = (
+            capability
+            if isinstance(capability, RingCapability)
+            else RingCapability.from_name(capability)
+        )
+        if capability == RingCapability.VOLUME:
             return True
         return False
 
     @property
-    def volume(self):
+    def volume(self) -> int:
         """Return if chime volume."""
-        return self._attrs.get("settings").get("volume")
+        return self._attrs["settings"].get("volume", 0)
 
     @volume.setter
-    def volume(self, value):
+    def volume(self, value: int) -> None:
         if not ((isinstance(value, int)) and (CHIME_VOL_MIN <= value <= CHIME_VOL_MAX)):
-            _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(CHIME_VOL_MIN, CHIME_VOL_MAX))
-            return False
+            raise RingError(MSG_VOL_OUTBOUND.format(CHIME_VOL_MIN, CHIME_VOL_MAX))
 
         params = {
             "chime[description]": self.name,
@@ -69,16 +76,18 @@ class RingChime(RingGeneric):
         url = CHIMES_ENDPOINT.format(self.device_api_id)
         self._ring.query(url, extra_params=params, method="PUT")
         self._ring.update_devices()
-        return True
 
     @property
-    def linked_tree(self):
+    def linked_tree(self) -> Dict[str, Any]:
         """Return doorbell data linked to chime."""
         url = LINKED_CHIMES_ENDPOINT.format(self.device_api_id)
         return self._ring.query(url).json()
 
-    def test_sound(self, kind=KIND_DING):
+    def test_sound(
+        self, test_kind: Union[RingEventKind, str] = RingEventKind.DING
+    ) -> bool:
         """Play chime to test sound."""
+        kind = test_kind.value if isinstance(test_kind, RingEventKind) else test_kind
         if kind not in CHIME_TEST_SOUND_KINDS:
             return False
         url = TESTSOUND_CHIME_ENDPOINT.format(self.device_api_id)

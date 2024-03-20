@@ -37,7 +37,7 @@ def _bar():
     echo("---------------------------------")
 
 
-click.anyio_backend = "asyncio"
+click.anyio_backend = "asyncio"  # type: ignore[attr-defined]
 
 pass_ring = click.make_pass_decorator(Ring)
 
@@ -538,6 +538,7 @@ async def videos(
         not count
         and not download
         and not download_all
+        and device.last_recording_id
         and (url := device.recording_url(device.last_recording_id))
     ):
         echo("Last recording url is: " + url)

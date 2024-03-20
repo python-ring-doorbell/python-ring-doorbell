@@ -3,7 +3,9 @@
 import logging
 from itertools import chain
 from time import time
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+
+from requests import Response
 
 from ring_doorbell import RingEvent
 from ring_doorbell.auth import Auth
@@ -40,14 +42,14 @@ class Ring:
         self.doorbell_health_data = None
         self.dings_data: Dict[Any, Any] = {}
         self.push_dings_data: List[RingEvent] = []
-        self.groups_data = None
+        self.groups_data: Dict[str, Dict[str, Any]] = {}
         self.init_loop = None
 
-    def update_data(self):
+    def update_data(self) -> None:
         """Update all data."""
         self._update_data()
 
-    def _update_data(self):
+    def _update_data(self) -> None:
         if self.session is None:
             self.create_session()
 
@@ -57,7 +59,7 @@ class Ring:
 
         self.update_groups()
 
-    def add_event_to_dings_data(self, ring_event: RingEvent):
+    def add_event_to_dings_data(self, ring_event: RingEvent) -> None:
         # Purge expired push_dings
         now = time()
         self.push_dings_data = [
@@ -104,7 +106,7 @@ class Ring:
 
         self.dings_data = self._query(DINGS_ENDPOINT).json()
 
-    def update_groups(self):
+    def update_groups(self) -> None:
         """Update groups data."""
         if self.session is None:
             self.create_session()
@@ -125,16 +127,28 @@ class Ring:
                     self.groups_data[group["device_group_id"]] = group
 
     def query(
-        self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
-    ):
+        self,
+        url: str,
+        method: str = "GET",
+        extra_params: Optional[Dict[str, Any]] = None,
+        data: Optional[bytes] = None,
+        json: Optional[Dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Response:
         """Query data from Ring API."""
         if self.session is None:
             self.create_session()
         return self._query(url, method, extra_params, data, json, timeout)
 
     def _query(
-        self, url, method="GET", extra_params=None, data=None, json=None, timeout=None
-    ):
+        self,
+        url: str,
+        method: str = "GET",
+        extra_params: Optional[Dict[str, Any]] = None,
+        data: Optional[bytes] = None,
+        json: Optional[Dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Response:
         _logger.debug(
             "url: %s\nmethod: %s\njson: %s\ndata: %s\n extra_params: %s",
             url,
@@ -171,7 +185,7 @@ class Ring:
             )
         )
 
-    def get_device_by_name(self, device_name) -> Optional[RingGeneric]:
+    def get_device_by_name(self, device_name: str) -> Optional[RingGeneric]:
         """Return a device using it's name."""
         all_devices = self.get_device_list()
         names_to_idx = {device.name: idx for (idx, device) in enumerate(all_devices)}
@@ -182,12 +196,9 @@ class Ring:
         )
         return device
 
-    def get_video_device_by_name(self, device_name) -> Optional[RingDoorBell]:
+    def get_video_device_by_name(self, device_name: str) -> Optional[RingDoorBell]:
         """Return a device using it's name."""
-        devices = self.devices()
-        video_devices = list(
-            chain(devices.doorbots, devices.authorized_doorbots, devices.stickup_cams)
-        )
+        video_devices = self.video_devices()
         names_to_idx = {device.name: idx for (idx, device) in enumerate(video_devices)}
         device = (
             None
@@ -196,7 +207,7 @@ class Ring:
         )
         return device
 
-    def get_device_by_api_id(self, device_api_id) -> Optional[RingGeneric]:
+    def get_device_by_api_id(self, device_api_id: int) -> Optional[RingGeneric]:
         """Return a device using it's id."""
         all_devices = self.get_device_list()
         api_id_to_idx = {
@@ -209,17 +220,14 @@ class Ring:
         )
         return device
 
-    def video_devices(self):
+    def video_devices(self) -> Sequence[RingDoorBell]:
         """Get all devices."""
         devices = self.devices()
-
-        return (
-            devices["doorbots"]
-            + devices["authorized_doorbots"]
-            + devices["stickup_cams"]
+        return list(
+            chain(devices.doorbots, devices.authorized_doorbots, devices.stickup_cams)
         )
 
-    def groups(self):
+    def groups(self) -> Mapping[str, RingLightGroup]:
         """Get all groups."""
         groups = {}
 
