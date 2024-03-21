@@ -3,6 +3,7 @@
 import logging
 import os
 import time
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from ring_doorbell.const import (
     DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
@@ -35,6 +36,7 @@ from ring_doorbell.const import (
     SNAPSHOT_TIMESTAMP_ENDPOINT,
     URL_RECORDING,
     URL_RECORDING_SHARE_PLAY,
+    RingCapability,
 )
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
@@ -45,16 +47,19 @@ _LOGGER = logging.getLogger(__name__)
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
 
-    def __init__(self, ring, device_api_id, shared=False):
+    if TYPE_CHECKING:
+        from ring_doorbell.ring import Ring
+
+    def __init__(self, ring: "Ring", device_api_id: int, shared: bool = False) -> None:
         super().__init__(ring, device_api_id)
         self.shared = shared
 
     @property
-    def family(self):
+    def family(self) -> str:
         """Return Ring device family type."""
         return "authorized_doorbots" if self.shared else "doorbots"
 
-    def update_health_data(self):
+    def update_health_data(self) -> None:
         """Update health attrs."""
         self._health_attrs = (
             self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id))
@@ -63,7 +68,7 @@ class RingDoorBell(RingGeneric):
         )
 
     @property
-    def model(self):
+    def model(self) -> str:
         """Return Ring device model name."""
         if self.kind in DOORBELL_KINDS:
             return "Doorbell"
@@ -87,11 +92,16 @@ class RingDoorBell(RingGeneric):
             return "Doorbell (2nd Gen)"
         if self.kind in PEEPHOLE_CAM_KINDS:
             return "Peephole Cam"
-        return None
+        return "Unknown Doorbell"
 
-    def has_capability(self, capability):
+    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""
-        if capability == "battery":
+        capability = (
+            capability
+            if isinstance(capability, RingCapability)
+            else RingCapability.from_name(capability)
+        )
+        if capability == RingCapability.BATTERY:
             return self.kind in (
                 DOORBELL_KINDS
                 + DOORBELL_2_KINDS
@@ -101,15 +111,15 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_GEN2_KINDS
                 + PEEPHOLE_CAM_KINDS
             )
-        if capability == "knock":
+        if capability == RingCapability.KNOCK:
             return self.kind in PEEPHOLE_CAM_KINDS
-        if capability == "pre-roll":
+        if capability == RingCapability.PRE_ROLL:
             return self.kind in DOORBELL_3_PLUS_KINDS
-        if capability == "volume":
+        if capability == RingCapability.VOLUME:
             return True
-        if capability == "history":
+        if capability == RingCapability.HISTORY:
             return True
-        if capability in ("motion_detection", "video"):
+        if capability in [RingCapability.MOTION_DETECTION, RingCapability.VIDEO]:
             return self.kind in (
                 DOORBELL_KINDS
                 + DOORBELL_2_KINDS
@@ -125,35 +135,33 @@ class RingDoorBell(RingGeneric):
         return False
 
     @property
-    def battery_life(self):
+    def battery_life(self) -> Optional[int]:
         """Return battery life."""
         if (
-            self._attrs.get("battery_life") is None
-            and self._attrs.get("battery_life_2") is None
-        ):
+            bl1 := self._attrs.get("battery_life")
+        ) is None and "battery_life_2" not in self._attrs:
             return None
 
         value = 0
-        if "battery_life_2" in self._attrs:
-            # Camera has two battery bays
-            if self._attrs.get("battery_life") is not None:
-                # Bay 1
-                value += int(self._attrs.get("battery_life"))
-            if self._attrs.get("battery_life_2") is not None:
-                # Bay 2
-                value += int(self._attrs.get("battery_life_2"))
-            return value
+        if bl1:
+            value += int(bl1)
 
-        # Camera has a single battery bay
-        # Latest stickup cam can be externally powered
-        value = int(self._attrs.get("battery_life"))
-        if value and value > 100:
+        if bl2 := self._attrs.get("battery_life_2"):  # Camera has two battery bays
+            value += int(bl2)
+
+        if value > 100:
             value = 100
-
         return value
 
+    def _get_chime_setting(self, setting: str) -> Optional[Any]:
+        if (settings := self._attrs.get("settings")) and (
+            chime_settings := settings.get("chime_settings")
+        ):
+            return chime_settings.get(setting)
+        return None
+
     @property
-    def existing_doorbell_type(self):
+    def existing_doorbell_type(self) -> Optional[str]:
         """
         Return existing doorbell type.
 
@@ -162,14 +170,14 @@ class RingDoorBell(RingGeneric):
         2: Not Present
         """
         try:
-            return DOORBELL_EXISTING_TYPE[
-                self._attrs.get("settings").get("chime_settings").get("type")
-            ]
+            if (dtype := self._get_chime_setting("type")) is not None:
+                return DOORBELL_EXISTING_TYPE[dtype]
+            return None
         except AttributeError:
             return None
 
     @existing_doorbell_type.setter
-    def existing_doorbell_type(self, value):
+    def existing_doorbell_type(self, value: int) -> None:
         """
         Return existing doorbell type.
 
@@ -178,8 +186,7 @@ class RingDoorBell(RingGeneric):
         2: Not Present
         """
         if value not in DOORBELL_EXISTING_TYPE:
-            _LOGGER.error("%s", MSG_EXISTING_TYPE)
-            return False
+            raise RingError(f"value must be in {MSG_EXISTING_TYPE}")
         params = {
             "doorbot[description]": self.name,
             "doorbot[settings][chime_settings][type]": value,
@@ -188,28 +195,25 @@ class RingDoorBell(RingGeneric):
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             self._ring.query(url, extra_params=params, method="PUT")
             self._ring.update_devices()
-            return True
-        return None
 
     @property
-    def existing_doorbell_type_enabled(self):
+    def existing_doorbell_type_enabled(self) -> Optional[bool]:
         """Return if existing doorbell type is enabled."""
         if self.existing_doorbell_type:
             if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[2]:
                 return None
-            return self._attrs.get("settings").get("chime_settings").get("enable")
+            return self._get_chime_setting("enable")
         return False
 
     @existing_doorbell_type_enabled.setter
-    def existing_doorbell_type_enabled(self, value):
+    def existing_doorbell_type_enabled(self, value: bool) -> None:
         """Enable/disable the existing doorbell if Digital/Mechanical."""
         if self.existing_doorbell_type:
             if not isinstance(value, bool):
-                _LOGGER.error("%s", MSG_BOOLEAN_REQUIRED)
-                return None
+                raise RingError(MSG_BOOLEAN_REQUIRED)
 
             if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[2]:
-                return None
+                return
 
             params = {
                 "doorbot[description]": self.name,
@@ -218,31 +222,28 @@ class RingDoorBell(RingGeneric):
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             self._ring.query(url, extra_params=params, method="PUT")
             self._ring.update_devices()
-            return True
-        return False
 
     @property
-    def existing_doorbell_type_duration(self):
+    def existing_doorbell_type_duration(self) -> Optional[int]:
         """Return duration for Digital chime."""
         if (
             self.existing_doorbell_type
             and self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[1]
         ):
-            return self._attrs.get("settings").get("chime_settings").get("duration")
+            return self._get_chime_setting("duration")
         return None
 
     @existing_doorbell_type_duration.setter
-    def existing_doorbell_type_duration(self, value):
+    def existing_doorbell_type_duration(self, value: int) -> None:
         """Set duration for Digital chime."""
         if self.existing_doorbell_type:
             if not (
                 (isinstance(value, int))
                 and (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)
             ):
-                _LOGGER.error(
-                    "%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN, DOORBELL_VOL_MAX)
+                raise RingError(
+                    MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN, DOORBELL_VOL_MAX)
                 )
-                return False
 
             if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[1]:
                 params = {
@@ -252,19 +253,18 @@ class RingDoorBell(RingGeneric):
                 url = DOORBELLS_ENDPOINT.format(self.device_api_id)
                 self._ring.query(url, extra_params=params, method="PUT")
                 self._ring.update_devices()
-                return True
-        return None
 
     @property
-    def last_recording_id(self):
+    def last_recording_id(self) -> Optional[int]:
         """Return the last recording ID."""
         try:
-            return self.history(limit=1)[0]["id"]
+            res = self.history(limit=1)
+            return res[0].get("id") if res else None
         except (IndexError, TypeError):
             return None
 
     @property
-    def live_streaming_json(self):
+    def live_streaming_json(self) -> Optional[Dict[str, Any]]:
         """Return JSON for live streaming."""
         url = LIVE_STREAMING_ENDPOINT.format(self.device_api_id)
         req = self._ring.query(url, method="POST")
@@ -278,54 +278,57 @@ class RingDoorBell(RingGeneric):
 
     def recording_download(
         self,
-        recording_id,
-        filename=None,
-        override=False,
-        timeout=DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
-    ):
+        recording_id: int,
+        filename: Optional[str] = None,
+        override: bool = False,
+        timeout: int = DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
+    ) -> Optional[bytes]:
         """Save a recording in MP4 format to a file or return raw."""
         if not self.has_subscription:
             msg = "Your Ring account does not have an active subscription."
             _LOGGER.warning(msg)
-            return False
+            return None
 
         url = URL_RECORDING.format(recording_id)
         try:
             # Video download needs a longer timeout to get the large video file
             req = self._ring.query(url, timeout=timeout)
-            if req and req.status_code == 200:
+            if req.status_code == 200:
                 if filename:
                     if os.path.isfile(filename) and not override:
-                        _LOGGER.error("%s", FILE_EXISTS.format(filename))
-                        return False
+                        raise RingError(FILE_EXISTS.format(filename))
 
                     with open(filename, "wb") as recording:
                         recording.write(req.content)
-                        return True
+                        return None
                 else:
                     return req.content
+            else:
+                raise RingError(
+                    f"Could not get recording at url {url}, "
+                    + f"status code is {req.status_code}"
+                )
         except OSError as error:
             msg = f"Error downloading recording {recording_id}: {error}"
             _LOGGER.error(msg)
             raise RingError(msg) from error
-        return False
 
-    def recording_url(self, recording_id):
+    def recording_url(self, recording_id: int) -> Optional[str]:
         """Return HTTPS recording URL."""
         if not self.has_subscription:
             msg = "Your Ring account does not have an active subscription."
             _LOGGER.warning(msg)
-            return False
+            return None
 
         url = URL_RECORDING_SHARE_PLAY.format(recording_id)
         req = self._ring.query(url)
         data = req.json()
         if req and req.status_code == 200 and data is not None:
             return data["url"]
-        return False
+        return None
 
     @property
-    def subscribed(self):
+    def subscribed(self) -> bool:
         """Return if is online."""
         result = self._attrs.get("subscribed")
         if result is None:
@@ -333,7 +336,7 @@ class RingDoorBell(RingGeneric):
         return True
 
     @property
-    def subscribed_motion(self):
+    def subscribed_motion(self) -> bool:
         """Return if is subscribed_motion."""
         result = self._attrs.get("subscribed_motions")
         if result is None:
@@ -341,24 +344,23 @@ class RingDoorBell(RingGeneric):
         return True
 
     @property
-    def has_subscription(self):
+    def has_subscription(self) -> bool:
         """Return boolean if the account has subscription."""
-        return self._attrs.get("features").get("show_recordings")
+        if features := self._attrs.get("features"):
+            return features.get("show_recordings", False)
+        return False
 
     @property
-    def volume(self):
+    def volume(self) -> int:
         """Return volume."""
-        return self._attrs.get("settings").get("doorbell_volume")
+        return self._attrs["settings"].get("doorbell_volume", 0)
 
     @volume.setter
-    def volume(self, value):
+    def volume(self, value: int) -> None:
         if not (
             (isinstance(value, int)) and (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)
         ):
-            _LOGGER.error(
-                "%s", MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN, DOORBELL_VOL_MAX)
-            )
-            return False
+            raise RingError(MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN, DOORBELL_VOL_MAX))
 
         params = {
             "doorbot[description]": self.name,
@@ -367,14 +369,17 @@ class RingDoorBell(RingGeneric):
         url = DOORBELLS_ENDPOINT.format(self.device_api_id)
         self._ring.query(url, extra_params=params, method="PUT")
         self._ring.update_devices()
-        return True
 
     @property
-    def connection_status(self):
+    def connection_status(self) -> Optional[str]:
         """Return connection status."""
-        return self._attrs.get("alerts").get("connection")
+        if alerts := self._attrs.get("alerts"):
+            return alerts.get("connection")
+        return None
 
-    def get_snapshot(self, retries=3, delay=1, filename=None):
+    def get_snapshot(
+        self, retries: int = 3, delay: int = 1, filename: Optional[str] = None
+    ) -> Optional[bytes]:
         """Take a snapshot and download it"""
         url = SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get("id")]}
@@ -385,34 +390,31 @@ class RingDoorBell(RingGeneric):
             response = self._ring.query(url, method="POST", json=payload).json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
                 snapshot = self._ring.query(
-                    SNAPSHOT_ENDPOINT.format(self._attrs.get("id")), raw=True
+                    SNAPSHOT_ENDPOINT.format(self._attrs.get("id"))
                 ).content
                 if filename:
                     with open(filename, "wb") as jpg:
                         jpg.write(snapshot)
-                    return True
+                    return None
                 return snapshot
-        return False
+        return None
 
-    def _motion_detection_state(self):
-        if "settings" in self._attrs and "motion_detection_enabled" in self._attrs.get(
-            "settings"
-        ):
-            return self._attrs.get("settings")["motion_detection_enabled"]
+    def _motion_detection_state(self) -> Optional[bool]:
+        if settings := self._attrs.get("settings"):
+            return settings.get("motion_detection_enabled")
         return None
 
     @property
-    def motion_detection(self):
+    def motion_detection(self) -> bool:
         """Return motion detection enabled state."""
-        return self._motion_detection_state()
+        return state if (state := self._motion_detection_state()) else False
 
     @motion_detection.setter
-    def motion_detection(self, state):
+    def motion_detection(self, state: bool) -> None:
         """Set the motion detection enabled state."""
         values = [True, False]
         if state not in values:
-            _LOGGER.error("%s", MSG_ALLOWED_VALUES.format(", ".join(values)))
-            return False
+            raise RingError(MSG_ALLOWED_VALUES.format("True, False"))
 
         if self._motion_detection_state() is None:
             _LOGGER.warning(
@@ -421,11 +423,10 @@ class RingDoorBell(RingGeneric):
                     "settings[motion_detection_enabled]"
                 ),
             )
-            return False
+            return None
 
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"motion_settings": {"motion_detection_enabled": state}}
 
         self._ring.query(url, method="PATCH", json=payload)
         self._ring.update_devices()
-        return True

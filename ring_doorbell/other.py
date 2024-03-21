@@ -3,6 +3,7 @@
 import json
 import logging
 import uuid
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from ring_doorbell.const import (
     DOORBELLS_ENDPOINT,
@@ -20,7 +21,9 @@ from ring_doorbell.const import (
     SETTINGS_ENDPOINT,
     VOICE_VOL_MAX,
     VOICE_VOL_MIN,
+    RingCapability,
 )
+from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,16 +32,19 @@ _LOGGER = logging.getLogger(__name__)
 class RingOther(RingGeneric):
     """Implementation for Ring Intercom."""
 
-    def __init__(self, ring, device_api_id, shared=False):
+    if TYPE_CHECKING:
+        from ring_doorbell.ring import Ring
+
+    def __init__(self, ring: "Ring", device_api_id: int, shared: bool = False) -> None:
         super().__init__(ring, device_api_id)
         self.shared = shared
 
     @property
-    def family(self):
+    def family(self) -> str:
         """Return Ring device family type."""
         return "other"
 
-    def update_health_data(self):
+    def update_health_data(self) -> None:
         """Update health attrs."""
         self._health_attrs = (
             self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id))
@@ -47,20 +53,25 @@ class RingOther(RingGeneric):
         )
 
     @property
-    def model(self):
+    def model(self) -> str:
         """Return Ring device model name."""
         if self.kind in INTERCOM_KINDS:
             return "Intercom"
-        return None
+        return "Unknown Other"
 
-    def has_capability(self, capability):
+    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""
-        if capability in ("open", "history"):
+        capability = (
+            capability
+            if isinstance(capability, RingCapability)
+            else RingCapability.from_name(capability)
+        )
+        if capability in [RingCapability.OPEN, RingCapability.HISTORY]:
             return self.kind in INTERCOM_KINDS
         return False
 
     @property
-    def battery_life(self):
+    def battery_life(self) -> Optional[int]:
         """Return battery life."""
         if self.kind in INTERCOM_KINDS:
             if self._attrs.get("battery_life") is None:
@@ -74,47 +85,47 @@ class RingOther(RingGeneric):
         return None
 
     @property
-    def subscribed(self):
+    def subscribed(self) -> bool:
         """Return if is online."""
         if self.kind in INTERCOM_KINDS:
             result = self._attrs.get("subscribed")
             if result is None:
                 return False
             return True
-        return None
+        return False
 
     @property
-    def has_subscription(self):
+    def has_subscription(self) -> bool:
         """Return boolean if the account has subscription."""
-        if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("features").get("show_recordings")
-        return None
+        if self.kind in INTERCOM_KINDS and (features := self._attrs.get("features")):
+            return features.get("show_recordings", False)
+        return False
 
     @property
-    def unlock_duration(self):
+    def unlock_duration(self) -> Optional[str]:
         """Return time unlock switch is held closed"""
-        json.loads(
-            self._attrs.get("settings").get("intercom_settings").get("config")
-        ).get("analog", {}).get("unlock_duration")
+        return (
+            json.loads(self._attrs["settings"]["intercom_settings"]["config"])
+            .get("analog", {})
+            .get("unlock_duration")
+        )
 
     @property
-    def doorbell_volume(self):
+    def doorbell_volume(self) -> int:
         """Return doorbell volume."""
         if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("settings").get("doorbell_volume")
-        return None
+            return self._attrs["settings"].get("doorbell_volume", 0)
+        return 0
 
     @doorbell_volume.setter
-    def doorbell_volume(self, value):
+    def doorbell_volume(self, value: int) -> None:
         if not (
             (isinstance(value, int))
             and (OTHER_DOORBELL_VOL_MIN <= value <= OTHER_DOORBELL_VOL_MAX)
         ):
-            _LOGGER.error(
-                "%s",
-                MSG_VOL_OUTBOUND.format(OTHER_DOORBELL_VOL_MIN, OTHER_DOORBELL_VOL_MAX),
+            raise RingError(
+                MSG_VOL_OUTBOUND.format(OTHER_DOORBELL_VOL_MIN, OTHER_DOORBELL_VOL_MAX)
             )
-            return False
 
         params = {
             "doorbot[settings][doorbell_volume]": str(value),
@@ -122,65 +133,59 @@ class RingOther(RingGeneric):
         url = DOORBELLS_ENDPOINT.format(self.device_api_id)
         self._ring.query(url, extra_params=params, method="PUT")
         self._ring.update_devices()
-        return True
 
     @property
-    def keep_alive_auto(self):
+    def keep_alive_auto(self) -> Optional[float]:
         if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("settings").get("keep_alive_auto")
+            return self._attrs["settings"].get("keep_alive_auto")
         return None
 
     @keep_alive_auto.setter
-    def keep_alive_auto(self, value):
+    def keep_alive_auto(self, value: float) -> None:
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"keep_alive_settings": {"keep_alive_auto": value}}
 
         self._ring.query(url, method="PATCH", json=payload)
         self._ring.update_devices()
-        return True
 
     @property
-    def mic_volume(self):
+    def mic_volume(self) -> Optional[int]:
         """Return mic volume."""
         if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("settings").get("mic_volume")
+            return self._attrs["settings"].get("mic_volume")
         return None
 
     @mic_volume.setter
-    def mic_volume(self, value):
+    def mic_volume(self, value: int) -> None:
         if not ((isinstance(value, int)) and (MIC_VOL_MIN <= value <= MIC_VOL_MAX)):
-            _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(MIC_VOL_MIN, MIC_VOL_MAX))
-            return False
+            raise RingError(MSG_VOL_OUTBOUND.format(MIC_VOL_MIN, MIC_VOL_MAX))
 
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"volume_settings": {"mic_volume": value}}
 
         self._ring.query(url, method="PATCH", json=payload)
         self._ring.update_devices()
-        return True
 
     @property
-    def voice_volume(self):
+    def voice_volume(self) -> Optional[int]:
         """Return voice volume."""
         if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("settings").get("voice_volume")
+            return self._attrs["settings"].get("voice_volume")
         return None
 
     @voice_volume.setter
-    def voice_volume(self, value):
+    def voice_volume(self, value: int) -> None:
         if not ((isinstance(value, int)) and (VOICE_VOL_MIN <= value <= VOICE_VOL_MAX)):
-            _LOGGER.error("%s", MSG_VOL_OUTBOUND.format(VOICE_VOL_MIN, VOICE_VOL_MAX))
-            return False
+            raise RingError(MSG_VOL_OUTBOUND.format(VOICE_VOL_MIN, VOICE_VOL_MAX))
 
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"volume_settings": {"voice_volume": value}}
 
         self._ring.query(url, method="PATCH", json=payload)
         self._ring.update_devices()
-        return True
 
     @property
-    def clip_length_max(self):
+    def clip_length_max(self) -> Optional[int]:
         # this value sets an effective refractory period on consecutive rigns
         # eg if set to default value of 60, rings occuring with 60 seconds of
         # first will not be detected
@@ -190,34 +195,33 @@ class RingOther(RingGeneric):
         return (
             self._ring.query(url, method="GET")
             .json()
-            .get("video_settings")
+            .get("video_settings", {})
             .get("clip_length_max")
         )
 
     @clip_length_max.setter
-    def clip_length_max(self, value):
+    def clip_length_max(self, value: int) -> None:
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"video_settings": {"clip_length_max": value}}
         self._ring.query(url, method="PATCH", json=payload)
         self._ring.update_devices()
-        return True
 
     @property
-    def connection_status(self):
+    def connection_status(self) -> Optional[str]:
         """Return connection status."""
         if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("alerts").get("connection")
+            return self._attrs.get("alerts", {}).get("connection")
         return None
 
     @property
-    def location_id(self):
+    def location_id(self) -> Optional[str]:
         """Return location id."""
         if self.kind in INTERCOM_KINDS:
             return self._attrs.get("location_id", None)
         return None
 
     @property
-    def allowed_users(self):
+    def allowed_users(self) -> Optional[List[Dict[str, Any]]]:
         """Return list of users allowed or invited to access"""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_ALLOWED_USERS.format(self.location_id)
@@ -225,7 +229,7 @@ class RingOther(RingGeneric):
 
         return None
 
-    def open_door(self, user_id=-1):
+    def open_door(self, user_id: int = -1) -> bool:
         """Open the door"""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_OPEN_ENDPOINT.format(self.device_api_id)
@@ -253,7 +257,7 @@ class RingOther(RingGeneric):
 
         return False
 
-    def invite_access(self, email):
+    def invite_access(self, email: str) -> bool:
         """Invite user"""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_ENDPOINT.format(self.location_id)
@@ -269,7 +273,7 @@ class RingOther(RingGeneric):
 
         return False
 
-    def remove_access(self, user_id):
+    def remove_access(self, user_id: int) -> bool:
         """Remove user access or invitation"""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_DELETE_ENDPOINT.format(self.location_id, user_id)

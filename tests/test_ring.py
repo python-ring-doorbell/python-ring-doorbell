@@ -1,4 +1,7 @@
 """The tests for the Ring platform."""
+import pytest
+
+from ring_doorbell import RingError
 
 
 def test_basic_attributes(ring):
@@ -121,7 +124,8 @@ def test_light_groups(ring):
     assert group.location_id == "mock-location-id"
     assert group.model == "Light Group"
     assert group.has_capability("light") is True
-    assert group.has_capability("something-else") is False
+    with pytest.raises(RingError):
+        group.has_capability("something-else")
 
     assert group.lights is False
 
@@ -135,7 +139,8 @@ def test_light_groups(ring):
     group.lights = (True, 30)
 
     # Attempt setting lights to invalid value
-    group.lights = 30
+    with pytest.raises(RingError):
+        group.lights = 30
 
 
 def test_motion_detection_enable(ring, requests_mock):

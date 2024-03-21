@@ -145,7 +145,7 @@ files = [
 name = "cffi"
 version = "1.16.0"
 description = "Foreign Function Interface for Python calling C code."
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "cffi-1.16.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:6b3d6606d369fc1da4fd8c357d026317fbb9c9b75d36dc16e90e84c26854b088"},
@@ -422,7 +422,7 @@ toml = ["tomli"]
 name = "cryptography"
 version = "42.0.0"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "cryptography-42.0.0-cp37-abi3-macosx_10_12_universal2.whl", hash = "sha256:c640b0ef54138fde761ec99a6c7dc4ce05e80420262c20fa239e694ca371d434"},
@@ -540,13 +540,13 @@ typing = ["typing-extensions (>=4.7.1)"]
 
 [[package]]
 name = "firebase-messaging"
-version = "0.2.0"
+version = "0.2.1"
 description = "FCM/GCM push notification client"
 optional = true
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "firebase_messaging-0.2.0-py3-none-any.whl", hash = "sha256:7be0bb21debfa7324a62c1c1000e034fb26e89b499e8938b84c04f33779284ad"},
-    {file = "firebase_messaging-0.2.0.tar.gz", hash = "sha256:18ad828a7ee2ce7f1972b129b38442d7b698f1f8d32347e5531c64d722322ff1"},
+    {file = "firebase_messaging-0.2.1-py3-none-any.whl", hash = "sha256:46961137d131ab9d1603508e1111438a1ed4fb97093be7dbfbe789bc8424dd7c"},
+    {file = "firebase_messaging-0.2.1.tar.gz", hash = "sha256:16d754c16edfd872eceae8ba85b8989fab811f4ff2654f9fcfd988ea565c326d"},
 ]
 
 [package.dependencies]
@@ -931,7 +931,7 @@ files = [
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 files = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
@@ -1137,7 +1137,6 @@ files = [
     {file = "PyYAML-6.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:bf07ee2fef7014951eeb99f56f39c9bb4af143d8aa3c21b1677805985307da34"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:855fb52b0dc35af121542a76b9a84f8d1cd886ea97c84703eaa6d88e37a2ad28"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:40df9b996c2b73138957fe23a16a4f0ba614f4c0efce1e9406a184b6d07fa3a9"},
-    {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a08c6f0fe150303c1c6b71ebcd7213c2858041a7e01975da3a99aed1e7a378ef"},
     {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c22bec3fbe2524cde73d7ada88f6566758a8f7227bfbf93a408a9d86bcc12a0"},
     {file = "PyYAML-6.0.1-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8d4e9c88387b0f5c7d5f281e55304de64cf7f9c0021a3525bd3b1c542da3b0e4"},
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
@@ -1502,6 +1501,68 @@ docs = ["furo (>=2023.8.19)", "sphinx (>=7.2.4)", "sphinx-argparse-cli (>=1.11.1
 testing = ["build[virtualenv] (>=0.10)", "covdefaults (>=2.3)", "detect-test-pollution (>=1.1.1)", "devpi-process (>=1)", "diff-cover (>=7.7)", "distlib (>=0.3.7)", "flaky (>=3.7)", "hatch-vcs (>=0.3)", "hatchling (>=1.18)", "psutil (>=5.9.5)", "pytest (>=7.4)", "pytest-cov (>=4.1)", "pytest-mock (>=3.11.1)", "pytest-xdist (>=3.3.1)", "re-assert (>=1.1)", "time-machine (>=2.12)", "wheel (>=0.41.2)"]
 
 [[package]]
+name = "types-click"
+version = "7.1.8"
+description = "Typing stubs for click"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-click-7.1.8.tar.gz", hash = "sha256:b6604968be6401dc516311ca50708a0a28baa7a0cb840efd7412f0dbbff4e092"},
+    {file = "types_click-7.1.8-py3-none-any.whl", hash = "sha256:8cb030a669e2e927461be9827375f83c16b8178c365852c060a34e24871e7e81"},
+]
+
+[[package]]
+name = "types-oauthlib"
+version = "3.2.0.20240217"
+description = "Typing stubs for oauthlib"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-oauthlib-3.2.0.20240217.tar.gz", hash = "sha256:2b58e68b549f37ea1fe725cd7e78661a58679c16d2e83d53f1e531588ad72223"},
+    {file = "types_oauthlib-3.2.0.20240217-py3-none-any.whl", hash = "sha256:aa8b50a6737a0c75ea2a19e4598cfabd767ca5fba8d5310dc736afaa179db14d"},
+]
+
+[[package]]
+name = "types-pytz"
+version = "2024.1.0.20240203"
+description = "Typing stubs for pytz"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-pytz-2024.1.0.20240203.tar.gz", hash = "sha256:c93751ee20dfc6e054a0148f8f5227b9a00b79c90a4d3c9f464711a73179c89e"},
+    {file = "types_pytz-2024.1.0.20240203-py3-none-any.whl", hash = "sha256:9679eef0365db3af91ef7722c199dbb75ee5c1b67e3c4dd7bfbeb1b8a71c21a3"},
+]
+
+[[package]]
+name = "types-requests"
+version = "2.31.0.20240311"
+description = "Typing stubs for requests"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-requests-2.31.0.20240311.tar.gz", hash = "sha256:b1c1b66abfb7fa79aae09097a811c4aa97130eb8831c60e47aee4ca344731ca5"},
+    {file = "types_requests-2.31.0.20240311-py3-none-any.whl", hash = "sha256:47872893d65a38e282ee9f277a4ee50d1b28bd592040df7d1fdaffdf3779937d"},
+]
+
+[package.dependencies]
+urllib3 = ">=2"
+
+[[package]]
+name = "types-requests-oauthlib"
+version = "1.3.0.0"
+description = "Typing stubs for requests-oauthlib"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-requests-oauthlib-1.3.0.0.tar.gz", hash = "sha256:66f3138dac647dd33012c31477da1c98229d858cf9c2ef932ad2807656a32895"},
+    {file = "types_requests_oauthlib-1.3.0.0-py3-none-any.whl", hash = "sha256:e858d9189eed76eb236ec7fdee64621aa87f8d23d2d52727350fd93a85da8662"},
+]
+
+[package.dependencies]
+types-oauthlib = "*"
+types-requests = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.8.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -1571,4 +1632,4 @@ listen = ["firebase-messaging"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "5a0289d7837829f26da51ae589718313616bc10558e8b58921f3f8dae1f25e32"
+content-hash = "845ec6c50eb91e969cbf96b9115f25f3a1a33a5401af8483454340d29e04bb34"
