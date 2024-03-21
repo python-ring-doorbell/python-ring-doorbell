@@ -397,8 +397,10 @@ async def groups(ring: Ring, json_flag):
     if not ring.groups_data:
         echo("No ring device groups setup")
     else:
-        for group in ring.groups_data:
-            echo(json.dumps(group, indent=2))
+        for light_group in ring.groups().values():
+            light_group.update()
+            echo(json.dumps(light_group._attrs, indent=2))
+            echo(json.dumps(light_group._health_attrs, indent=2))
 
 
 @cli.command()

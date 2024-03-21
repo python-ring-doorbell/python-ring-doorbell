@@ -178,9 +178,9 @@ class RingGeneric:
             retry = 10
 
         while True:
-            params = {"limit": str(limit)}
+            params = {"limit": limit}
             if older_than:
-                params["older_than"] = str(older_than)
+                params["older_than"] = older_than
 
             url = URL_DOORBELL_HISTORY.format(self.device_api_id)
             response = self._ring.query(url, extra_params=params).json()

@@ -46,7 +46,7 @@ class RingChime(RingGeneric):
             return "Chime"
         if self.kind in CHIME_PRO_KINDS:
             return "Chime Pro"
-        return "Unknown"
+        return "Unknown Chime"
 
     def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""

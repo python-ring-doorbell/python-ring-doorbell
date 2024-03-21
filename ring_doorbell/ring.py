@@ -122,7 +122,7 @@ class Ring:
         locations.discard(None)
         for location in locations:
             data = self._query(GROUPS_ENDPOINT.format(location)).json()
-            if data["device_groups"] is not None:
+            if data["device_groups"]:
                 for group in data["device_groups"]:
                     self.groups_data[group["device_group_id"]] = group
 

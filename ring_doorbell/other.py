@@ -57,7 +57,7 @@ class RingOther(RingGeneric):
         """Return Ring device model name."""
         if self.kind in INTERCOM_KINDS:
             return "Intercom"
-        return "Unknown"
+        return "Unknown Other"
 
     def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""

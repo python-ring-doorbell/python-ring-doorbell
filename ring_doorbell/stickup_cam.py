@@ -73,7 +73,7 @@ class RingStickUpCam(RingDoorBell):
         if self.kind in STICKUP_CAM_GEN3_KINDS:
             return "Stick Up Cam (3rd Gen)"
         _LOGGER.error("Unknown kind: %s", self.kind)
-        return "Unknown stickup_cam"
+        return "Unknown Stickup Cam"
 
     def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""

@@ -92,7 +92,7 @@ class RingDoorBell(RingGeneric):
             return "Doorbell (2nd Gen)"
         if self.kind in PEEPHOLE_CAM_KINDS:
             return "Peephole Cam"
-        return "Unknown"
+        return "Unknown Doorbell"
 
     def has_capability(self, capability: Union[RingCapability, str]) -> bool:
         """Return if device has specific capability."""
@@ -399,15 +399,15 @@ class RingDoorBell(RingGeneric):
                 return snapshot
         return None
 
-    def _motion_detection_state(self) -> bool:
+    def _motion_detection_state(self) -> Optional[bool]:
         if settings := self._attrs.get("settings"):
-            return settings.get("motion_detection_enabled", False)
-        return False
+            return settings.get("motion_detection_enabled")
+        return None
 
     @property
     def motion_detection(self) -> bool:
         """Return motion detection enabled state."""
-        return self._motion_detection_state()
+        return state if (state := self._motion_detection_state()) else False
 
     @motion_detection.setter
     def motion_detection(self, state: bool) -> None:
