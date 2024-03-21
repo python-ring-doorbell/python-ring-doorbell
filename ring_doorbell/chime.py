@@ -83,13 +83,11 @@ class RingChime(RingGeneric):
         url = LINKED_CHIMES_ENDPOINT.format(self.device_api_id)
         return self._ring.query(url).json()
 
-    def test_sound(
-        self, test_kind: Union[RingEventKind, str] = RingEventKind.DING
-    ) -> bool:
+    def test_sound(self, kind: Union[RingEventKind, str] = RingEventKind.DING) -> bool:
         """Play chime to test sound."""
-        kind = test_kind.value if isinstance(test_kind, RingEventKind) else test_kind
-        if kind not in CHIME_TEST_SOUND_KINDS:
+        kind_str = kind.value if isinstance(kind, RingEventKind) else kind
+        if kind_str not in CHIME_TEST_SOUND_KINDS:
             return False
         url = TESTSOUND_CHIME_ENDPOINT.format(self.device_api_id)
-        self._ring.query(url, method="POST", extra_params={"kind": kind})
+        self._ring.query(url, method="POST", extra_params={"kind": kind_str})
         return True

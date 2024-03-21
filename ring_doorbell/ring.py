@@ -3,7 +3,7 @@
 import logging
 from itertools import chain
 from time import time
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from requests import Response
 
@@ -315,6 +315,11 @@ class RingDevices:
         if device_type == "other":
             return self._other
         raise RingError(f"Invalid device_type {device_type}")
+
+    def __iter__(self) -> Iterable:
+        return iter(
+            ["stickup_cams", "chimes", "doorbots", "authorized_doorbots", "other"]
+        )
 
     @property
     def stickup_cams(self) -> Sequence[RingStickUpCam]:
