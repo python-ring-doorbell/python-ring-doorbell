@@ -71,6 +71,7 @@ DEFAULT_LISTEN_EVENT_EXPIRES_IN = 180
 RING_SENDER_ID = 876313859327
 
 CLI_TOKEN_FILE = "ring_token.cache"  # noqa: S105
+GCM_TOKEN_FILE = "ring_gcm_token.cache"  # noqa: S105
 CHIMES_ENDPOINT = "/clients_api/chimes/{0}"
 DEVICES_ENDPOINT = "/clients_api/ring_devices"
 DINGS_ENDPOINT = "/clients_api/dings/active"
