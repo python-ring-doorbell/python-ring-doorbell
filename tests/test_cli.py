@@ -17,6 +17,7 @@ from ring_doorbell.cli import (
     show,
     videos,
 )
+from ring_doorbell.const import GCM_TOKEN_FILE
 from ring_doorbell.listen import can_listen
 from tests.conftest import load_fixture
 
@@ -192,10 +193,10 @@ async def test_listen_store_credentials(mocker, auth):
         mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
         ring = Ring(auth)
-        assert not os.path.isfile("credentials.json")
+        assert not os.path.isfile(GCM_TOKEN_FILE)
 
         await runner.invoke(listen, ["--store-credentials"], obj=ring)
-        assert os.path.isfile("credentials.json")
+        assert os.path.isfile(GCM_TOKEN_FILE)
         assert firebase_messaging.fcmpushclient.gcm_check_in.call_count == 0
         assert firebase_messaging.FcmPushClient.register.call_count == 1
         assert firebase_messaging.FcmPushClient.start.call_count == 1
