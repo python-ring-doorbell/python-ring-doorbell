@@ -1,6 +1,7 @@
 # vim:sw=4:ts=4:et
 # Many thanks to @troopermax <https://github.com/troopermax>
 """Python Ring command line interface."""
+
 import asyncio
 import functools
 import getpass
@@ -593,9 +594,7 @@ async def videos(
             f"\tDownloading {len(events)} videos linked on your Ring account.\n"
             + "\tThis may take some time....\n"
         )
-        counter = 0
-        for event in events:
-            counter += 1
+        for counter, event in enumerate(events):
             filename = str(PurePath(download_to, _format_filename(device.name, event)))
             echo(f"\t{counter}/{len(events)} Downloading {filename}")
 

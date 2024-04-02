@@ -1,5 +1,6 @@
 # vim:sw=4:ts=4:et:
 """Python Ring light group wrapper."""
+
 import logging
 import warnings
 from typing import TYPE_CHECKING, Any, Dict, Tuple, Union

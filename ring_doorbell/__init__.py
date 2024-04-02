@@ -1,4 +1,5 @@
 """Python Package for interacting with Ring devices."""
+
 from importlib.metadata import version
 
 __version__ = version("ring_doorbell")

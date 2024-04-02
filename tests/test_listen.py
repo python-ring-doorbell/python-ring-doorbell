@@ -1,4 +1,5 @@
 """The tests for the Ring platform."""
+
 import asyncio
 import datetime
 import json

@@ -1,5 +1,6 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Chime wrapper."""
+
 import logging
 from typing import Any, Dict, Union
 

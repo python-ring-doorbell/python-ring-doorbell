@@ -1,4 +1,5 @@
 """Test configuration for the Ring platform."""
+
 import json
 import os
 import re

@@ -1,5 +1,6 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell module."""
+
 import logging
 from itertools import chain
 from time import time
