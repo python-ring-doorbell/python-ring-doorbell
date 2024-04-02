@@ -1,5 +1,6 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Other (Intercom) wrapper."""
+
 import json
 import logging
 import uuid

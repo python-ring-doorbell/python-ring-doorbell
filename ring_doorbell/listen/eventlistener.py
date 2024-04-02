@@ -1,4 +1,5 @@
 """Module for listening to firebase cloud messages and updating dings"""
+
 import asyncio
 import json
 import logging

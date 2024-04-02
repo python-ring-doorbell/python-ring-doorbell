@@ -1,5 +1,6 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Auth Class."""
+
 import uuid
 from json import dumps as json_dumps
 from typing import Any, Callable, Dict, Optional

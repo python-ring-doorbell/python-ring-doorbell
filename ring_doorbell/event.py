@@ -1,4 +1,5 @@
 """Module for ring events."""
+
 from dataclasses import dataclass
 from typing import Any, Optional
 

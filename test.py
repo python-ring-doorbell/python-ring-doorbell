@@ -1,4 +1,5 @@
 """Test module which runs the first example in the README."""
+
 import getpass
 import json
 from pathlib import Path

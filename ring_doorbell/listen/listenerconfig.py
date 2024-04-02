@@ -1,4 +1,5 @@
 """Module for RingEventListenerConfig."""
+
 from firebase_messaging import FcmPushClientConfig
 
 

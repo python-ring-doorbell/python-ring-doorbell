@@ -1,7 +1,6 @@
 # vim:sw=4:ts=4:et:
 """Python Ring RingGeneric wrapper."""
 
-
 # pylint: disable=useless-object-inheritance
 import logging
 from datetime import datetime
