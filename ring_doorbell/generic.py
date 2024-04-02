@@ -73,6 +73,11 @@ class RingGeneric:
         return self._attrs["device_id"]
 
     @property
+    def location_id(self) -> Optional[str]:
+        """Return location id."""
+        return self._attrs.get("location_id", None)
+
+    @property
     def family(self) -> str:
         """Return Ring device family type."""
         raise NotImplementedError

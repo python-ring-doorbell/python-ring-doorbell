@@ -351,6 +351,53 @@
                 "is_sidewalk_gateway": false,
                 "key_access_point_associated": true
             }
-        }
+        },
+        {
+            "id": 99999999,
+            "kind": "three_p_cam",
+            "description": "Third party Cam",
+            "location_id": "**REDACTED**",
+            "schema_id": null,
+            "is_sidewalk_gateway": true,
+            "deactivated_at": null,
+            "hardware_id": "ABCD12345",
+            "time_zone": "America/Phoenix",
+            "stolen": false,
+            "owned": true,
+            "settings": {
+              "enable_vod": 0,
+              "powered_on": null,
+              "supported_capabilities": {},
+              "camera_stream_configurations": []
+            },
+            "features": {
+              "cfes_eligible": false,
+              "motion_zone_recommendation": false,
+              "motions_enabled": true,
+              "show_recordings": false,
+              "show_vod_settings": true,
+              "show_offline_motion_events": false
+            },
+            "owner": {
+              "id": "**REDACTED**",
+              "first_name": "",
+              "last_name": "",
+              "email": ""
+            },
+            "ring_net_id": "**REDACTED**",
+            "third_party_manufacturer": "amazon1p",
+            "third_party_model": "A3RMGO6LYLH7YN",
+            "third_party_dsn": "ABCD12345",
+            "third_party_tags": [],
+            "metadata": {
+              "third_party_manufacturer": "amazon1p",
+              "third_party_model": "A3RMGO6LYLH7YN",
+              "is_sidewalk_gateway": true,
+              "third_party_dsn": "ABCD12345"
+            },
+            "alerts": {
+              "connection": "online"
+            }
+          }
     ]
 }
