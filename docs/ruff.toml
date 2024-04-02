@@ -1,0 +1,7 @@
+# This extends our general Ruff rules specifically for tests
+extend = "../pyproject.toml"
+
+lint.extend-ignore = [
+    "D100",
+    "D103",
+]
