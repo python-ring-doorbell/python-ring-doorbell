@@ -214,13 +214,6 @@ class RingOther(RingGeneric):
         return None
 
     @property
-    def location_id(self) -> Optional[str]:
-        """Return location id."""
-        if self.kind in INTERCOM_KINDS:
-            return self._attrs.get("location_id", None)
-        return None
-
-    @property
     def allowed_users(self) -> Optional[List[Dict[str, Any]]]:
         """Return list of users allowed or invited to access"""
         if self.kind in INTERCOM_KINDS:

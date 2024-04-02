@@ -3,7 +3,7 @@
 import logging
 from itertools import chain
 from time import time
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterator, List, Mapping, Optional, Sequence, Tuple
 
 from requests import Response
 
@@ -23,6 +23,7 @@ from .const import (
     DEVICES_ENDPOINT,
     DINGS_ENDPOINT,
     GROUPS_ENDPOINT,
+    INTERCOM_KINDS,
     NEW_SESSION_ENDPOINT,
 )
 
@@ -112,14 +113,14 @@ class Ring:
             self.create_session()
         # Get all locations
         locations = set()
-        for devices in self.devices_data.values():
-            for dev in devices.values():
-                if "location_id" in dev:
-                    locations.add(dev["location_id"])
+        devices = self.devices()
+        for device_type in devices:
+            for dev in devices[device_type]:
+                if dev.location_id is not None:
+                    locations.add(dev.location_id)
 
         # Query for groups
         self.groups_data = {}
-        locations.discard(None)
         for location in locations:
             data = self._query(GROUPS_ENDPOINT.format(location)).json()
             if data["device_groups"]:
@@ -300,7 +301,10 @@ class RingDevices:
                 ]
             if device_type == "other":
                 self._other = [
-                    RingOther(ring, device_id, shared=True) for device_id in devices
+                    RingOther(ring, device_id, shared=True)
+                    for device_id, device in devices.items()
+                    if (device_kind := device.get("kind"))
+                    and device_kind in INTERCOM_KINDS
                 ]
 
     def __getitem__(self, device_type: str) -> Sequence[RingGeneric]:
@@ -316,7 +320,7 @@ class RingDevices:
             return self._other
         raise RingError(f"Invalid device_type {device_type}")
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterator[str]:
         return iter(
             ["stickup_cams", "chimes", "doorbots", "authorized_doorbots", "other"]
         )
