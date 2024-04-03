@@ -104,6 +104,10 @@ ignore = [
   "PLR2004", # Just annoying, not really useful
 ]
 select = ["ALL"]
+exclude = [
+    "ring_doorbell/cli.py",
+    "test.py"
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"

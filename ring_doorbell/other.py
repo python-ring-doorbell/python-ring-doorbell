@@ -1,10 +1,12 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Other (Intercom) wrapper."""
 
+from __future__ import annotations
+
 import json
 import logging
 import uuid
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from ring_doorbell.const import (
     DOORBELLS_ENDPOINT,
@@ -36,7 +38,8 @@ class RingOther(RingGeneric):
     if TYPE_CHECKING:
         from ring_doorbell.ring import Ring
 
-    def __init__(self, ring: "Ring", device_api_id: int, shared: bool = False) -> None:
+    def __init__(self, ring: Ring, device_api_id: int, *, shared: bool = False) -> None:
+        """Initialise the other devices."""
         super().__init__(ring, device_api_id)
         self.shared = shared
 
@@ -60,7 +63,7 @@ class RingOther(RingGeneric):
             return "Intercom"
         return "Unknown Other"
 
-    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
+    def has_capability(self, capability: RingCapability | str) -> bool:
         """Return if device has specific capability."""
         capability = (
             capability
@@ -72,7 +75,7 @@ class RingOther(RingGeneric):
         return False
 
     @property
-    def battery_life(self) -> Optional[int]:
+    def battery_life(self) -> int | None:
         """Return battery life."""
         if self.kind in INTERCOM_KINDS:
             if self._attrs.get("battery_life") is None:
@@ -103,8 +106,8 @@ class RingOther(RingGeneric):
         return False
 
     @property
-    def unlock_duration(self) -> Optional[str]:
-        """Return time unlock switch is held closed"""
+    def unlock_duration(self) -> str | None:
+        """Return time unlock switch is held closed."""
         return (
             json.loads(self._attrs["settings"]["intercom_settings"]["config"])
             .get("analog", {})
@@ -136,13 +139,15 @@ class RingOther(RingGeneric):
         self._ring.update_devices()
 
     @property
-    def keep_alive_auto(self) -> Optional[float]:
+    def keep_alive_auto(self) -> float | None:
+        """The keep alive auto setting."""
         if self.kind in INTERCOM_KINDS:
             return self._attrs["settings"].get("keep_alive_auto")
         return None
 
     @keep_alive_auto.setter
     def keep_alive_auto(self, value: float) -> None:
+        """Update the keep alive auto setting."""
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"keep_alive_settings": {"keep_alive_auto": value}}
 
@@ -150,7 +155,7 @@ class RingOther(RingGeneric):
         self._ring.update_devices()
 
     @property
-    def mic_volume(self) -> Optional[int]:
+    def mic_volume(self) -> int | None:
         """Return mic volume."""
         if self.kind in INTERCOM_KINDS:
             return self._attrs["settings"].get("mic_volume")
@@ -168,7 +173,7 @@ class RingOther(RingGeneric):
         self._ring.update_devices()
 
     @property
-    def voice_volume(self) -> Optional[int]:
+    def voice_volume(self) -> int | None:
         """Return voice volume."""
         if self.kind in INTERCOM_KINDS:
             return self._attrs["settings"].get("voice_volume")
@@ -186,11 +191,13 @@ class RingOther(RingGeneric):
         self._ring.update_devices()
 
     @property
-    def clip_length_max(self) -> Optional[int]:
-        # this value sets an effective refractory period on consecutive rigns
-        # eg if set to default value of 60, rings occuring with 60 seconds of
-        # first will not be detected
+    def clip_length_max(self) -> int | None:
+        """Maximum clip length.
 
+        This value sets an effective refractory period on consecutive rigns
+        eg if set to default value of 60, rings occuring with 60 seconds of
+        first will not be detected.
+        """
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
 
         return (
@@ -208,15 +215,15 @@ class RingOther(RingGeneric):
         self._ring.update_devices()
 
     @property
-    def connection_status(self) -> Optional[str]:
+    def connection_status(self) -> str | None:
         """Return connection status."""
         if self.kind in INTERCOM_KINDS:
             return self._attrs.get("alerts", {}).get("connection")
         return None
 
     @property
-    def allowed_users(self) -> Optional[List[Dict[str, Any]]]:
-        """Return list of users allowed or invited to access"""
+    def allowed_users(self) -> list[dict[str, Any]] | None:
+        """Return list of users allowed or invited to access."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_ALLOWED_USERS.format(self.location_id)
             return self._ring.query(url, method="GET").json()
@@ -224,11 +231,13 @@ class RingOther(RingGeneric):
         return None
 
     def open_door(self, user_id: int = -1) -> bool:
-        """Open the door"""
+        """Open the door."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_OPEN_ENDPOINT.format(self.device_api_id)
             request_id = str(uuid.uuid4())
-            # request_timestamp = int(time.time() * 1000)
+            # params can also accept:
+            # issue_time: in seconds
+            # command_timeout: in seconds
             payload = {
                 "command_name": "device_rpc",
                 "request": {
@@ -236,9 +245,7 @@ class RingOther(RingGeneric):
                     "jsonrpc": "2.0",
                     "method": "unlock_door",
                     "params": {
-                        # "command_timeout": 5,
                         "door_id": 0,
-                        # "issue_time": request_timestamp,
                         "user_id": user_id,
                     },
                 },
@@ -252,7 +259,7 @@ class RingOther(RingGeneric):
         return False
 
     def invite_access(self, email: str) -> bool:
-        """Invite user"""
+        """Invite user."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_ENDPOINT.format(self.location_id)
             payload = {
@@ -268,7 +275,7 @@ class RingOther(RingGeneric):
         return False
 
     def remove_access(self, user_id: int) -> bool:
-        """Remove user access or invitation"""
+        """Remove user access or invitation."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_DELETE_ENDPOINT.format(self.location_id, user_id)
             self._ring.query(url, method="DELETE")

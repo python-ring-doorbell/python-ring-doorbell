@@ -1,4 +1,4 @@
-# This extends our general Ruff rules specifically for docs
+# This extends our general Ruff rules specifically for tests
 extend = "../pyproject.toml"
 
 lint.extend-select = [
@@ -12,4 +12,8 @@ lint.extend-ignore = [
   "SLF001", # Tests will access private/protected members...
   "TCH002", # pytest doesn't like this one...
   "PLR0913", # we're overwriting function that has many arguments
+  "ANN001", # type annotations - TODO
+  "ANN201", # return type annotations - TODO
+  "D103", # docstring - TODO
+  "ARG001", # Unused function argument - TODO
 ]

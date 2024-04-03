@@ -3,7 +3,6 @@
 import getpass
 import json
 from pathlib import Path
-from pprint import pprint
 
 from ring_doorbell import Auth, AuthenticationError, Requires2FAError, Ring
 
@@ -11,13 +10,12 @@ user_agent = "YourProjectName-1.0"  # Change this
 cache_file = Path(user_agent + ".token.cache")
 
 
-def token_updated(token):
+def token_updated(token) -> None:
     cache_file.write_text(json.dumps(token))
 
 
 def otp_callback():
-    auth_code = input("2FA code: ")
-    return auth_code
+    return input("2FA code: ")
 
 
 def do_auth():
@@ -31,7 +29,7 @@ def do_auth():
     return auth
 
 
-def main():
+def main() -> None:
     if cache_file.is_file():  # auth token is cached
         auth = Auth(user_agent, json.loads(cache_file.read_text()), token_updated)
         ring = Ring(auth)
@@ -45,8 +43,7 @@ def main():
 
     ring.update_data()
 
-    devices = ring.devices()
-    pprint(devices)
+    ring.devices()
 
 
 if __name__ == "__main__":

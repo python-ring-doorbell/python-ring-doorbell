@@ -1,7 +1,9 @@
-# Configuration file for the Sphinx documentation builder.
+# Configuration file for the Sphinx documentation builder.  # noqa: INP001
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+from __future__ import annotations
+
 import os
 from importlib.metadata import version as _version
 
@@ -9,7 +11,7 @@ from importlib.metadata import version as _version
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "python-ring-doorbell"
-copyright = "2023, Marcelo Moreira de Mello"
+copyright = "2023, Marcelo Moreira de Mello"  # noqa: A001
 author = "Marcelo Moreira de Mello"
 release = _version("ring_doorbell")
 version = _version("ring_doorbell")
@@ -26,7 +28,7 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns: list[str] = []
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

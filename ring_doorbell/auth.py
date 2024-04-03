@@ -1,9 +1,10 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Auth Class."""
 
+from __future__ import annotations
+
 import uuid
-from json import dumps as json_dumps
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable
 
 from oauthlib.oauth2 import (
     LegacyApplicationClient,
@@ -25,16 +26,17 @@ from ring_doorbell.exceptions import (
 
 
 class Auth:
-    """A Python Auth class for Ring"""
+    """A Python Auth class for Ring."""
 
     def __init__(
         self,
         user_agent: str,
-        token: Optional[Dict[str, Any]] = None,
-        token_updater: Optional[Callable[[Dict[str, Any]], None]] = None,
-        hardware_id: Optional[str] = None,
+        token: dict[str, Any] | None = None,
+        token_updater: Callable[[dict[str, Any]], None] | None = None,
+        hardware_id: str | None = None,
     ) -> None:
-        """
+        """Initialise the auth class.
+
         :type token: Optional[Dict[str, str]]
         :type token_updater: Optional[Callable[[str], None]]
         """
@@ -60,12 +62,13 @@ class Auth:
         self._oauth.mount(API_URI, HTTPAdapter(max_retries=retries))
 
     def fetch_token(
-        self, username: str, password: str, otp_code: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """Initial token fetch with username/password & 2FA
+        self, username: str, password: str, otp_code: str | None = None
+    ) -> dict[str, Any]:
+        """Fetch initial token with username/password & 2FA.
+
         :type username: str
         :type password: str
-        :type otp_code: str
+        :type otp_code: str.
         """
         headers = {"User-Agent": self.user_agent, "hardware_id": self.hardware_id}
 
@@ -91,8 +94,8 @@ class Auth:
 
         return token
 
-    def refresh_tokens(self) -> Dict[str, Any]:
-        """Refreshes the auth tokens"""
+    def refresh_tokens(self) -> dict[str, Any]:
+        """Refresh the auth tokens."""
         try:
             token = self._oauth.refresh_token(
                 OAuth.ENDPOINT, headers={"User-Agent": self.user_agent}
@@ -113,14 +116,15 @@ class Auth:
         """Get device model."""
         return self.device_model
 
-    def query(
+    def query(  # noqa: C901, PLR0913, PLR0912
         self,
         url: str,
         method: str = "GET",
-        extra_params: Optional[Dict[str, Any]] = None,
-        data: Optional[bytes] = None,
-        json: Optional[Dict[Any, Any]] = None,
-        timeout: Optional[float] = None,
+        extra_params: dict[str, Any] | None = None,
+        data: bytes | None = None,
+        json: dict[Any, Any] | None = None,
+        timeout: float | None = None,
+        *,
         raise_for_status: bool = True,
     ) -> Response:
         """Query data from Ring API."""
@@ -132,38 +136,32 @@ class Auth:
         if extra_params:
             params.update(extra_params)
 
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "params": params,
             "headers": {"User-Agent": self.user_agent},
             "timeout": timeout,
         }
 
-        if method in ["POST", "PUT"]:
-            if json is not None:
-                kwargs["json"] = json
-                kwargs["headers"]["Content-Type"] = "application/json"  # type: ignore[index]
-            if data is not None:
-                kwargs["data"] = data
+        if json is not None:
+            kwargs["json"] = json
+            kwargs["headers"]["Content-Type"] = "application/json"  # type: ignore[index]
+        if data is not None:
+            kwargs["data"] = data
 
-        if method == "PATCH":
-            # PATCH method of requests library does not have a json argument
-            if json is not None:
-                kwargs["data"] = json_dumps(json)
-                kwargs["headers"]["Content-Type"] = "application/json"
-            if data is not None:
-                kwargs["data"] = data
         try:
             try:
                 resp = self._oauth.request(method, url, **kwargs)
             except TokenExpiredError:
                 self._oauth.token = self.refresh_tokens()
                 resp = self._oauth.request(method, url, **kwargs)
-        except AuthenticationError as ex:
-            raise ex  # refresh_tokens will return this error if not valid
+        except AuthenticationError:
+            raise  # refresh_tokens will return this error if not valid
         except Timeout as ex:
-            raise RingTimeout(f"Timeout error during query of url {url}: {ex}") from ex
-        except Exception as ex:
-            raise RingError(f"Unknown error during query of url {url}: {ex}") from ex
+            msg = f"Timeout error during query of url {url}: {ex}"
+            raise RingTimeout(msg) from ex
+        except Exception as ex:  # noqa: BLE001
+            msg = f"Unknown error during query of url {url}: {ex}"
+            raise RingError(msg) from ex
 
         if resp.status_code == 401:
             # Check whether there's an issue with the token grant
@@ -173,9 +171,10 @@ class Auth:
             try:
                 resp.raise_for_status()
             except HTTPError as ex:
-                raise RingError(
+                msg = (
                     f"HTTP error with status code {resp.status_code} "
-                    + f"during query of url {url}: {ex}"
-                ) from ex
+                    f"during query of url {url}: {ex}"
+                )
+                raise RingError(msg) from ex
 
         return resp

@@ -1,11 +1,14 @@
+"""Module for cli tests."""
+
+from __future__ import annotations
+
 import json
-import os
 from pathlib import Path
+from typing import Any
 from unittest.mock import DEFAULT
 
 import pytest
 from asyncclick.testing import CliRunner
-
 from ring_doorbell import AuthenticationError, Requires2FAError, Ring
 from ring_doorbell.cli import (
     _event_handler,
@@ -19,6 +22,7 @@ from ring_doorbell.cli import (
 )
 from ring_doorbell.const import GCM_TOKEN_FILE
 from ring_doorbell.listen import can_listen
+
 from tests.conftest import load_fixture
 
 
@@ -31,8 +35,8 @@ async def test_cli_default(ring):
 
         expected = (
             "Name:       Downstairs\nFamily:     chimes\nID:"
-            + "         999999\nTimezone:   America/New_York\nWifi Name:"
-            + "  ring_mock_wifi\nWifi RSSI:  -39\n\n"
+            "         999999\nTimezone:   America/New_York\nWifi Name:"
+            "  ring_mock_wifi\nWifi RSSI:  -39\n\n"
         )
 
         assert res.exit_code == 0
@@ -46,8 +50,8 @@ async def test_show(ring):
 
         expected = (
             "Name:       Downstairs\nFamily:     chimes\nID:"
-            + "         999999\nTimezone:   America/New_York\nWifi Name:"
-            + "  ring_mock_wifi\nWifi RSSI:  -39\n\n"
+            "         999999\nTimezone:   America/New_York\nWifi Name:"
+            "  ring_mock_wifi\nWifi RSSI:  -39\n\n"
         )
 
         assert res.exit_code == 0
@@ -61,7 +65,7 @@ async def test_devices(ring):
 
         expected = (
             "(Pretty format coming soon, if you want json "
-            + "consistently from this command provide the --json flag)\n"
+            "consistently from this command provide the --json flag)\n"
         )
         for device_type in ring.devices_data:
             for device_api_id in ring.devices_data[device_type]:
@@ -79,7 +83,10 @@ async def test_list(ring):
     with runner.isolated_filesystem():
         res = await runner.invoke(list_command, obj=ring)
 
-        expected = "Front Door (lpd_v1)\nBack Door (lpd_v1)\nDownstairs (chime)\nFront (hp_cam_v1)\nIngress (intercom_handset_audio)\n"
+        expected = (
+            "Front Door (lpd_v1)\nBack Door (lpd_v1)\nDownstairs (chime)\n"
+            "Front (hp_cam_v1)\nIngress (intercom_handset_audio)\n"
+        )
 
         assert res.exit_code == 0
         assert expected in res.output
@@ -90,14 +97,14 @@ async def test_videos(ring, mocker):
 
     with runner.isolated_filesystem():
         m = mocker.mock_open()
-        ptch = mocker.patch("builtins.open", m, create=True)
+        ptch = mocker.patch("pathlib.Path.open", m, create=True)
         res = await runner.invoke(videos, ["--count", "--download-all"], obj=ring)
         assert ptch.mock_calls[2].args[0] == b"123456"
         assert "Downloading 3 videos" in res.output
 
 
 @pytest.mark.parametrize(
-    "affect_method, exception, file_exists",
+    ("affect_method", "exception", "file_exists"),
     [
         (None, None, False),
         ("ring_doorbell.auth.Auth.fetch_token", Requires2FAError, False),
@@ -108,11 +115,12 @@ async def test_videos(ring, mocker):
 async def test_auth(mocker, affect_method, exception, file_exists):
     call_count = 0
 
-    def _raise_once(self, *args, **kwargs):
+    def _raise_once(self, *_: dict[str, Any], **__: dict[str, Any]) -> dict[str, Any]:
         nonlocal call_count, exception
         if call_count == 0:
             call_count += 1
-            raise exception("Simulated exception")
+            msg = "Simulated exception"
+            raise exception(msg)
         call_count += 1
 
         if hasattr(self, "_update_data"):
@@ -174,9 +182,8 @@ async def test_motion_detection(ring, requests_mock):
 @pytest.mark.skipif(
     can_listen is False, reason="requires the extra [listen] to be installed"
 )
-@pytest.mark.nolistenmock
+@pytest.mark.nolistenmock()
 async def test_listen_store_credentials(mocker, auth):
-    # mocker.patch("firebase_messaging.checkin", return_value="foobar")
     runner = CliRunner()
     import firebase_messaging
 
@@ -193,10 +200,10 @@ async def test_listen_store_credentials(mocker, auth):
         mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
         ring = Ring(auth)
-        assert not os.path.isfile(GCM_TOKEN_FILE)
+        assert not Path(GCM_TOKEN_FILE).is_file()
 
         await runner.invoke(listen, ["--store-credentials"], obj=ring)
-        assert os.path.isfile(GCM_TOKEN_FILE)
+        assert Path(GCM_TOKEN_FILE).is_file()
         assert firebase_messaging.fcmpushclient.gcm_check_in.call_count == 0
         assert firebase_messaging.FcmPushClient.register.call_count == 1
         assert firebase_messaging.FcmPushClient.start.call_count == 1
@@ -212,7 +219,6 @@ async def test_listen_store_credentials(mocker, auth):
     can_listen is False, reason="requires the extra [listen] to be installed"
 )
 async def test_listen_event_handler(mocker, auth):
-    # mocker.patch("firebase_messaging.checkin", return_value="foobar")
     from ring_doorbell.listen import RingEventListener
 
     ring = Ring(auth)
@@ -227,12 +233,12 @@ async def test_listen_event_handler(mocker, auth):
     mocker.patch(
         "ring_doorbell.cli.get_now_str", return_value="2023-10-24 09:42:18.789709"
     )
-    listener.on_notification(msg, "1234567")
+    listener._on_notification(msg, "1234567")
     exp = (
         "2023-10-24 09:42:18.789709: RingEvent(id=12345678901234, "
-        + "doorbot_id=12345678, device_name='Front Floodcam'"
-        + ", device_kind='floodlight_v2', now=1698137483.395,"
-        + " expires_in=180, kind='motion', state='human') : "
-        + "Currently active count = 1"
+        "doorbot_id=12345678, device_name='Front Floodcam'"
+        ", device_kind='floodlight_v2', now=1698137483.395,"
+        " expires_in=180, kind='motion', state='human') : "
+        "Currently active count = 1"
     )
     echomock.assert_called_with(exp)

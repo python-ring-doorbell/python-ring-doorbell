@@ -1,8 +1,9 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Doorbell wrapper."""
 
+from __future__ import annotations
+
 import logging
-from typing import Union
 
 from ring_doorbell.const import (
     FLOODLIGHT_CAM_KINDS,
@@ -41,7 +42,7 @@ class RingStickUpCam(RingDoorBell):
         return "stickup_cams"
 
     @property
-    def model(self) -> str:
+    def model(self) -> str:  # noqa: C901, PLR0911, PLR0912
         """Return Ring device model name."""
         if self.kind in FLOODLIGHT_CAM_KINDS:
             return "Floodlight Cam"
@@ -76,7 +77,7 @@ class RingStickUpCam(RingDoorBell):
         _LOGGER.error("Unknown kind: %s", self.kind)
         return "Unknown Stickup Cam"
 
-    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
+    def has_capability(self, capability: RingCapability | str) -> bool:
         """Return if device has specific capability."""
         capability = (
             capability
