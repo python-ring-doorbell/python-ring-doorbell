@@ -2,6 +2,8 @@
 # Many thanks to @troopermax <https://github.com/troopermax>
 """Python Ring command line interface."""
 
+from __future__ import annotations
+
 import asyncio
 import functools
 import getpass
@@ -12,7 +14,7 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path, PurePath
-from typing import Optional, Sequence, cast
+from typing import Sequence, cast
 
 import asyncclick as click
 
@@ -29,12 +31,12 @@ from ring_doorbell.const import CLI_TOKEN_FILE, GCM_TOKEN_FILE, PACKAGE_NAME, US
 from ring_doorbell.listen import can_listen
 
 
-def _header():
+def _header() -> None:
     _bar()
     echo("Ring CLI")
 
 
-def _bar():
+def _bar() -> None:
     echo("---------------------------------")
 
 
@@ -68,7 +70,7 @@ class ExceptionHandlerGroup(click.Group):
 class MutuallyExclusiveOption(click.Option):
     """Prevents incompatable options being supplied, i.e. on and off."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.mutually_exclusive = set(kwargs.pop("mutually_exclusive", []))
         _help = kwargs.get("help", "")
         if self.mutually_exclusive:
@@ -81,10 +83,11 @@ class MutuallyExclusiveOption(click.Option):
 
     async def handle_parse_result(self, ctx, opts, args):
         if self.mutually_exclusive.intersection(opts) and self.name in opts:
-            raise click.UsageError(
+            msg = (
                 "Illegal usage: `{}` is mutually exclusive with "
                 "arguments `{}`.".format(self.name, ", ".join(self.mutually_exclusive))
             )
+            raise click.UsageError(msg)
 
         return await super().handle_parse_result(ctx, opts, args)
 
@@ -92,8 +95,8 @@ class MutuallyExclusiveOption(click.Option):
 echo = click.echo
 
 
-def token_updated(token):
-    """Writes token to file"""
+def token_updated(token) -> None:
+    """Writes token to file."""
     cache_file.write_text(json.dumps(token), encoding="utf-8")
 
 
@@ -107,8 +110,7 @@ def _format_filename(device_name, event):
         device_name, event["created_at"], event["kind"], answered_status, event["id"]
     )
 
-    filename = filename.replace(" ", "_").replace(":", ".") + ".mp4"
-    return filename
+    return filename.replace(" ", "_").replace(":", ".") + ".mp4"
 
 
 def _do_auth(username, password, user_agent=USER_AGENT):
@@ -205,14 +207,15 @@ async def cli(ctx, username, password, debug, user_agent):
 
     if ctx.invoked_subcommand is None:
         return await ctx.invoke(show)
+    return None
 
 
 @cli.command(name="list")
 @pass_ring
-async def list_command(ring: Ring):
+async def list_command(ring: Ring) -> None:
     """List ring devices."""
     devices = ring.devices()
-    device: Optional[RingGeneric] = None
+    device: RingGeneric | None = None
     for device in devices.doorbots:
         echo(device)
     for device in devices.authorized_doorbots:
@@ -264,22 +267,22 @@ async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
         )
         return await ctx.invoke(list_command)
     if not device.has_capability("motion_detection"):
-        echo(f"{str(device)} is not capable of motion detection")
-        return
+        echo(f"{device!s} is not capable of motion detection")
+        return None
     device = cast(RingDoorBell, device)
     state = "on" if device.motion_detection else "off"
     if not turn_on and not turn_off:
-        echo(f"{str(device)} has motion detection {state}")
-        return
+        echo(f"{device!s} has motion detection {state}")
+        return None
     is_on = device.motion_detection
     if (turn_on and is_on) or (turn_off and not is_on):
-        echo(f"{str(device)} already has motion detection {state}")
-        return
+        echo(f"{device!s} already has motion detection {state}")
+        return None
 
     device.motion_detection = turn_on if turn_on else False
     state = "on" if device.motion_detection else "off"
-    echo(f"{str(device)} motion detection set to {state}")
-    return
+    echo(f"{device!s} motion detection set to {state}")
+    return None
 
 
 @cli.command()
@@ -294,7 +297,7 @@ async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
 @click.pass_context
 async def show(ctx, ring: Ring, device_name):
     """Display ring devices."""
-    devices: Optional[Sequence[RingGeneric]] = None
+    devices: Sequence[RingGeneric] | None = None
 
     if device_name and (device := ring.get_device_by_name(device_name)):
         devices = [device]
@@ -316,6 +319,7 @@ async def show(ctx, ring: Ring, device_name):
         echo("Wifi Name:  %s" % dev.wifi_name)
         echo("Wifi RSSI:  %s" % dev.wifi_signal_strength)
         echo()
+    return None
 
 
 @cli.command(name="devices")
@@ -354,12 +358,14 @@ async def devices_command(ctx, ring: Ring, device_name, json_flag):
 
     if device_json:
         echo(json.dumps(device_json, indent=2))
+        return None
     else:
         for device_type in ring.devices_data:
             for device_api_id in ring.devices_data[device_type]:
                 echo(
                     json.dumps(ring.devices_data[device_type][device_api_id], indent=2)
                 )
+        return None
 
 
 @cli.command()
@@ -371,7 +377,7 @@ async def devices_command(ctx, ring: Ring, device_name, json_flag):
     help="Output raw json",
 )
 @pass_ring
-async def dings(ring: Ring, json_flag):
+async def dings(ring: Ring, json_flag) -> None:
     """Get dings information."""
     if not json_flag:
         echo(
@@ -390,7 +396,7 @@ async def dings(ring: Ring, json_flag):
     help="Output raw json",
 )
 @pass_ring
-async def groups(ring: Ring, json_flag):
+async def groups(ring: Ring, json_flag) -> None:
     """Get group information."""
     if not json_flag:
         echo(
@@ -414,7 +420,7 @@ async def groups(ring: Ring, json_flag):
     help="Url to query, i.e. /clients_api/dings/active",
 )
 @pass_ring
-async def raw_query(ring: Ring, url):
+async def raw_query(ring: Ring, url) -> None:
     """Directly query a url and return json result."""
     data = ring.query(url).json()
     echo(json.dumps(data, indent=2))
@@ -467,6 +473,7 @@ async def history_command(ctx, ring: Ring, device_name, kind, limit, json_flag):
 
     history = device.history(limit=limit, kind=kind, convert_timezone=False)
     echo(json.dumps(history, indent=2))
+    return None
 
 
 @cli.command()
@@ -525,7 +532,7 @@ async def videos(
         return await ctx.invoke(list_command)
     if device and not device.has_capability("video"):
         echo(f"Device {device.name} is not a video device")
-        return
+        return None
     # return the first device is implemented to be consistent with previous cli version
     if not device:
         if video_devices := ring.video_devices():
@@ -538,7 +545,7 @@ async def videos(
             return await ctx.invoke(list_command)
 
     if not device:  # Make mypy happy
-        return
+        return None
     if (
         not count
         and not download
@@ -547,7 +554,7 @@ async def videos(
         and (url := device.recording_url(device.last_recording_id))
     ):
         echo("Last recording url is: " + url)
-        return
+        return None
 
     events = None
     if download_all:
@@ -586,19 +593,21 @@ async def videos(
         if events is None:
             echo(
                 "\tGetting videos linked on your Ring account.\n"
-                + "\tThis may take some time....\n"
+                "\tThis may take some time....\n"
             )
             events = _get_events(device, max_count)
 
         echo(
             f"\tDownloading {len(events)} videos linked on your Ring account.\n"
-            + "\tThis may take some time....\n"
+            "\tThis may take some time....\n"
         )
         for counter, event in enumerate(events):
             filename = str(PurePath(download_to, _format_filename(device.name, event)))
             echo(f"\t{counter}/{len(events)} Downloading {filename}")
 
             device.recording_download(event["id"], filename=filename, override=False)
+        return None
+    return None
 
 
 async def ainput(string: str):
@@ -615,8 +624,7 @@ async def ainput(string: str):
             timeout,
         )[0]:
             # line = sys.stdin.next()
-            line = sys.stdin.readline()
-            return line
+            return sys.stdin.readline()
         return None
 
     line = None
@@ -630,10 +638,10 @@ def get_now_str():
 
 
 class _event_handler:  # pylint:disable=invalid-name
-    def __init__(self, ring: Ring):
+    def __init__(self, ring: Ring) -> None:
         self.ring = ring
 
-    def on_event(self, event: RingEvent):
+    def on_event(self, event: RingEvent) -> None:
         msg = (
             get_now_str()
             + ": "
@@ -673,7 +681,7 @@ async def listen(
     store_credentials,
     credentials_file,
     show_credentials,
-):
+) -> None:
     """Listen to push notification like the ones sent to your phone."""
     if not can_listen:
         echo("Ring is not configured for listening to notifications!")
@@ -684,7 +692,7 @@ async def listen(
         RingEventListener,
     )
 
-    def credentials_updated_callback(credentials):
+    def credentials_updated_callback(credentials) -> None:
         if store_credentials:
             with open(credentials_file, "w", encoding="utf-8") as f:
                 json.dump(credentials, f)

@@ -1,13 +1,12 @@
 """Test configuration for the Ring platform."""
 
 import json
-import os
 import re
+from pathlib import Path
 from time import time
 
 import pytest
 import requests_mock
-
 from ring_doorbell import Auth, Ring
 from ring_doorbell.const import USER_AGENT
 from ring_doorbell.listen import can_listen
@@ -19,7 +18,7 @@ def pytest_configure(config):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def auth(requests_mock):
     """Return auth object."""
     auth = Auth(USER_AGENT)
@@ -27,7 +26,7 @@ def auth(requests_mock):
     return auth
 
 
-@pytest.fixture
+@pytest.fixture()
 def ring(auth):
     """Return updated ring object."""
     ring = Ring(auth)
@@ -35,7 +34,7 @@ def ring(auth):
     return ring
 
 
-def _set_dings_to_now(active_dings):
+def _set_dings_to_now(active_dings) -> None:
     dings = json.loads(active_dings)
     for ding in dings:
         ding["now"] = time()
@@ -45,13 +44,13 @@ def _set_dings_to_now(active_dings):
 
 def load_fixture(filename):
     """Load a fixture."""
-    path = os.path.join(os.path.dirname(__file__), "fixtures", filename)
-    with open(path) as fdp:
+    path = Path(Path(__file__).parent / "fixtures" / filename)
+    with path.open() as fdp:
         return fdp.read()
 
 
 @pytest.fixture(autouse=True)
-def listen_mock(mocker, request):
+def _listen_mock(mocker, request) -> None:
     if not can_listen or "nolistenmock" in request.keywords:
         return
 
@@ -114,12 +113,12 @@ def requests_mock_fixture():
         )
         mock.get(
             "https://api.ring.com/groups/v1/locations/"
-            + "mock-location-id/groups/mock-group-id/devices",
+            "mock-location-id/groups/mock-group-id/devices",
             text=load_fixture("ring_group_devices.json"),
         )
         mock.post(
             "https://api.ring.com/groups/v1/locations/"
-            + "mock-location-id/groups/mock-group-id/devices",
+            "mock-location-id/groups/mock-group-id/devices",
             text="ok",
         )
         mock.patch(
@@ -130,7 +129,6 @@ def requests_mock_fixture():
         )
         mock.get(
             re.compile(r"https:\/\/api\.ring\.com\/clients_api\/dings\/\d+\/recording"),
-            # "https://api.ring.com/clients_api/dings/987654321/recording",
             status_code=200,
             content=b"123456",
         )

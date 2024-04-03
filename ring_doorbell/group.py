@@ -1,9 +1,11 @@
 # vim:sw=4:ts=4:et:
 """Python Ring light group wrapper."""
 
+from __future__ import annotations
+
 import logging
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, Tuple, Union
+from typing import TYPE_CHECKING, Any
 
 from ring_doorbell.const import (
     GROUP_DEVICES_ENDPOINT,
@@ -21,11 +23,11 @@ class RingLightGroup:
     if TYPE_CHECKING:
         from ring_doorbell.ring import Ring
 
-    def __init__(self, ring: "Ring", group_id: str) -> None:
+    def __init__(self, ring: Ring, group_id: str) -> None:
         """Initialize Ring Light Group."""
         self._ring = ring
         self.group_id = group_id  # pylint:disable=invalid-name
-        self._health_attrs: Dict[str, Any] = {}
+        self._health_attrs: dict[str, Any] = {}
         self._health_attrs_fetched = False
 
     def __repr__(self) -> str:
@@ -39,7 +41,7 @@ class RingLightGroup:
         self._health_attrs_fetched = True
 
     @property
-    def _attrs(self) -> Dict[str, Any]:
+    def _attrs(self) -> dict[str, Any]:
         """Return attributes."""
         return self._ring.groups_data[self.group_id]
 
@@ -60,7 +62,7 @@ class RingLightGroup:
 
     @property
     def device_id(self) -> str:
-        """Return group ID. Deprecated"""
+        """Return group ID. Deprecated."""
         warnings.warn(
             "RingLightGroup.device_id is deprecated; use group_id",
             DeprecationWarning,
@@ -78,7 +80,7 @@ class RingLightGroup:
         """Return Ring device model name."""
         return "Light Group"
 
-    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
+    def has_capability(self, capability: RingCapability | str) -> bool:
         """Return if device has specific capability."""
         capability = (
             capability
@@ -97,7 +99,7 @@ class RingLightGroup:
         return self._health_attrs["lights_on"]
 
     @lights.setter
-    def lights(self, value: Union[bool, Tuple[bool, int]]) -> None:
+    def lights(self, value: bool | tuple[bool, int]) -> None:
         """Control the lights."""
         values = ["True", "False"]
         state = None
@@ -110,9 +112,7 @@ class RingLightGroup:
             raise RingError(MSG_ALLOWED_VALUES.format(", ".join(values)))
 
         url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.group_id)
-        payload: Dict[str, Dict[str, Union[bool, int]]] = {
-            "lights_on": {"enabled": state}
-        }
+        payload: dict[str, dict[str, bool | int]] = {"lights_on": {"enabled": state}}
         if duration is not None:
             payload["lights_on"]["duration_seconds"] = duration
         self._ring.query(url, method="POST", json=payload)

@@ -13,5 +13,5 @@ class AuthenticationError(RingError):
     """Exception for ring authentication errors."""
 
 
-class RingTimeout(RingError):
+class RingTimeout(RingError):  # noqa: N818
     """Exception for ring authentication errors."""

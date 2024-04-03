@@ -1,11 +1,12 @@
-"""Module for listening to firebase cloud messages and updating dings"""
+"""Module for listening to firebase cloud messages and updating dings."""
 
-import asyncio
+from __future__ import annotations
+
 import json
 import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict
 
 from firebase_messaging import FcmPushClient
 
@@ -22,11 +23,15 @@ from ring_doorbell.const import (
     RING_SENDER_ID,
     SUBSCRIPTION_ENDPOINT,
 )
+from ring_doorbell.event import RingEvent
 from ring_doorbell.exceptions import RingError
-from ring_doorbell.ring import Ring
 
-from ..event import RingEvent
 from .listenerconfig import RingEventListenerConfig
+
+if TYPE_CHECKING:
+    import asyncio
+
+    from ring_doorbell.ring import Ring
 
 _logger = logging.getLogger(__name__)
 
@@ -40,14 +45,18 @@ class RingEventListener:
     def __init__(
         self,
         ring: Ring,
-        credentials: Optional[Dict[str, Any]] = None,
-        credentials_updated_callback: Optional[CredentialsUpdatedCallable] = None,
+        credentials: dict[str, Any] | None = None,
+        credentials_updated_callback: CredentialsUpdatedCallable | None = None,
         *,
-        config: Optional[RingEventListenerConfig] = None,
+        config: RingEventListenerConfig | None = None,
     ) -> None:
+        """Initialise the event listener with credentials.
+
+        Provide a callback for when credentials are updated by FCM.
+        """
         self._ring = ring
 
-        self._callbacks: Dict[int, OnNotificationCallable] = {}
+        self._callbacks: dict[int, OnNotificationCallable] = {}
         self.subscribed = False
         self.started = False
         self._app_id = self._ring.auth.get_hardware_id()
@@ -56,13 +65,13 @@ class RingEventListener:
         self._credentials = credentials
         self._credentials_updated_callback = credentials_updated_callback
 
-        self._receiver: Optional[FcmPushClient] = None
+        self._receiver: FcmPushClient | None = None
         self._config: RingEventListenerConfig = (
             config or RingEventListenerConfig.default_config()
         )
 
         self._subscription_counter = 1
-        self._intercom_unlock_counter: Dict[int, int] = {}
+        self._intercom_unlock_counter: dict[int, int] = {}
 
     def add_subscription_to_ring(self, token: str) -> None:
         """Add subscription to ring."""
@@ -89,7 +98,7 @@ class RingEventListener:
         if resp.status_code != 204:
             _logger.error(
                 "Unable to checkin to listen service, "
-                + "response was %s %s, event listener not started",
+                "response was %s %s, event listener not started",
                 resp.status_code,
                 resp.text,
             )
@@ -104,6 +113,7 @@ class RingEventListener:
             self._ring.update_dings()
 
     def add_notification_callback(self, callback: OnNotificationCallable) -> int:
+        """Add a callback to be notified on event."""
         sub_id = self._subscription_counter
 
         self._callbacks[sub_id] = callback
@@ -112,13 +122,14 @@ class RingEventListener:
         return sub_id
 
     def remove_notification_callback(self, subscription_id: int) -> None:
+        """Remove a notification callback by id."""
         if subscription_id == 1:
-            raise RingError(
-                "Cannot remove the default callback for ring-doorbell with value 1"
-            )
+            msg = "Cannot remove the default callback for ring-doorbell with value 1"
+            raise RingError(msg)
 
         if subscription_id not in self._callbacks:
-            raise RingError(f"ID {subscription_id} is not a valid callback id")
+            msg = f"ID {subscription_id} is not a valid callback id"
+            raise RingError(msg)
 
         del self._callbacks[subscription_id]
 
@@ -127,6 +138,7 @@ class RingEventListener:
             self._receiver = None
 
     def stop(self) -> None:
+        """Stop the listener."""
         if self._receiver:
             self.started = False
             self._receiver.stop()
@@ -136,14 +148,15 @@ class RingEventListener:
 
     def start(
         self,
-        callback: Optional[OnNotificationCallable] = None,
+        callback: OnNotificationCallable | None = None,
         *,
-        listen_loop: Optional[asyncio.AbstractEventLoop] = None,
-        callback_loop: Optional[asyncio.AbstractEventLoop] = None,
+        listen_loop: asyncio.AbstractEventLoop | None = None,
+        callback_loop: asyncio.AbstractEventLoop | None = None,
         timeout: int = 30,
     ) -> bool:
+        """Start the listener."""
         if not callback:
-            callback = self._ring.add_event_to_dings_data
+            callback = self._ring._add_event_to_dings_data  # noqa: SLF001
 
         if not self._receiver:
             self._receiver = FcmPushClient(
@@ -161,7 +174,7 @@ class RingEventListener:
             self.add_notification_callback(callback)
 
             self._receiver.start(
-                self.on_notification,
+                self._on_notification,
                 listen_event_loop=listen_loop,
                 callback_event_loop=callback_loop,
             )
@@ -175,7 +188,7 @@ class RingEventListener:
 
         return self.subscribed and self.started
 
-    def _get_ding_event(self, gcm_data: Dict[str, Any]) -> RingEvent:
+    def _get_ding_event(self, gcm_data: dict[str, Any]) -> RingEvent:
         ding = gcm_data["ding"]
         action = gcm_data["action"]
         subtype = gcm_data["subtype"]
@@ -193,7 +206,7 @@ class RingEventListener:
         create_seconds = (
             datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f%z")
         ).timestamp()
-        re = RingEvent(
+        return RingEvent(
             id=ding["id"],
             kind=kind,
             doorbot_id=ding["doorbot_id"],
@@ -203,11 +216,8 @@ class RingEventListener:
             expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
             state=state,
         )
-        return re
 
-    def _get_intercom_unlock_event(
-        self, gcm_data: Dict[str, Any]
-    ) -> Optional[RingEvent]:
+    def _get_intercom_unlock_event(self, gcm_data: dict[str, Any]) -> RingEvent | None:
         device_api_id = gcm_data["alarm_meta"]["device_zid"]
         if (device := self._ring.get_device_by_api_id(device_api_id)) is None:
             _logger.debug("Event received for unknown device id: %s", device_api_id)
@@ -216,7 +226,7 @@ class RingEventListener:
         if device_api_id not in self._intercom_unlock_counter:
             self._intercom_unlock_counter[device_api_id] = 0
         self._intercom_unlock_counter[device_api_id] += 1
-        re = RingEvent(
+        return RingEvent(
             id=self._intercom_unlock_counter[device_api_id],
             kind=KIND_INTERCOM_UNLOCK,
             doorbot_id=device_api_id,
@@ -226,17 +236,16 @@ class RingEventListener:
             expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
             state="unlock",
         )
-        return re
 
-    def on_notification(
+    def _on_notification(
         self,
-        notification: Dict[str, Dict[str, str]],
-        persistent_id: str,
-        obj: Optional[Any] = None,
+        notification: dict[str, dict[str, str]],
+        persistent_id: str,  # noqa: ARG002
+        obj: Any | None = None,  # noqa: ARG002
     ) -> None:
         gcm_data = json.loads(notification["data"]["gcmData"])
 
-        re: Optional[RingEvent] = None
+        re: RingEvent | None = None
         if "ding" in gcm_data:
             re = self._get_ding_event(gcm_data)
         elif gcm_data.get("action") == PUSH_ACTION_INTERCOM_UNLOCK:
