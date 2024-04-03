@@ -2,9 +2,11 @@
 """Python Ring RingGeneric wrapper."""
 
 # pylint: disable=useless-object-inheritance
+from __future__ import annotations
+
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import pytz
 
@@ -19,7 +21,7 @@ class RingGeneric:
     if TYPE_CHECKING:
         from ring_doorbell.ring import Ring
 
-    def __init__(self, ring: "Ring", device_api_id: int) -> None:
+    def __init__(self, ring: Ring, device_api_id: int) -> None:
         """Initialize Ring Generic."""
         self._ring = ring
         # This is the account ID of the device.
@@ -27,7 +29,7 @@ class RingGeneric:
         self.device_api_id = device_api_id
         self.capability = False
         self.alert = None
-        self._health_attrs: Dict[str, Any] = {}
+        self._health_attrs: dict[str, Any] = {}
 
         # alerts notifications
         self.alert_expires_at = None
@@ -37,6 +39,7 @@ class RingGeneric:
         return f"<{self.__class__.__name__}: {self.name}>"
 
     def __str__(self) -> str:
+        """Return string representation of device."""
         return f"{self.name} ({self.kind})"
 
     def update(self) -> None:
@@ -48,7 +51,7 @@ class RingGeneric:
         raise NotImplementedError
 
     @property
-    def _attrs(self) -> Dict[str, Any]:
+    def _attrs(self) -> dict[str, Any]:
         """Return attributes."""
         return self._ring.devices_data[self.family][self.device_api_id]
 
@@ -72,7 +75,7 @@ class RingGeneric:
         return self._attrs["device_id"]
 
     @property
-    def location_id(self) -> Optional[str]:
+    def location_id(self) -> str | None:
         """Return location id."""
         return self._attrs.get("location_id", None)
 
@@ -87,31 +90,31 @@ class RingGeneric:
         raise NotImplementedError
 
     @property
-    def battery_life(self) -> Optional[int]:
+    def battery_life(self) -> int | None:
         """Return battery life."""
         raise NotImplementedError
 
-    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
+    def has_capability(self, capability: RingCapability | str) -> bool:  # noqa: ARG002
         """Return if device has specific capability."""
         return self.capability
 
     @property
-    def address(self) -> Optional[str]:
+    def address(self) -> str | None:
         """Return address."""
         return self._attrs.get("address")
 
     @property
-    def firmware(self) -> Optional[str]:
+    def firmware(self) -> str | None:
         """Return firmware."""
         return self._attrs.get("firmware_version")
 
     @property
-    def latitude(self) -> Optional[float]:
+    def latitude(self) -> float | None:
         """Return latitude attr."""
         return self._attrs.get("latitude")
 
     @property
-    def longitude(self) -> Optional[float]:
+    def longitude(self) -> float | None:
         """Return longitude attr."""
         return self._attrs.get("longitude")
 
@@ -121,12 +124,12 @@ class RingGeneric:
         return self._attrs["kind"]
 
     @property
-    def timezone(self) -> Optional[str]:
+    def timezone(self) -> str | None:
         """Return timezone."""
         return self._attrs.get("time_zone")
 
     @property
-    def wifi_name(self) -> Optional[str]:
+    def wifi_name(self) -> str | None:
         """Return wifi ESSID name.
 
         Requires health data to be updated.
@@ -134,7 +137,7 @@ class RingGeneric:
         return self._health_attrs.get("wifi_name")
 
     @property
-    def wifi_signal_strength(self) -> Optional[int]:
+    def wifi_signal_strength(self) -> int | None:
         """Return wifi RSSI.
 
         Requires health data to be updated.
@@ -142,24 +145,24 @@ class RingGeneric:
         return self._health_attrs.get("latest_signal_strength")
 
     @property
-    def wifi_signal_category(self) -> Optional[str]:
+    def wifi_signal_category(self) -> str | None:
         """Return wifi signal category.
 
         Requires health data to be updated.
         """
         return self._health_attrs.get("latest_signal_category")
 
-    def history(
+    def history(  # noqa: C901, PLR0912, PLR0913
         self,
-        limit: int = 30,
-        timezone: Optional[str] = None,
-        kind: Optional[str] = None,
-        enforce_limit: bool = False,
-        older_than: Optional[int] = None,
-        retry: int = 8,
         *,
+        limit: int = 30,
+        timezone: str | None = None,
+        kind: str | None = None,
+        enforce_limit: bool = False,
+        older_than: int | None = None,
+        retry: int = 8,
         convert_timezone: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Return history with datetime objects.
 

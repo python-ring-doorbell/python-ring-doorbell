@@ -5,10 +5,10 @@ import datetime
 import json
 
 import pytest
-
 from ring_doorbell import Ring
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.listen import can_listen
+
 from tests.conftest import load_fixture
 
 # test_module.py
@@ -64,11 +64,11 @@ async def test_active_dings(auth, mocker):
     for i in range(alertstoadd):
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
         gcmdata_dict = json.loads(load_fixture("ring_listen_ding.json"))
-        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"  # noqa: DTZ003
         gcmdata_dict["ding"]["created_at"] = created_at
         gcmdata_dict["ding"]["id"] = gcmdata_dict["ding"]["id"] + i
         msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
-        listener.on_notification(msg, "1234567" + str(i))
+        listener._on_notification(msg, "1234567" + str(i))
 
     dings = ring.active_alerts()
     assert len(dings) == num_active + alertstoadd
@@ -77,11 +77,11 @@ async def test_active_dings(auth, mocker):
     for i in range(alertstoadd):
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
         gcmdata_dict = json.loads(load_fixture("ring_listen_ding.json"))
-        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"  # noqa: DTZ003
         gcmdata_dict["ding"]["created_at"] = created_at
         gcmdata_dict["ding"]["id"] = gcmdata_dict["ding"]["id"] + 1
         msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
-        listener.on_notification(msg, "1234567" + str(i))
+        listener._on_notification(msg, "1234567" + str(i))
 
     dings = ring.active_alerts()
     assert len(dings) == num_active + alertstoadd
@@ -105,7 +105,7 @@ async def test_intercom_unlock(auth, mocker):
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
         gcmdata_dict = json.loads(load_fixture("ring_listen_intercom_unlock.json"))
         msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
-        listener.on_notification(msg, "1234567" + str(i))
+        listener._on_notification(msg, "1234567" + str(i))
 
     dings = ring.active_alerts()
     assert len(dings) == num_active + alertstoadd
@@ -113,7 +113,7 @@ async def test_intercom_unlock(auth, mocker):
     listener.stop()
 
 
-@pytest.mark.nolistenmock
+@pytest.mark.nolistenmock()
 async def test_listen_subscribe_fail(auth, mocker, requests_mock, caplog):
     checkinmock = mocker.patch(
         "firebase_messaging.FcmPushClient.checkin", return_value="foobar"
@@ -138,7 +138,7 @@ async def test_listen_subscribe_fail(auth, mocker, requests_mock, caplog):
 
     exp = (
         "Unable to checkin to listen service, "
-        + "response was 401 foobar, event listener not started"
+        "response was 401 foobar, event listener not started"
     )
     assert (
         len(
@@ -152,7 +152,7 @@ async def test_listen_subscribe_fail(auth, mocker, requests_mock, caplog):
     )
 
 
-@pytest.mark.nolistenmock
+@pytest.mark.nolistenmock()
 async def test_listen_gcm_fail(auth, mocker, requests_mock, caplog):
     # Check in gets and error so register is called, the subscribe gets an error
     credentials = json.loads(load_fixture("ring_listen_credentials.json"))
@@ -176,7 +176,7 @@ async def test_listen_gcm_fail(auth, mocker, requests_mock, caplog):
     assert connectmock.call_count == 1
 
 
-@pytest.mark.nolistenmock
+@pytest.mark.nolistenmock()
 async def test_listen_fcm_fail(auth, mocker, requests_mock, caplog):
     checkinmock = mocker.patch(
         "firebase_messaging.FcmPushClient.checkin", return_value=None

@@ -1,4 +1,4 @@
-"Package for listener modules."
+"""Package for listener modules."""
 
 import sys
 

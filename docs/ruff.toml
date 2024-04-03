@@ -1,4 +1,4 @@
-# This extends our general Ruff rules specifically for tests
+# This extends our general Ruff rules specifically for docs
 extend = "../pyproject.toml"
 
 lint.extend-ignore = [

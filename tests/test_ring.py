@@ -1,7 +1,6 @@
 """The tests for the Ring platform."""
 
 import pytest
-
 from ring_doorbell import RingError
 
 

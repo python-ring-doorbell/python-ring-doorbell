@@ -1,8 +1,10 @@
 # vim:sw=4:ts=4:et:
 """Python Ring Chime wrapper."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict, Union
+from typing import Any
 
 from ring_doorbell.const import (
     CHIME_KINDS,
@@ -49,7 +51,7 @@ class RingChime(RingGeneric):
             return "Chime Pro"
         return "Unknown Chime"
 
-    def has_capability(self, capability: Union[RingCapability, str]) -> bool:
+    def has_capability(self, capability: RingCapability | str) -> bool:
         """Return if device has specific capability."""
         capability = (
             capability
@@ -79,12 +81,12 @@ class RingChime(RingGeneric):
         self._ring.update_devices()
 
     @property
-    def linked_tree(self) -> Dict[str, Any]:
+    def linked_tree(self) -> dict[str, Any]:
         """Return doorbell data linked to chime."""
         url = LINKED_CHIMES_ENDPOINT.format(self.device_api_id)
         return self._ring.query(url).json()
 
-    def test_sound(self, kind: Union[RingEventKind, str] = RingEventKind.DING) -> bool:
+    def test_sound(self, kind: RingEventKind | str = RingEventKind.DING) -> bool:
         """Play chime to test sound."""
         kind_str = kind.value if isinstance(kind, RingEventKind) else kind
         if kind_str not in CHIME_TEST_SOUND_KINDS:

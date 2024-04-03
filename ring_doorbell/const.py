@@ -1,17 +1,20 @@
 # vim:sw=4:ts=4:et:
 """Constants and enums."""
 
+from __future__ import annotations
+
 from enum import Enum, auto
+from typing import Final
 
 from ring_doorbell.exceptions import RingError
 
 
 class OAuth:
-    """OAuth class constants"""
+    """OAuth class constants."""
 
     ENDPOINT = "https://oauth.ring.com/oauth/token"
     CLIENT_ID = "ring_official_android"
-    SCOPE = ["client"]
+    SCOPE: Final[list[str]] = ["client"]
 
 
 class RingEventKind(Enum):
@@ -37,13 +40,14 @@ class RingCapability(Enum):
     PRE_ROLL = auto()
 
     @staticmethod
-    def from_name(name: str) -> "RingCapability":
+    def from_name(name: str) -> RingCapability:
         """Return ring capability from string value."""
         capability = name.replace("-", "_").upper()
         for ring_capability in RingCapability:
             if ring_capability.name == capability:
                 return ring_capability
-        raise RingError(f"Unknown ring capability {name}")
+        msg = f"Unknown ring capability {name}"
+        raise RingError(msg)
 
 
 PACKAGE_NAME = "ring_doorbell"
