@@ -112,7 +112,6 @@ Initializing your Ring object
     import getpass
     import json
     from pathlib import Path
-    from pprint import pprint
 
     from ring_doorbell import Auth, AuthenticationError, Requires2FAError, Ring
 
@@ -155,7 +154,7 @@ Initializing your Ring object
         ring.update_data()
 
         devices = ring.devices()
-        pprint(devices)
+        print(devices)
 
 
     if __name__ == "__main__":
