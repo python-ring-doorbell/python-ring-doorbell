@@ -30,6 +30,7 @@ class RingGeneric:
         self.capability = False
         self.alert = None
         self._health_attrs: dict[str, Any] = {}
+        self._last_history: list[dict[str, Any]] = []
 
         # alerts notifications
         self.alert_expires_at = None
@@ -152,6 +153,11 @@ class RingGeneric:
         """
         return self._health_attrs.get("latest_signal_category")
 
+    @property
+    def last_history(self) -> list[dict[str, Any]]:
+        """Return the result of the last history query."""
+        return self._last_history
+
     def history(  # noqa: C901, PLR0912, PLR0913
         self,
         *,
@@ -241,4 +247,5 @@ class RingGeneric:
             else:
                 break
 
-        return response
+        self._last_history = response
+        return self._last_history

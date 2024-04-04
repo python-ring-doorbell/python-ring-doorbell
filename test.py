@@ -43,7 +43,7 @@ def main() -> None:
 
     ring.update_data()
 
-    ring.devices()
+    print(ring.devices())
 
 
 if __name__ == "__main__":
