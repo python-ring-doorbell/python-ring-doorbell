@@ -309,6 +309,12 @@ class RingDevices:
                     if (device_kind := device.get("kind"))
                     and device_kind in INTERCOM_KINDS
                 ]
+        self._all_devices = {
+            device.id: device
+            for device in chain(
+                self._stickup_cams, self._chimes, self._doorbots, self._other
+            )
+        }
 
     def __getitem__(self, device_type: str) -> Sequence[RingGeneric]:
         """Get a generic device by type."""
@@ -343,15 +349,94 @@ class RingDevices:
 
     @property
     def doorbots(self) -> Sequence[RingDoorBell]:
-        """The doorbots or doorbells."""
+        """The doorbots."""
         return self._doorbots
 
     @property
     def authorized_doorbots(self) -> Sequence[RingDoorBell]:
-        """The shared doorbots or doorbells."""
+        """The authorized_doorbots."""
         return self._authorized_doorbots
+
+    @property
+    def doorbells(self) -> Sequence[RingDoorBell]:
+        """The doorbells, i.e. doorbots and authorized_doorbots combined."""
+        return self._doorbots + self._authorized_doorbots
 
     @property
     def other(self) -> Sequence[RingOther]:
         """The other devices, i.e. intercoms."""
         return self._other
+
+    @property
+    def all_devices(self) -> Sequence[RingGeneric]:
+        """All devices combined."""
+        return list(self._all_devices.values())
+
+    @property
+    def video_devices(self) -> Sequence[RingDoorBell]:
+        """The video devices, i.e. doorbells and stickup_cams."""
+        return [*self._doorbots, *self._authorized_doorbots, *self._stickup_cams]
+
+    def get_device(self, device_api_id: int) -> RingGeneric:
+        """Get device by api id."""
+        if device := self._all_devices.get(device_api_id):
+            return device
+        msg = f"device with id {device_api_id} not found"
+        raise RingError(msg)
+
+    def get_doorbell(self, device_api_id: int) -> RingDoorBell:
+        """Get doorbell by api id."""
+        if (
+            (device := self._all_devices.get(device_api_id))
+            and isinstance(device, RingDoorBell)
+            and not issubclass(device.__class__, RingDoorBell)
+        ):
+            return device
+        msg = f"doorbell with id {device_api_id} not found"
+        raise RingError(msg)
+
+    def get_stickup_cam(self, device_api_id: int) -> RingStickUpCam:
+        """Get stickup_cam by api id."""
+        if (device := self._all_devices.get(device_api_id)) and isinstance(
+            device, RingStickUpCam
+        ):
+            return device
+        msg = f"stickup_cam with id {device_api_id} not found"
+        raise RingError(msg)
+
+    def get_chime(self, device_api_id: int) -> RingChime:
+        """Get chime by api id."""
+        if (device := self._all_devices.get(device_api_id)) and isinstance(
+            device, RingChime
+        ):
+            return device
+        msg = f"chime with id {device_api_id} not found"
+        raise RingError(msg)
+
+    def get_other(self, device_api_id: int) -> RingOther:
+        """Get other device by api id."""
+        if (device := self._all_devices.get(device_api_id)) and isinstance(
+            device, RingOther
+        ):
+            return device
+        msg = f"other device with id {device_api_id} not found"
+        raise RingError(msg)
+
+    def get_video_device(self, device_api_id: int) -> RingDoorBell:
+        """Get video capable device by api id."""
+        if (device := self._all_devices.get(device_api_id)) and isinstance(
+            device, RingDoorBell
+        ):
+            return device
+        msg = f"video capable device with id {device_api_id} not found"
+        raise RingError(msg)
+
+    def __str__(self) -> str:
+        """Get string representation of devices."""
+        d = {dev_type: self.__getitem__(dev_type) for dev_type in self.__iter__()}
+        return "{" + "\n".join(f"{k!r}: {v!r}," for k, v in d.items()) + "}"
+
+    def __repr__(self) -> str:
+        """Return repr of devices."""
+        d = {dev_type: self.__getitem__(dev_type) for dev_type in self.__iter__()}
+        return repr(d)

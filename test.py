@@ -3,6 +3,7 @@
 import getpass
 import json
 from pathlib import Path
+from pprint import pprint
 
 from ring_doorbell import Auth, AuthenticationError, Requires2FAError, Ring
 
@@ -43,7 +44,7 @@ def main() -> None:
 
     ring.update_data()
 
-    ring.devices()
+    print(ring.devices())
 
 
 if __name__ == "__main__":
