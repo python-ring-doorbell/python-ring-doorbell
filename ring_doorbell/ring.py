@@ -312,7 +312,11 @@ class RingDevices:
         self._all_devices = {
             device.id: device
             for device in chain(
-                self._stickup_cams, self._chimes, self._doorbots, self._other
+                self._stickup_cams,
+                self._chimes,
+                self._doorbots,
+                self._authorized_doorbots,
+                self._other,
             )
         }
 
