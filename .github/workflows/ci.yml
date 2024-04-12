@@ -7,9 +7,7 @@ on:
     branches: ["master"]
 
 env:
-  POETRY_VERSION: 1.7.1
-  TOX_VERSION: 4.11.3
-  COVERALLS_VERSION: 3.3.1
+  POETRY_VERSION: 1.8.2
 
 jobs:
   linting:
@@ -20,44 +18,16 @@ jobs:
         python-version: ["3.12"]
     steps:
       - uses: "actions/checkout@v4"
-      - uses: "actions/setup-python@v5"
-        id: setup-python
+      - name: Setup environment
+        uses: ./.github/actions/setup
         with:
-          python-version: "${{ matrix.python-version }}"
-          cache: 'pip'
-          cache-dependency-path: |
-            pyproject.toml
-            .github/workflows/ci.yml
-      - name: Install dependencies
+          python-version: ${{ matrix.python-version }}
+          poetry-version: ${{ env.POETRY_VERSION }}
+          poetry-install-options: "--sync --extras listen --verbose"
+          cache-pre-commit: true
+      - name: "Run pre-commit checks"
         run: |
-          pipx install poetry==$POETRY_VERSION
-          pipx install tox==$TOX_VERSION
-      - name: Read poetry cache location
-        id: poetry-cache-location
-        shell: bash
-        run: |
-          echo "POETRY_VENV_LOCATION=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
-      - name: Poetry cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ steps.poetry-cache-location.outputs.POETRY_VENV_LOCATION }}
-          key: linting-${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
-      - name: Read pre-commit version
-        id: pre-commit-version
-        run: >-
-          echo "PRE_COMMIT_VERSION=$(poetry run pre-commit -V | awk '{print $2}')" >> $GITHUB_OUTPUT
-      - name: Pre-commit cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pre-commit/
-          key: ${{ runner.os }}-pre-commit-${{ steps.pre-commit-version.outputs.PRE_COMMIT_VERSION }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}          
-      - name: Lint with tox
-        run: |
-          poetry env use python
-          tox
-        env: 
-          TOXENV: lint
+          poetry run pre-commit run --all-files
 
   docs:
     name: "Build docs"
@@ -68,34 +38,15 @@ jobs:
         python-version: ["3.12"]
     steps:
       - uses: "actions/checkout@v4"
-      - uses: "actions/setup-python@v5"
-        id: setup-python
+      - name: Setup environment
+        uses: ./.github/actions/setup
         with:
-          python-version: "${{ matrix.python-version }}"
-          cache: 'pip'
-          cache-dependency-path: |
-            pyproject.toml
-            .github/workflows/ci.yml
-      - name: Install dependencies
+          python-version: ${{ matrix.python-version }}
+          poetry-version: ${{ env.POETRY_VERSION }}
+          poetry-install-options: "--sync --extras docs --without dev"
+      - name: Make docs poetry
         run: |
-          pipx install poetry==$POETRY_VERSION
-          pipx install tox==$TOX_VERSION
-      - name: Read poetry cache location
-        id: poetry-cache-location
-        shell: bash
-        run: |
-          echo "POETRY_VENV_LOCATION=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ${{ steps.poetry-cache-location.outputs.POETRY_VENV_LOCATION }}
-          key: docs-${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
-      - name: Make docs with tox
-        run: |
-          poetry env use python
-          tox
-        env: 
-          TOXENV: docs
+          poetry run make -C docs html
 
   tests:
     name: tests
@@ -111,51 +62,18 @@ jobs:
           - "3.11"
           - "3.12"
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        id: setup-python
+      - uses: "actions/checkout@v4"
+      - name: Setup environment
+        uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          cache-dependency-path: |
-            pyproject.toml
-            .github/workflows/ci.yml
-      - name: "Install dependencies"
-        run: |
-          pipx install poetry==$POETRY_VERSION
-          pipx install tox==$TOX_VERSION
-          pipx install coveralls==$COVERALLS_VERSION
-      - name: Read poetry cache location
-        id: poetry-cache-location
-        shell: bash
-        run: |
-          echo "POETRY_VENV_LOCATION=$(poetry config virtualenvs.path)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ${{ steps.poetry-cache-location.outputs.POETRY_VENV_LOCATION }}
-          key: test-${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}          
-      - name: Prepare toxenv
-        id: toxenv
-        run: |
-          if [[ '${{ matrix.python-version }}' == '3.8' ]]; then
-            echo "::set-output name=toxenv::py38"
-          elif [[ '${{ matrix.python-version }}' == '3.9' ]]; then
-            echo "::set-output name=toxenv::py39"
-          elif [[ '${{ matrix.python-version }}' == '3.10' ]]; then
-            echo "::set-output name=toxenv::py310"
-          elif [[ '${{ matrix.python-version }}' == '3.11' ]]; then
-            echo "::set-output name=toxenv::py311"
-          else
-            echo "::set-output name=toxenv::py312"
-          fi
-      - name: Test with tox
-        run: |
-          poetry env use python
-          tox
-        env:
-          TOXENV: ${{ steps.toxenv.outputs.toxenv }}
+          poetry-version: ${{ env.POETRY_VERSION }}
+          poetry-install-options: "--sync --extras listen"
+      - name: Run tests
+        run: >
+          poetry run pytest tests/
+          --cov=ring_doorbell --cov-report=xml
+          --cov-report=term-missing --import-mode importlib
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
         with:
