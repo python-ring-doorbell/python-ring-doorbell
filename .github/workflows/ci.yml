@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           poetry-version: ${{ env.POETRY_VERSION }}
-          poetry-install-options: "--sync --extras listen --verbose"
+          poetry-install-options: "--extras listen"
           cache-pre-commit: true
       - name: "Run pre-commit checks"
         run: |
@@ -43,24 +43,41 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           poetry-version: ${{ env.POETRY_VERSION }}
-          poetry-install-options: "--sync --extras docs --without dev"
+          poetry-install-options: "--extras docs --without dev"
       - name: Make docs poetry
         run: |
           poetry run make -C docs html
 
   tests:
-    name: tests
+    name: Tests - Python ${{ matrix.python-version}} on ${{ matrix.os }}${{ fromJSON('[" (listen)", ""]')[matrix.extras == ''] }}
     needs: linting
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        python-version:
-          - "3.8"
-          - "3.9"
-          - "3.10"
-          - "3.11"
-          - "3.12"
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "pypy-3.8", "pypy-3.10"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        extras: [false, true]
+        exclude:
+          - os: macos-latest
+            extras: true
+          - os: windows-latest
+            extras: true
+          - os: ubuntu-latest
+            python-version: "pypy-3.8"
+            extras: true
+          - os: ubuntu-latest
+            python-version: "pypy-3.10"
+            extras: true
+          - os: ubuntu-latest
+            python-version: "3.8"
+            extras: true
+          - os: ubuntu-latest
+            python-version: "3.9"
+            extras: true
+          - os: ubuntu-latest
+            python-version: "3.10"
+            extras: true
     steps:
       - uses: "actions/checkout@v4"
       - name: Setup environment
@@ -68,7 +85,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           poetry-version: ${{ env.POETRY_VERSION }}
-          poetry-install-options: "--sync --extras listen"
+          poetry-install-options: ${{ matrix.extras == true && '--extras listen' || '' }}
       - name: Run tests
         run: >
           poetry run pytest tests/
