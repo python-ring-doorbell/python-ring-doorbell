@@ -5,12 +5,9 @@ on:
   schedule:
     - cron: "0 * * * *"
 
-env:
-  REPOSITORY_NAME: 'tchellomello'
-
 jobs:
   lock:
-    if: github.repository_owner == ${{ env.REPOSITORY_NAME }}
+    if: github.repository_owner == 'tchellomello'
     runs-on: ubuntu-latest
     steps:
       - uses: dessant/lock-threads@v5.0.1
