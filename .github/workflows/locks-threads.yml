@@ -1,0 +1,22 @@
+name: Lock
+
+# yamllint disable-line rule:truthy
+on:
+  schedule:
+    - cron: "0 * * * *"
+
+env:
+  REPOSITORY_NAME: 'tchellomello'
+
+jobs:
+  lock:
+    if: github.repository_owner == ${{ env.REPOSITORY_NAME }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/lock-threads@v5.0.1
+        with:
+          github-token: ${{ github.token }}
+          issue-inactive-days: "30"
+          issue-lock-reason: ""
+          pr-inactive-days: "7"
+          pr-lock-reason: ""
