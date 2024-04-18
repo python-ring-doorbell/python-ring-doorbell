@@ -26,10 +26,7 @@ packages = [
     { include = "tests", format = "sdist" },
 ]
 include = [
-    "LICENSE", 
-    "CONTRIBUTING.rst", 
-    "CHANGELOG.rst",
-    "scripts/ringcli.py"
+    { path = "CHANGELOG.rst", format = "sdist" }
 ]
 
 [tool.poetry.urls]
@@ -54,15 +51,13 @@ firebase-messaging = {version = "^0.2.1", optional = true}
 [tool.poetry.group.dev.dependencies]
 mock = "*"
 pre-commit = "*"
-pylint = "*"
 pytest = "*"
 pytest-cov = "*"
 requests-mock = "*"
-tox = "*"
 pytest-asyncio = "*"
 pytest-mock = "*"
 pytest-socket = "^0.6.0"
-ruff = "0.3.5"
+ruff = "*"
 types-requests-oauthlib = "1.3"
 types-pytz = "^2024.1.0.20240203"
 types-click = "^7.1.8"

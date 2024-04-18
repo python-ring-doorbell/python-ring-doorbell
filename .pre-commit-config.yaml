@@ -1,11 +1,11 @@
 repos:
 -   repo: https://github.com/python-poetry/poetry
-    rev: 1.6.0
+    rev: 1.8.0
     hooks:
     -   id: poetry-check
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.3.5
+  rev: v0.3.7
   hooks:
     - id: ruff
       args: [--fix, --exit-non-zero-on-fix]

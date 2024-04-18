@@ -6,7 +6,7 @@ inputs:
   poetry-install-options:
     default: ""
   poetry-version:
-    default: 1.6.1
+    default: 1.8.2
   python-version:
     required: true
   cache-pre-commit:
