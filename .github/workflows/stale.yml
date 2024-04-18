@@ -61,11 +61,10 @@ jobs:
           stale-issue-label: "stale"
           exempt-issue-labels: "no-stale,help-wanted"
           stale-issue-message: >
-            There hasn't been any activity on this issue recently and has been
-            waiting for the reporter to provide information or an update.
+            There hasn't been any activity on this issue recently and it has
+            been waiting for the reporter to provide information or an update.
             This issue has been automatically marked as stale because of that.
             It will be closed if no further activity occurs.
-            Thank you for your contributions.
             
             Please make sure to update to the latest ring_doorbell version and
             check if that solves the issue.
