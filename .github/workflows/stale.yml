@@ -14,7 +14,7 @@ jobs:
     if: github.repository_owner == ${{ env.REPOSITORY_NAME }}
     runs-on: ubuntu-latest
     steps:
-       - name: Stale issues and prs
+      - name: Stale issues and prs
         uses: actions/stale@v9.0.0
         with:
           repo-token: ${{ github.token }}
