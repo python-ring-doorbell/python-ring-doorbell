@@ -20,7 +20,7 @@ jobs:
           operations-per-run: 250
           remove-stale-when-updated: true
           stale-issue-label: "stale"
-          exempt-issue-labels: "no-stale-help-wanted,needs-more-information,waiting-for-reporter"
+          exempt-issue-labels: "no-stale,help-wanted,needs-more-information,waiting-for-reporter"
           stale-pr-label: "stale"
           exempt-pr-labels: "no-stale"
           stale-pr-message: >
