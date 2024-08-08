@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 
 import pytest
-from freezegun import freeze_time
+from freezegun.api import FrozenDateTimeFactory
 from ring_doorbell import RingError
 from ring_doorbell.util import parse_datetime
 
@@ -176,7 +176,7 @@ def test_motion_detection_enable(ring, requests_mock):
     [
         pytest.param(
             "2012-01-15T06:01:01",
-            datetime(2012, 1, 14, 5 - 4, 5, 5, 123 * 1_000, tzinfo=timezone.utc),
+            datetime(2012, 1, 14, 5, 5, 5, 123 * 1_000, tzinfo=timezone.utc),
             True,
             id="No timezone",
         ),
@@ -200,11 +200,15 @@ def test_motion_detection_enable(ring, requests_mock):
         ),
     ],
 )
-@freeze_time("2012-01-14T05:05:05.123", tz_offset=-4)
 def test_datetime_parse(
-    caplog: pytest.LogCaptureFixture, datetime_string, expected, error_in_log
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+    datetime_string,
+    expected,
+    error_in_log,
 ):
     """Test the datetime parsing."""
+    freezer.move_to("2012-01-14T05:05:05.123Z")
     dt = parse_datetime(datetime_string)
     is_error_in_log = (
         f"Unable to parse datetime string {datetime_string}, defaulting to now time"
