@@ -5,12 +5,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import pytz
 
 from ring_doorbell.const import URL_DOORBELL_HISTORY, RingCapability
+from ring_doorbell.util import parse_datetime
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -204,23 +204,11 @@ class RingGeneric:
 
             if convert_timezone:
                 # convert for specific timezone
-                utc = pytz.utc
                 if timezone:
                     mytz = pytz.timezone(timezone)
 
                 for entry in response:
-                    dt_at = datetime.strptime(
-                        entry["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
-                    utc_dt = datetime(
-                        dt_at.year,
-                        dt_at.month,
-                        dt_at.day,
-                        dt_at.hour,
-                        dt_at.minute,
-                        dt_at.second,
-                        tzinfo=utc,
-                    )
+                    utc_dt = parse_datetime(entry["created_at"])
                     if timezone:
                         tz_dt = utc_dt.astimezone(mytz)
                         entry["created_at"] = tz_dt

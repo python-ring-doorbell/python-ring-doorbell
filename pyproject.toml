@@ -61,6 +61,7 @@ ruff = "*"
 types-requests-oauthlib = "1.3"
 types-pytz = "^2024.1.0.20240203"
 types-click = "^7.1.8"
+pytest-freezegun = "^0.4.2"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-rtd-theme", "sphinx-github-changelog"]

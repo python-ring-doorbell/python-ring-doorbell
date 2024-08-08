@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Callable, Dict
 
 from firebase_messaging import FcmPushClient
@@ -25,6 +24,7 @@ from ring_doorbell.const import (
 )
 from ring_doorbell.event import RingEvent
 from ring_doorbell.exceptions import RingError
+from ring_doorbell.util import parse_datetime
 
 from .listenerconfig import RingEventListenerConfig
 
@@ -203,9 +203,7 @@ class RingEventListener:
             state = subtype
 
         created_at = ding["created_at"]
-        create_seconds = (
-            datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f%z")
-        ).timestamp()
+        create_seconds = parse_datetime(created_at).timestamp()
         return RingEvent(
             id=ding["id"],
             kind=kind,

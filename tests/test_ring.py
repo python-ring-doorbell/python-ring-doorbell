@@ -1,7 +1,11 @@
 """The tests for the Ring platform."""
 
+from datetime import datetime, timezone
+
 import pytest
+from freezegun import freeze_time
 from ring_doorbell import RingError
+from ring_doorbell.util import parse_datetime
 
 
 def test_basic_attributes(ring):
@@ -165,3 +169,46 @@ def test_motion_detection_enable(ring, requests_mock):
 
     assert len(active_dings) == 3
     assert len(ring.active_alerts()) == 3
+
+
+@pytest.mark.parametrize(
+    ("datetime_string", "expected", "error_in_log"),
+    [
+        pytest.param(
+            "2012-01-15T06:01:01",
+            datetime(2012, 1, 14, 5 - 4, 5, 5, 123 * 1_000, tzinfo=timezone.utc),
+            True,
+            id="No timezone",
+        ),
+        pytest.param(
+            "2012-01-15T06:01:01.12Z",
+            datetime(2012, 1, 15, 6, 1, 1, 120 * 1_000, tzinfo=timezone.utc),
+            False,
+            id="Millis",
+        ),
+        pytest.param(
+            "2012-01-15T06:01:01.123456Z",
+            datetime(2012, 1, 15, 6, 1, 1, 123456, tzinfo=timezone.utc),
+            False,
+            id="Micros",
+        ),
+        pytest.param(
+            "2012-01-15T06:01:01Z",
+            datetime(2012, 1, 15, 6, 1, 1, 0, tzinfo=timezone.utc),
+            False,
+            id="No millis",
+        ),
+    ],
+)
+@freeze_time("2012-01-14T05:05:05.123", tz_offset=-4)
+def test_datetime_parse(
+    caplog: pytest.LogCaptureFixture, datetime_string, expected, error_in_log
+):
+    """Test the datetime parsing."""
+    dt = parse_datetime(datetime_string)
+    is_error_in_log = (
+        f"Unable to parse datetime string {datetime_string}, defaulting to now time"
+        in caplog.text
+    )
+    assert dt == expected
+    assert is_error_in_log is error_in_log
