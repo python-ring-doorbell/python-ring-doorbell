@@ -10,6 +10,9 @@ __pycache__/
 # Visual Studio
 .vs
 
+# Visual Studio Code
+.vscode
+
 # Distribution / packaging
 .Python
 env/
