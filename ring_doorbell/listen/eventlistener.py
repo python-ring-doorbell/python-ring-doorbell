@@ -6,7 +6,7 @@ import asyncio
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 from firebase_messaging import FcmPushClient
 
@@ -25,7 +25,7 @@ from ring_doorbell.const import (
 )
 from ring_doorbell.event import RingEvent
 from ring_doorbell.exceptions import RingError
-from ring_doorbell.util import parse_datetime
+from ring_doorbell.util import get_deprecated_sync_api_query, parse_datetime
 
 from .listenerconfig import RingEventListenerConfig
 
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 _logger = logging.getLogger(__name__)
 
 OnNotificationCallable = Callable[[RingEvent], None]
-CredentialsUpdatedCallable = Callable[[Dict[str, Any]], None]
+CredentialsUpdatedCallable = Callable[[dict[str, Any]], None]
 
 
 class RingEventListener:
@@ -144,24 +144,6 @@ class RingEventListener:
             self._receiver = None
 
         self._callbacks = {}
-
-    def start(
-        self,
-        callback: OnNotificationCallable | None = None,
-        *,
-        listen_loop: asyncio.AbstractEventLoop | None = None,
-        callback_loop: asyncio.AbstractEventLoop | None = None,
-        timeout: int = 30,
-    ) -> bool:
-        """Start the listener."""
-        return self._ring.auth.run_async_on_event_loop(
-            self.async_start(
-                callback,
-                listen_loop=listen_loop,
-                callback_loop=callback_loop,
-                timeout=timeout,
-            )
-        )
 
     async def async_start(
         self,
@@ -277,3 +259,16 @@ class RingEventListener:
         if re:
             for callback in self._callbacks.values():
                 callback(re)
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        "start",
+    }
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if deprecated_sync_api_query := get_deprecated_sync_api_query(
+            self, name, self.DEPRECATED_API_CALLS
+        ):
+            return deprecated_sync_api_query
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)

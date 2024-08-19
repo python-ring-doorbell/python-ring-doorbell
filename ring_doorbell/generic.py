@@ -5,12 +5,16 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import pytz
 
 from ring_doorbell.const import URL_DOORBELL_HISTORY, RingCapability
-from ring_doorbell.util import parse_datetime
+from ring_doorbell.util import (
+    get_deprecated_sync_api_query,
+    parse_datetime,
+    set_deprecated_sync_api_property,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,13 +47,9 @@ class RingGeneric:
         """Return string representation of device."""
         return f"{self.name} ({self.kind})"
 
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Update this device info."""
-        self.update_health_data()
-
-    def update_health_data(self) -> None:
-        """Update the health data."""
-        raise NotImplementedError
+        await self.async_update_health_data()
 
     async def async_update_health_data(self) -> None:
         """Update the health data."""
@@ -162,39 +162,6 @@ class RingGeneric:
         """Return the result of the last history query."""
         return self._last_history
 
-    def history(  # noqa: PLR0913
-        self,
-        *,
-        limit: int = 30,
-        timezone: str | None = None,
-        kind: str | None = None,
-        enforce_limit: bool = False,
-        older_than: int | None = None,
-        retry: int = 8,
-        convert_timezone: bool = True,
-    ) -> list[dict[str, Any]]:
-        """
-        Return history with datetime objects.
-
-        :param limit: specify number of objects to be returned
-        :param timezone: determine which timezone to convert data objects
-        :param kind: filter by kind (ding, motion, on_demand)
-        :param enforce_limit: when True, this will enforce the limit and kind
-        :param older_than: return older objects than the passed event_id
-        :param retry: determine the max number of attempts to archive the limit
-        """
-        return self._ring.auth.run_async_on_event_loop(
-            self.async_history(
-                limit=limit,
-                timezone=timezone,
-                kind=kind,
-                enforce_limit=enforce_limit,
-                older_than=older_than,
-                retry=retry,
-                convert_timezone=convert_timezone,
-            )
-        )
-
     async def async_history(  # noqa: C901, PLR0913, PLR0912
         self,
         *,
@@ -275,3 +242,26 @@ class RingGeneric:
 
         self._last_history = response
         return self._last_history
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        "history",
+        "update",
+    }
+    DEPRECATED_API_PROPERTY_GETTERS: ClassVar[set[str]] = set()
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar[set[str]] = set()
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if deprecated_sync_api_query := get_deprecated_sync_api_query(
+            self, name, self.DEPRECATED_API_CALLS, self.DEPRECATED_API_PROPERTY_GETTERS
+        ):
+            return deprecated_sync_api_query
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set a deprecated attribute or raise an error."""
+        if not set_deprecated_sync_api_property(
+            self, name, value, self.DEPRECATED_API_PROPERTY_SETTERS
+        ):
+            super().__setattr__(name, value)

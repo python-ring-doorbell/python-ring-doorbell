@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from ring_doorbell.const import (
     DOORBELLS_ENDPOINT,
@@ -47,10 +47,6 @@ class RingOther(RingGeneric):
     def family(self) -> str:
         """Return Ring device family type."""
         return "other"
-
-    def update_health_data(self) -> None:
-        """Update health attrs."""
-        self._ring.auth.run_async_on_event_loop(self.async_update_health_data())
 
     async def async_update_health_data(self) -> None:
         """Update health attrs."""
@@ -124,11 +120,6 @@ class RingOther(RingGeneric):
             return self._attrs["settings"].get("doorbell_volume", 0)
         return 0
 
-    @doorbell_volume.setter
-    def doorbell_volume(self, value: int) -> None:
-        """Set the doorbell volume."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_doorbell_volume(value))
-
     async def async_set_doorbell_volume(self, value: int) -> None:
         """Set the doorbell volume."""
         if not (
@@ -153,11 +144,6 @@ class RingOther(RingGeneric):
             return self._attrs["settings"].get("keep_alive_auto")
         return None
 
-    @keep_alive_auto.setter
-    def keep_alive_auto(self, value: float) -> None:
-        """Update the keep alive auto setting."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_keep_alive_auto(value))
-
     async def async_set_keep_alive_auto(self, value: float) -> None:
         """Update the keep alive auto setting."""
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
@@ -172,11 +158,6 @@ class RingOther(RingGeneric):
         if self.kind in INTERCOM_KINDS:
             return self._attrs["settings"].get("mic_volume")
         return None
-
-    @mic_volume.setter
-    def mic_volume(self, value: int) -> None:
-        """Set the mic volume."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_mic_volume(value))
 
     async def async_set_mic_volume(self, value: int) -> None:
         """Set the mic volume."""
@@ -196,10 +177,6 @@ class RingOther(RingGeneric):
             return self._attrs["settings"].get("voice_volume")
         return None
 
-    @voice_volume.setter
-    def voice_volume(self, value: int) -> None:
-        self._ring.auth.run_async_on_event_loop(self.async_set_voice_volume(value))
-
     async def async_set_voice_volume(self, value: int) -> None:
         """Set the voice volume."""
         if not ((isinstance(value, int)) and (VOICE_VOL_MIN <= value <= VOICE_VOL_MAX)):
@@ -211,22 +188,7 @@ class RingOther(RingGeneric):
         await self._ring.async_query(url, method="PATCH", json=payload)
         await self._ring.async_update_devices()
 
-    @property
-    def clip_length_max(self) -> int | None:
-        """Maximum clip length."""
-        return self._ring.auth.run_async_on_event_loop(self.async_clip_length_max())
-
-    @clip_length_max.setter
-    def clip_length_max(self, value: int) -> None:
-        """Set the maximum clip length.
-
-        This value sets an effective refractory period on consecutive rigns
-        eg if set to default value of 60, rings occuring with 60 seconds of
-        first will not be detected.
-        """
-        self._ring.auth.run_async_on_event_loop(self.async_set_clip_length_max(value))
-
-    async def async_clip_length_max(self) -> int | None:
+    async def async_get_clip_length_max(self) -> int | None:
         """Get the Maximum clip length."""
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         resp = await self._ring.async_query(url, method="GET")
@@ -251,12 +213,7 @@ class RingOther(RingGeneric):
             return self._attrs.get("alerts", {}).get("connection")
         return None
 
-    @property
-    def allowed_users(self) -> list[dict[str, Any]] | None:
-        """Return list of users allowed or invited to access."""
-        return self._ring.auth.run_async_on_event_loop(self.async_allowed_users())
-
-    async def async_allowed_users(self) -> list[dict[str, Any]] | None:
+    async def async_get_allowed_users(self) -> list[dict[str, Any]] | None:
         """Return list of users allowed or invited to access."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_ALLOWED_USERS.format(self.location_id)
@@ -264,10 +221,6 @@ class RingOther(RingGeneric):
             return resp.json()
 
         return None
-
-    def open_door(self, user_id: int = -1) -> bool:
-        """Open the door."""
-        return self._ring.auth.run_async_on_event_loop(self.async_open_door(user_id))
 
     async def async_open_door(self, user_id: int = -1) -> bool:
         """Open the door."""
@@ -297,10 +250,6 @@ class RingOther(RingGeneric):
 
         return False
 
-    def invite_access(self, email: str) -> bool:
-        """Invite user."""
-        return self._ring.auth.run_async_on_event_loop(self.async_invite_access(email))
-
     async def async_invite_access(self, email: str) -> bool:
         """Invite user."""
         if self.kind in INTERCOM_KINDS:
@@ -317,12 +266,6 @@ class RingOther(RingGeneric):
 
         return False
 
-    def remove_access(self, user_id: int) -> bool:
-        """Remove user access or invitation."""
-        return self._ring.auth.run_async_on_event_loop(
-            self.async_remove_access(user_id)
-        )
-
     async def async_remove_access(self, user_id: int) -> bool:
         """Remove user access or invitation."""
         if self.kind in INTERCOM_KINDS:
@@ -331,3 +274,24 @@ class RingOther(RingGeneric):
             return True
 
         return False
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_CALLS,
+        "update_health_data",
+        "open_door",
+        "invite_access",
+        "remove_access",
+    }
+    DEPRECATED_API_PROPERTY_GETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_GETTERS,
+        "clip_length_max",
+        "allowed_users",
+    }
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_SETTERS,
+        "doorbell_volume",
+        "keep_alive_auto",
+        "mic_volume",
+        "voice_volume",
+        "clip_length_max",
+    }

@@ -7,7 +7,7 @@ import asyncio
 import logging
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import aiofiles
 
@@ -65,10 +65,6 @@ class RingDoorBell(RingGeneric):
     def family(self) -> str:
         """Return Ring device family type."""
         return "authorized_doorbots" if self.shared else "doorbots"
-
-    def update_health_data(self) -> None:
-        """Update health attrs."""
-        self._ring.auth.run_async_on_event_loop(self.async_update_health_data())
 
     async def async_update_health_data(self) -> None:
         """Update health attrs."""
@@ -187,19 +183,6 @@ class RingDoorBell(RingGeneric):
         else:
             return None
 
-    @existing_doorbell_type.setter
-    def existing_doorbell_type(self, value: int) -> None:
-        """
-        Return existing doorbell type.
-
-        0: Mechanical
-        1: Digital
-        2: Not Present
-        """
-        self._ring.auth.run_async_on_event_loop(
-            self.async_set_existing_doorbell_type(value)
-        )
-
     async def async_set_existing_doorbell_type(self, value: int) -> None:
         """
         Return existing doorbell type.
@@ -229,14 +212,7 @@ class RingDoorBell(RingGeneric):
             return self._get_chime_setting("enable")
         return False
 
-    @existing_doorbell_type_enabled.setter
-    def existing_doorbell_type_enabled(self, value: bool) -> None:
-        """Enable/disable the existing doorbell if Digital/Mechanical."""
-        self._ring.auth.run_async_on_event_loop(
-            self.async_existing_doorbell_type_enabled(value)
-        )
-
-    async def async_existing_doorbell_type_enabled(self, value: bool) -> None:  # noqa: FBT001
+    async def async_set_existing_doorbell_type_enabled(self, value: bool) -> None:  # noqa: FBT001
         """Enable/disable the existing doorbell if Digital/Mechanical."""
         if self.existing_doorbell_type:
             if not isinstance(value, bool):
@@ -263,13 +239,6 @@ class RingDoorBell(RingGeneric):
             return self._get_chime_setting("duration")
         return None
 
-    @existing_doorbell_type_duration.setter
-    def existing_doorbell_type_duration(self, value: int) -> None:
-        """Set duration for Digital chime."""
-        self._ring.auth.run_async_on_event_loop(
-            self.async_set_existing_doorbell_type_duration(value)
-        )
-
     async def async_set_existing_doorbell_type_duration(self, value: int) -> None:
         """Set duration for Digital chime."""
         if self.existing_doorbell_type:
@@ -290,12 +259,7 @@ class RingDoorBell(RingGeneric):
                 await self._ring.async_query(url, extra_params=params, method="PUT")
                 await self._ring.async_update_devices()
 
-    @property
-    def last_recording_id(self) -> int | None:
-        """Return the last recording ID."""
-        return self._ring.auth.run_async_on_event_loop(self.async_last_recording_id())
-
-    async def async_last_recording_id(self) -> int | None:
+    async def async_get_last_recording_id(self) -> int | None:
         """Return the last recording ID."""
         try:
             res = await self.async_history(limit=1)
@@ -303,12 +267,7 @@ class RingDoorBell(RingGeneric):
         except (IndexError, TypeError):
             return None
 
-    @property
-    def live_streaming_json(self) -> dict[str, Any] | None:
-        """Return JSON for live streaming."""
-        return self._ring.auth.run_async_on_event_loop(self.async_live_streaming_json())
-
-    async def async_live_streaming_json(self) -> dict[str, Any] | None:
+    async def async_get_live_streaming_json(self) -> dict[str, Any] | None:
         """Return JSON for live streaming."""
         url = LIVE_STREAMING_ENDPOINT.format(self.device_api_id)
         req = await self._ring.async_query(url, method="POST")
@@ -320,21 +279,6 @@ class RingDoorBell(RingGeneric):
             except (IndexError, TypeError):
                 pass
         return None
-
-    def recording_download(
-        self,
-        recording_id: int,
-        filename: str | None = None,
-        *,
-        override: bool = False,
-        timeout: int = DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
-    ) -> bytes | None:
-        """Save a recording in MP4 format to a file or return raw."""
-        return self._ring.auth.run_async_on_event_loop(
-            self.async_recording_download(
-                recording_id, filename, override=override, timeout=timeout
-            )
-        )
 
     async def async_recording_download(
         self,
@@ -374,12 +318,6 @@ class RingDoorBell(RingGeneric):
             msg = f"Error downloading recording {recording_id}: {error}"
             _LOGGER.exception(msg)
             raise RingError(msg) from error
-
-    def recording_url(self, recording_id: int) -> str | None:
-        """Return HTTPS recording URL."""
-        return self._ring.auth.run_async_on_event_loop(
-            self.async_recording_url(recording_id)
-        )
 
     async def async_recording_url(self, recording_id: int) -> str | None:
         """Return HTTPS recording URL."""
@@ -423,11 +361,6 @@ class RingDoorBell(RingGeneric):
         """Return the volume."""
         return self._attrs["settings"].get("doorbell_volume", 0)
 
-    @volume.setter
-    def volume(self, value: int) -> None:
-        """Set the volume."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_volume(value))
-
     async def async_set_volume(self, value: int) -> None:
         """Set the volume."""
         if not (
@@ -449,14 +382,6 @@ class RingDoorBell(RingGeneric):
         if alerts := self._attrs.get("alerts"):
             return alerts.get("connection")
         return None
-
-    def get_snapshot(
-        self, retries: int = 3, delay: int = 1, filename: str | None = None
-    ) -> bytes | None:
-        """Take a snapshot and download it."""
-        return self._ring.auth.run_async_on_event_loop(
-            self.async_get_snapshot(retries, delay, filename)
-        )
 
     async def async_get_snapshot(
         self, retries: int = 3, delay: int = 1, filename: str | None = None
@@ -492,11 +417,6 @@ class RingDoorBell(RingGeneric):
         """Return motion detection enabled state."""
         return state if (state := self._motion_detection_state()) else False
 
-    @motion_detection.setter
-    def motion_detection(self, state: bool) -> None:
-        """Set the motion detection enabled state."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_motion_detection(state))
-
     async def async_set_motion_detection(self, state: bool) -> None:  # noqa: FBT001
         """Set the motion detection enabled state."""
         values = [True, False]
@@ -517,3 +437,24 @@ class RingDoorBell(RingGeneric):
 
         await self._ring.async_query(url, method="PATCH", json=payload)
         await self._ring.async_update_devices()
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_CALLS,
+        "update_health_data",
+        "recording_download",
+        "recording_url",
+        "get_snapshot",
+    }
+    DEPRECATED_API_PROPERTY_GETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_GETTERS,
+        "last_recording_id",
+        "live_streaming_json",
+    }
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_SETTERS,
+        "existing_doorbell_type",
+        "existing_doorbell_type_enabled",
+        "existing_doorbell_type_duration",
+        "volume",
+        "motion_detection",
+    }

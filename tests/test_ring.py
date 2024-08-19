@@ -22,7 +22,7 @@ def test_basic_attributes(ring):
     assert len(data["other"]) == 1
 
 
-def test_chime_attributes(ring):
+async def test_chime_attributes(ring):
     """Test the Ring Chime class and methods."""
     dev = ring.devices()["chimes"][0]
 
@@ -38,15 +38,15 @@ def test_chime_attributes(ring):
     assert dev.timezone == "America/New_York"
     assert dev.volume == 2
 
-    assert len(dev.history()) == 0
+    assert len(await dev.async_history()) == 0
 
-    dev.update_health_data()
+    await dev.async_update_health_data()
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
     assert dev.wifi_signal_strength != 100
 
 
-def test_doorbell_attributes(ring):
+async def test_doorbell_attributes(ring):
     data = ring.devices()
     dev = data["doorbots"][0]
     assert dev.name == "Front Door"
@@ -63,14 +63,21 @@ def test_doorbell_attributes(ring):
     assert dev.has_subscription is True
     assert dev.connection_status == "online"
 
-    assert isinstance(dev.history(limit=1, kind="motion"), list)
-    assert len(dev.history(kind="ding")) == 1
-    assert len(dev.history(limit=1, kind="motion")) == 2
-    assert len(dev.history(limit=1, kind="motion", enforce_limit=True, retry=50)) == 1
+    assert isinstance(await dev.async_history(limit=1, kind="motion"), list)
+    assert len(await dev.async_history(kind="ding")) == 1
+    assert len(await dev.async_history(limit=1, kind="motion")) == 2
+    assert (
+        len(
+            await dev.async_history(
+                limit=1, kind="motion", enforce_limit=True, retry=50
+            )
+        )
+        == 1
+    )
 
     assert dev.existing_doorbell_type == "Mechanical"
 
-    dev.update_health_data()
+    await dev.async_update_health_data()
 
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
@@ -243,15 +250,15 @@ async def test_sync_queries_from_event_loop():
     auth = Auth(USER_AGENT, token=load_fixture_as_dict("ring_oauth.json"))
     ring = Ring(auth)
 
-    loop = asyncio.get_running_loop()
+    assert asyncio.get_running_loop()
 
-    # This will run on the background thread
-    ring.update_devices()
-    assert auth._loop is not None
-    assert auth._init_loop == loop
-    assert auth._loop == auth._background_thread_loop
-
-    auth.close()
+    msg = (
+        "You cannot call deprecated sync function Ring.update_devices "
+        "from within a running event loop."
+    )
+    with pytest.raises(RingError, match=msg):
+        # This will run the query on this loop
+        ring.update_devices()
 
 
 async def test_sync_queries_from_executor():
@@ -259,35 +266,14 @@ async def test_sync_queries_from_executor():
     ring = Ring(auth)
 
     loop = asyncio.get_running_loop()
-    assert auth._init_loop == loop
 
-    # This will run the query on this loop
-    await loop.run_in_executor(None, ring.update_devices)
+    assert ring.devices_data == {}
+    # This will run the query inan executor thread
+    msg = "Ring.update_devices is deprecated, use Ring.async_update_devices"
+    with pytest.deprecated_call(match=msg):
+        await loop.run_in_executor(None, ring.update_devices)
 
-    assert auth._loop == loop
-    assert auth._loop != auth._background_thread_loop
-    assert auth._loop == auth._init_loop
-    await loop.run_in_executor(None, auth.close)
-
-
-async def test_sync_queries_event_loop_change():
-    auth = Auth(USER_AGENT, token=load_fixture_as_dict("ring_oauth.json"))
-
-    ring = Ring(auth)
-    loop = asyncio.get_running_loop()
-    assert auth._loop is None
-
-    await ring.async_update_devices()
-    assert auth._loop == loop
-
-    assert auth._background_thread_loop is None
-
-    with pytest.raises(
-        RingError, match="Detected event loop change, don't mix sync and async calls."
-    ):
-        ring.update_devices()
-
-    await auth.async_close()
+    assert ring.devices_data
 
 
 def test_sync_queries_with_no_event_loop():
@@ -295,10 +281,12 @@ def test_sync_queries_with_no_event_loop():
 
     ring = Ring(auth)
 
-    assert auth._loop is None
+    assert not ring.devices_data
+    msg = "Ring.update_devices is deprecated, use Ring.async_update_devices"
+    with pytest.deprecated_call(match=msg):
+        ring.update_devices()
 
-    ring.update_devices()
+    assert ring.devices_data
 
-    assert auth._background_thread_loop is None
-
-    auth.close()
+    with pytest.deprecated_call():
+        auth.close()

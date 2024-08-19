@@ -3,12 +3,9 @@
 
 from __future__ import annotations
 
-import asyncio
-import contextlib
 import uuid
 from json import loads as json_loads
-from threading import Thread
-from typing import Any, Callable, Coroutine
+from typing import Any, Callable, ClassVar
 
 from aiohttp import BasicAuth, ClientSession
 from oauthlib.common import urldecode
@@ -27,6 +24,7 @@ from ring_doorbell.exceptions import (
     RingError,
     RingTimeout,
 )
+from ring_doorbell.util import get_deprecated_sync_api_query
 
 
 class Auth:
@@ -67,12 +65,6 @@ class Auth:
             client_id=OAuth.CLIENT_ID, token=token
         )
         self._auth = BasicAuth(OAuth.CLIENT_ID, "")
-        self._loop: asyncio.AbstractEventLoop | None = None
-        self._init_loop: asyncio.AbstractEventLoop | None = None
-        self._new_loop: asyncio.AbstractEventLoop | None = None
-        with contextlib.suppress(RuntimeError):
-            self._init_loop = asyncio.get_running_loop()
-        self._background_thread_loop: asyncio.AbstractEventLoop | None = None
 
     @property
     def _session(self) -> ClientSession:
@@ -80,21 +72,7 @@ class Auth:
             return self.http_client_session
         if self._local_session is None:
             self._local_session = ClientSession()
-            self._loop = asyncio.get_running_loop()
         return self._local_session
-
-    def fetch_token(
-        self, username: str, password: str, otp_code: str | None = None
-    ) -> dict[str, Any]:
-        """Fetch initial token with username/password & 2FA.
-
-        :type username: str
-        :type password: str
-        :type otp_code: str.
-        """
-        return self.run_async_on_event_loop(
-            self.async_fetch_token(username, password, otp_code)
-        )
 
     async def async_fetch_token(
         self, username: str, password: str, otp_code: str | None = None
@@ -138,10 +116,6 @@ class Auth:
 
         return self._token
 
-    def refresh_tokens(self) -> dict[str, Any]:
-        """Refresh the auth tokens."""
-        return self.run_async_on_event_loop(self.async_refresh_tokens())
-
     async def async_refresh_tokens(self) -> dict[str, Any]:
         """Refresh the auth tokens."""
         try:
@@ -177,91 +151,12 @@ class Auth:
         """Get device model."""
         return self.device_model
 
-    def _start_background_loop(self, loop: asyncio.AbstractEventLoop) -> None:
-        asyncio.set_event_loop(loop)
-        loop.run_forever()
-
-    def _get_query_loop(
-        self, current_loop: asyncio.AbstractEventLoop | None
-    ) -> asyncio.AbstractEventLoop:
-        if current_loop is None:
-            if self._init_loop:  # Running in executor
-                return self._init_loop
-
-            if not self._new_loop:
-                self._new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(self._new_loop)
-            return self._new_loop
-
-        if not current_loop.is_running():
-            return current_loop
-
-        if self._background_thread_loop is None:
-            self._background_thread_loop = asyncio.new_event_loop()
-            t = Thread(
-                target=self._start_background_loop,
-                args=(self._background_thread_loop,),
-                daemon=True,
-                name="ring_doorbell_query_loop",
-            )
-            t.start()
-        return self._background_thread_loop
-
-    def run_async_on_event_loop(self, func: Coroutine) -> Any:
-        """Run the corouting on the event loop."""
-        try:
-            current_loop = asyncio.get_running_loop()
-        except RuntimeError:
-            current_loop = None
-        loop = self._get_query_loop(current_loop)
-        if self._loop and self._loop != loop:
-            func.close()  # Close to prevent never awaited warnings
-            msg = "Detected event loop change, don't mix sync and async calls."
-            raise RingError(msg)
-        self._loop = loop
-        # Running in an executor and loop is running or loop is on background thread
-        if (
-            current_loop is None and self._init_loop and self._loop.is_running()
-        ) or loop == self._background_thread_loop:
-            task = asyncio.run_coroutine_threadsafe(func, loop)
-            return task.result()
-
-        return loop.run_until_complete(func)
-
     async def async_close(self) -> None:
         """Close aiohttp session."""
         session = self._local_session
         self._local_session = None
         if session:
             await session.close()
-
-    def close(self) -> None:
-        """Close aiohttp session."""
-        self.run_async_on_event_loop(self.async_close())
-
-    def query(  # noqa: PLR0913
-        self,
-        url: str,
-        method: str = "GET",
-        extra_params: dict[str, Any] | None = None,
-        data: bytes | None = None,
-        json: dict[Any, Any] | None = None,
-        timeout: float | None = None,
-        *,
-        raise_for_status: bool = True,
-    ) -> Auth.Response:
-        """Query data from Ring API."""
-        return self.run_async_on_event_loop(
-            self.async_query(
-                url,
-                method,
-                extra_params,
-                data,
-                json,
-                timeout,
-                raise_for_status=raise_for_status,
-            )
-        )
 
     class Response:
         """Class for returning responses."""
@@ -357,3 +252,18 @@ class Auth:
 
             response_data = await resp.read()
         return Auth.Response(response_data, resp.status)
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        "fetch_token",
+        "refresh_tokens",
+        "close",
+    }
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if deprecated_sync_api_query := get_deprecated_sync_api_query(
+            self, name, self.DEPRECATED_API_CALLS
+        ):
+            return deprecated_sync_api_query
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)

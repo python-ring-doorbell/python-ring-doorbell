@@ -207,8 +207,11 @@ def test_no_event_loop():
     auth = Auth(USER_AGENT, token=load_fixture_as_dict("ring_oauth.json"))
     ring = Ring(auth)
     listener = RingEventListener(ring)
-    listener.start()
-    ring.update_dings()
+
+    with pytest.deprecated_call():
+        listener.start()
+    with pytest.deprecated_call():
+        ring.update_dings()
     assert listener.started is True
 
 
@@ -218,7 +221,8 @@ async def test_run_in_executor(auth):
     ring = Ring(auth)
     listener = RingEventListener(ring)
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, listener.start)
+    with pytest.deprecated_call():
+        await loop.run_in_executor(None, listener.start)
 
     assert listener.started
     assert firebase_messaging.FcmPushClient.checkin.call_count == 1

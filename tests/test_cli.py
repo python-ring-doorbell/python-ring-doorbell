@@ -115,8 +115,8 @@ async def test_videos(ring, mocker):
     ("affect_method", "exception", "file_exists"),
     [
         (None, None, False),
-        ("ring_doorbell.auth.Auth.fetch_token", Requires2FAError, False),
-        ("ring_doorbell.ring.Ring.update_data", AuthenticationError, True),
+        ("ring_doorbell.auth.Auth.async_fetch_token", Requires2FAError, False),
+        ("ring_doorbell.ring.Ring.async_update_data", AuthenticationError, True),
     ],
     ids=("No 2FA", "Require 2FA", "Invalid Grant"),
 )

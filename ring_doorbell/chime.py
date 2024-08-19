@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, ClassVar
 
 from ring_doorbell.const import (
     CHIME_KINDS,
@@ -33,10 +33,6 @@ class RingChime(RingGeneric):
     def family(self) -> str:
         """Return Ring device family type."""
         return "chimes"
-
-    def update_health_data(self) -> None:
-        """Update health attrs."""
-        self._ring.auth.run_async_on_event_loop(self.async_update_health_data())
 
     async def async_update_health_data(self) -> None:
         """Update health attrs."""
@@ -70,11 +66,6 @@ class RingChime(RingGeneric):
         """Return the chime volume."""
         return self._attrs["settings"].get("volume", 0)
 
-    @volume.setter
-    def volume(self, value: int) -> None:
-        """Set the chime volume."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_volume(value))
-
     async def async_set_volume(self, value: int) -> None:
         """Set the chime volume."""
         if not ((isinstance(value, int)) and (CHIME_VOL_MIN <= value <= CHIME_VOL_MAX)):
@@ -88,20 +79,11 @@ class RingChime(RingGeneric):
         await self._ring.async_query(url, extra_params=params, method="PUT")
         await self._ring.async_update_devices()
 
-    @property
-    def linked_tree(self) -> dict[str, Any]:
-        """Return doorbell data linked to chime."""
-        return self._ring.auth.run_async_on_event_loop(self.async_linked_tree())
-
-    async def async_linked_tree(self) -> dict[str, Any]:
+    async def async_get_linked_tree(self) -> dict[str, Any]:
         """Return doorbell data linked to chime."""
         url = LINKED_CHIMES_ENDPOINT.format(self.device_api_id)
         resp = await self._ring.async_query(url)
         return resp.json()
-
-    def test_sound(self, kind: RingEventKind | str = RingEventKind.DING) -> bool:
-        """Play chime to test sound."""
-        return self._ring.auth.run_async_on_event_loop(self.async_test_sound(kind))
 
     async def async_test_sound(
         self, kind: RingEventKind | str = RingEventKind.DING
@@ -115,3 +97,18 @@ class RingChime(RingGeneric):
             url, method="POST", extra_params={"kind": kind_str}
         )
         return True
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_CALLS,
+        "update_health_data",
+        "query",
+        "test_sound",
+    }
+    DEPRECATED_API_PROPERTY_GETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_GETTERS,
+        "linked_tree",
+    }
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_SETTERS,
+        "volume",
+    }

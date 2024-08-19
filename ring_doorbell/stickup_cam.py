@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+from typing import ClassVar
 
 from ring_doorbell.const import (
     FLOODLIGHT_CAM_KINDS,
@@ -141,11 +142,6 @@ class RingStickUpCam(RingDoorBell):
         """Return lights status."""
         return self._attrs.get("led_status", "")
 
-    @lights.setter
-    def lights(self, state: str) -> None:
-        """Control the lights."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_lights(state))
-
     async def async_set_lights(self, state: str) -> None:
         """Control the lights."""
         values = ["on", "off"]
@@ -162,11 +158,6 @@ class RingStickUpCam(RingDoorBell):
         if siren_status := self._attrs.get("siren_status"):
             return siren_status.get("seconds_remaining", 0)
         return 0
-
-    @siren.setter
-    def siren(self, duration: int) -> None:
-        """Control the siren."""
-        self._ring.auth.run_async_on_event_loop(self.async_set_siren(duration))
 
     async def async_set_siren(self, duration: int) -> None:
         """Control the siren."""
@@ -187,3 +178,9 @@ class RingStickUpCam(RingDoorBell):
         url = SIREN_ENDPOINT.format(self.device_api_id, state)
         await self._ring.async_query(url, extra_params=params, method="PUT")
         await self._ring.async_update_devices()
+
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        *RingDoorBell.DEPRECATED_API_PROPERTY_SETTERS,
+        "lights",
+        "siren",
+    }

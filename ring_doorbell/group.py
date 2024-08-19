@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from ring_doorbell.const import (
     GROUP_DEVICES_ENDPOINT,
@@ -13,6 +13,10 @@ from ring_doorbell.const import (
     RingCapability,
 )
 from ring_doorbell.exceptions import RingError
+from ring_doorbell.util import (
+    get_deprecated_sync_api_query,
+    set_deprecated_sync_api_property,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,10 +37,6 @@ class RingLightGroup:
     def __repr__(self) -> str:
         """Return __repr__."""
         return f"<{self.__class__.__name__}: {self.name}>"
-
-    def update(self) -> None:
-        """Update this device info."""
-        self._ring.auth.run_async_on_event_loop(self.async_update())
 
     async def async_update(self) -> None:
         """Update this device info."""
@@ -107,24 +107,15 @@ class RingLightGroup:
             raise RingError(msg)
         return self._health_attrs["lights_on"]
 
-    @lights.setter
-    def lights(self, value: bool | tuple[bool, int]) -> None:
-        """Control the lights."""
-        if isinstance(value, tuple):
-            state, duration = value
-            self._ring.auth.run_async_on_event_loop(
-                self.async_set_lights(state, duration)
-            )
-        else:
-            self._ring.auth.run_async_on_event_loop(self.async_set_lights(value))
-
     async def async_set_lights(
         self,
-        state: bool,  # noqa: FBT001
+        state: bool | tuple[bool, int],
         duration: int | None = None,
     ) -> None:
         """Control the lights."""
         values = ["True", "False"]
+        if isinstance(state, tuple):
+            state, duration = state
 
         if not isinstance(state, bool):
             raise RingError(MSG_ALLOWED_VALUES.format(", ".join(values)))
@@ -135,3 +126,26 @@ class RingLightGroup:
             payload["lights_on"]["duration_seconds"] = duration
         await self._ring.async_query(url, method="POST", json=payload)
         await self.async_update()
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        "update",
+    }
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        "lights",
+    }
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if deprecated_sync_api_query := get_deprecated_sync_api_query(
+            self, name, self.DEPRECATED_API_CALLS
+        ):
+            return deprecated_sync_api_query
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set a deprecated attribute or raise an error."""
+        if not set_deprecated_sync_api_property(
+            self, name, value, self.DEPRECATED_API_PROPERTY_SETTERS
+        ):
+            super().__setattr__(name, value)

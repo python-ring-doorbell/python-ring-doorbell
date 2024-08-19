@@ -19,9 +19,9 @@ async def test_other_attributes(ring):
     assert dev.battery_life == 52
     assert dev.doorbell_volume == 8
     assert dev.mic_volume == 11
-    assert await dev.async_clip_length_max() == 60
+    assert await dev.async_get_clip_length_max() == 60
     assert dev.connection_status == "online"
-    assert len(await dev.async_allowed_users()) == 2
+    assert len(await dev.async_get_allowed_users()) == 2
     assert dev.subscribed is True
     assert dev.has_subscription is True
     assert dev.unlock_duration is None

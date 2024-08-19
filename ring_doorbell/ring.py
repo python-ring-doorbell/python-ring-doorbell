@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from itertools import chain
 from time import time
-from typing import TYPE_CHECKING, Any, Iterator, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Mapping, Sequence
 
 from ring_doorbell import RingEvent
 from ring_doorbell.chime import RingChime
@@ -15,6 +15,7 @@ from ring_doorbell.exceptions import RingError
 from ring_doorbell.group import RingLightGroup
 from ring_doorbell.other import RingOther
 from ring_doorbell.stickup_cam import RingStickUpCam
+from ring_doorbell.util import get_deprecated_sync_api_query
 
 from .const import (
     API_URI,
@@ -49,10 +50,6 @@ class Ring:
         self.groups_data: dict[str, dict[str, Any]] = {}
         self.init_loop = None
 
-    def update_data(self) -> None:
-        """Update all data."""
-        self.auth.run_async_on_event_loop(self.async_update_data())
-
     async def async_update_data(self) -> None:
         """Update all data."""
         await self._async_update_data()
@@ -75,10 +72,6 @@ class Ring:
         ]
         self.push_dings_data.append(ring_event)
 
-    def create_session(self) -> None:
-        """Create a new Ring session."""
-        self.auth.run_async_on_event_loop(self.async_create_session())
-
     async def async_create_session(self) -> None:
         """Create a new Ring session."""
         session_post_data = {
@@ -98,10 +91,6 @@ class Ring:
         )
         self.session = resp.json()
 
-    def update_devices(self) -> None:
-        """Update device data."""
-        self.auth.run_async_on_event_loop(self.async_update_devices())
-
     async def async_update_devices(self) -> None:
         """Update device data."""
         if self.session is None:
@@ -116,10 +105,6 @@ class Ring:
             for device_type, devices in data.items()
         }
 
-    def update_dings(self) -> None:
-        """Update dings data."""
-        self.auth.run_async_on_event_loop(self.async_update_dings())
-
     async def async_update_dings(self) -> None:
         """Update dings data."""
         if self.session is None:
@@ -127,10 +112,6 @@ class Ring:
 
         resp = await self._async_query(DINGS_ENDPOINT)
         self.dings_data = resp.json()
-
-    def update_groups(self) -> None:
-        """Update groups data."""
-        self.auth.run_async_on_event_loop(self.async_update_groups())
 
     async def async_update_groups(self) -> None:
         """Update groups data."""
@@ -152,20 +133,6 @@ class Ring:
             if data["device_groups"]:
                 for group in data["device_groups"]:
                     self.groups_data[group["device_group_id"]] = group
-
-    def query(  # noqa: PLR0913
-        self,
-        url: str,
-        method: str = "GET",
-        extra_params: dict[str, Any] | None = None,
-        data: bytes | None = None,
-        json: dict[Any, Any] | None = None,
-        timeout: float | None = None,
-    ) -> Auth.Response:
-        """Query data from Ring API."""
-        return self.auth.run_async_on_event_loop(
-            self._async_query(url, method, extra_params, data, json, timeout)
-        )
 
     async def async_query(  # noqa: PLR0913
         self,
@@ -307,6 +274,23 @@ class Ring:
                     alerts[key] = re
 
         return list(alerts.values())
+
+    DEPRECATED_API_CALLS: ClassVar = {
+        "update_devices",
+        "update_data",
+        "update_dings",
+        "update_groups",
+        "query",
+    }
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if deprecated_sync_api_query := get_deprecated_sync_api_query(
+            self, name, self.DEPRECATED_API_CALLS
+        ):
+            return deprecated_sync_api_query
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)
 
 
 class RingDevices:
