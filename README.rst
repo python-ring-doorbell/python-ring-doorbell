@@ -111,12 +111,13 @@ The API has an async interface and a sync interface.  All api calls starting `as
 asynchronous.  This is the preferred method of interacting with the ring api and the sync
 versions are maintained for backwards compatability.
 
-*You cannot mix sync and async code*
+*You cannot call sync api functions from inside a running event loop.*
 
 Initializing your Ring object
 +++++++++++++++++++++++++++++
 
-This code example is in the `test.py <test.py>`_ file.  For a sync example see `test_sync.py <test_sync.py>`_.
+This code example is in the `test.py <test.py>`_ file.
+For the deprecated sync example see `test_sync.py <test_sync.py>`_.
 
 .. code-block:: python
 
