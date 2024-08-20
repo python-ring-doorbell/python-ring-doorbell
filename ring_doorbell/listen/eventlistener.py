@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 from firebase_messaging import FcmPushClient
 
@@ -29,14 +30,12 @@ from ring_doorbell.util import parse_datetime
 from .listenerconfig import RingEventListenerConfig
 
 if TYPE_CHECKING:
-    import asyncio
-
     from ring_doorbell.ring import Ring
 
 _logger = logging.getLogger(__name__)
 
 OnNotificationCallable = Callable[[RingEvent], None]
-CredentialsUpdatedCallable = Callable[[Dict[str, Any]], None]
+CredentialsUpdatedCallable = Callable[[dict[str, Any]], None]
 
 
 class RingEventListener:
@@ -73,10 +72,10 @@ class RingEventListener:
         self._subscription_counter = 1
         self._intercom_unlock_counter: dict[int, int] = {}
 
-    def add_subscription_to_ring(self, token: str) -> None:
+    async def async_add_subscription_to_ring(self, token: str) -> None:
         """Add subscription to ring."""
         if not self._ring.session:
-            self._ring.create_session()
+            await self._ring.async_create_session()
 
         session_patch_data = {
             "device": {
@@ -89,7 +88,7 @@ class RingEventListener:
                 "push_notification_token": token,
             }
         }
-        resp = self._ring.auth.query(
+        resp = await self._ring.auth.async_query(
             API_URI + SUBSCRIPTION_ENDPOINT,
             method="PATCH",
             json=session_patch_data,
@@ -108,9 +107,9 @@ class RingEventListener:
         self.subscribed = True
         # Update devices for the intercom unlock events
         if not self._ring.devices_data:
-            self._ring.update_devices()
+            await self._ring.async_update_devices()
         if not self._ring.dings_data:
-            self._ring.update_dings()
+            await self._ring.async_update_dings()
 
     def add_notification_callback(self, callback: OnNotificationCallable) -> int:
         """Add a callback to be notified on event."""
@@ -146,7 +145,7 @@ class RingEventListener:
 
         self._callbacks = {}
 
-    def start(
+    async def async_start(
         self,
         callback: OnNotificationCallable | None = None,
         *,
@@ -163,13 +162,16 @@ class RingEventListener:
                 credentials=self._credentials,
                 credentials_updated_callback=self._credentials_updated_callback,
                 config=self._config,
+                http_client_session=self._ring.auth.http_client_session,
             )
-        fcm_token = self._receiver.checkin(RING_SENDER_ID, self._app_id)
+        fcm_token: str | None = await self._receiver.checkin(
+            RING_SENDER_ID, self._app_id
+        )
         if not fcm_token:
             _logger.error("Unable to check in to fcm, event listener not started")
             return False
 
-        self.add_subscription_to_ring(fcm_token)
+        await self.async_add_subscription_to_ring(fcm_token)
         if self.subscribed:
             self.add_notification_callback(callback)
 
@@ -182,7 +184,7 @@ class RingEventListener:
             start = time.time()
             now = start
             while not self._receiver.is_started() and now - start < timeout:
-                time.sleep(0.1)
+                await asyncio.sleep(0.1)
                 now = time.time()
             self.started = self._receiver.is_started()
 
@@ -257,3 +259,15 @@ class RingEventListener:
         if re:
             for callback in self._callbacks.values():
                 callback(re)
+
+    DEPRECATED_API_QUERIES: ClassVar = {
+        "start",
+        "add_subscription_to_ring",
+    }
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if name in self.DEPRECATED_API_QUERIES:
+            return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)

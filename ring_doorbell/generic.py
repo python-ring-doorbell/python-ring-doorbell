@@ -5,12 +5,14 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import pytz
 
 from ring_doorbell.const import URL_DOORBELL_HISTORY, RingCapability
-from ring_doorbell.util import parse_datetime
+from ring_doorbell.util import (
+    parse_datetime,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,11 +45,11 @@ class RingGeneric:
         """Return string representation of device."""
         return f"{self.name} ({self.kind})"
 
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Update this device info."""
-        self.update_health_data()
+        await self.async_update_health_data()
 
-    def update_health_data(self) -> None:
+    async def async_update_health_data(self) -> None:
         """Update the health data."""
         raise NotImplementedError
 
@@ -158,7 +160,7 @@ class RingGeneric:
         """Return the result of the last history query."""
         return self._last_history
 
-    def history(  # noqa: C901, PLR0912, PLR0913
+    async def async_history(  # noqa: C901, PLR0913, PLR0912
         self,
         *,
         limit: int = 30,
@@ -196,7 +198,8 @@ class RingGeneric:
                 params["older_than"] = older_than
 
             url = URL_DOORBELL_HISTORY.format(self.device_api_id)
-            response = self._ring.query(url, extra_params=params).json()
+            resp = await self._ring.async_query(url, extra_params=params)
+            response = resp.json()
 
             # cherrypick only the selected kind events
             if kind:
@@ -237,3 +240,27 @@ class RingGeneric:
 
         self._last_history = response
         return self._last_history
+
+    DEPRECATED_API_QUERIES: ClassVar = {
+        "history",
+        "update",
+        "update_health_data",
+    }
+    DEPRECATED_API_PROPERTY_GETTERS: ClassVar[set[str]] = set()
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar[set[str]] = set()
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if name in self.DEPRECATED_API_QUERIES:
+            return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
+        if name in self.DEPRECATED_API_PROPERTY_GETTERS:
+            return self._ring.auth._dep_handler.get_api_property(self, name)  # noqa: SLF001
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set a deprecated attribute or raise an error."""
+        if name in self.DEPRECATED_API_PROPERTY_SETTERS:
+            self._ring.auth._dep_handler.set_api_property(self, name, value)  # noqa: SLF001
+        else:
+            super().__setattr__(name, value)

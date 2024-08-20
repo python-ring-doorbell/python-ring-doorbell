@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from itertools import chain
 from time import time
-from typing import TYPE_CHECKING, Any, Iterator, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Mapping, Sequence
 
 from ring_doorbell import RingEvent
 from ring_doorbell.chime import RingChime
@@ -27,8 +27,6 @@ from .const import (
 )
 
 if TYPE_CHECKING:
-    from requests import Response
-
     from ring_doorbell.auth import Auth
     from ring_doorbell.generic import RingGeneric
 
@@ -51,19 +49,19 @@ class Ring:
         self.groups_data: dict[str, dict[str, Any]] = {}
         self.init_loop = None
 
-    def update_data(self) -> None:
+    async def async_update_data(self) -> None:
         """Update all data."""
-        self._update_data()
+        await self._async_update_data()
 
-    def _update_data(self) -> None:
+    async def _async_update_data(self) -> None:
         if self.session is None:
-            self.create_session()
+            await self.async_create_session()
 
-        self.update_devices()
+        await self.async_update_devices()
 
-        self.update_dings()
+        await self.async_update_dings()
 
-        self.update_groups()
+        await self.async_update_groups()
 
     def _add_event_to_dings_data(self, ring_event: RingEvent) -> None:
         # Purge expired push_dings
@@ -73,7 +71,7 @@ class Ring:
         ]
         self.push_dings_data.append(ring_event)
 
-    def create_session(self) -> None:
+    async def async_create_session(self) -> None:
         """Create a new Ring session."""
         session_post_data = {
             "device": {
@@ -85,19 +83,20 @@ class Ring:
                 "os": "android",
             }
         }
-
-        self.session = self._query(
+        resp = await self._async_query(
             NEW_SESSION_ENDPOINT,
             method="POST",
             json=session_post_data,
-        ).json()
+        )
+        self.session = resp.json()
 
-    def update_devices(self) -> None:
+    async def async_update_devices(self) -> None:
         """Update device data."""
         if self.session is None:
-            self.create_session()
+            await self.async_create_session()
 
-        data: dict[Any, Any] = self._query(DEVICES_ENDPOINT).json()
+        resp = await self._async_query(DEVICES_ENDPOINT)
+        data: dict[Any, Any] = resp.json()
 
         # Index data by device ID.
         self.devices_data = {
@@ -105,17 +104,18 @@ class Ring:
             for device_type, devices in data.items()
         }
 
-    def update_dings(self) -> None:
+    async def async_update_dings(self) -> None:
         """Update dings data."""
         if self.session is None:
-            self.create_session()
+            await self.async_create_session()
 
-        self.dings_data = self._query(DINGS_ENDPOINT).json()
+        resp = await self._async_query(DINGS_ENDPOINT)
+        self.dings_data = resp.json()
 
-    def update_groups(self) -> None:
+    async def async_update_groups(self) -> None:
         """Update groups data."""
         if self.session is None:
-            self.create_session()
+            await self.async_create_session()
         # Get all locations
         locations = set()
         devices = self.devices()
@@ -127,12 +127,13 @@ class Ring:
         # Query for groups
         self.groups_data = {}
         for location in locations:
-            data = self._query(GROUPS_ENDPOINT.format(location)).json()
+            resp = await self._async_query(GROUPS_ENDPOINT.format(location))
+            data = resp.json()
             if data["device_groups"]:
                 for group in data["device_groups"]:
                     self.groups_data[group["device_group_id"]] = group
 
-    def query(  # noqa: PLR0913
+    async def async_query(  # noqa: PLR0913
         self,
         url: str,
         method: str = "GET",
@@ -140,13 +141,13 @@ class Ring:
         data: bytes | None = None,
         json: dict[Any, Any] | None = None,
         timeout: float | None = None,
-    ) -> Response:
+    ) -> Auth.Response:
         """Query data from Ring API."""
         if self.session is None:
-            self.create_session()
-        return self._query(url, method, extra_params, data, json, timeout)
+            await self.async_create_session()
+        return await self._async_query(url, method, extra_params, data, json, timeout)
 
-    def _query(  # noqa: PLR0913
+    async def _async_query(  # noqa: PLR0913
         self,
         url: str,
         method: str = "GET",
@@ -154,7 +155,7 @@ class Ring:
         data: bytes | None = None,
         json: dict[Any, Any] | None = None,
         timeout: float | None = None,
-    ) -> Response:
+    ) -> Auth.Response:
         _logger.debug(
             "url: %s\nmethod: %s\njson: %s\ndata: %s\n extra_params: %s",
             url,
@@ -163,7 +164,7 @@ class Ring:
             data,
             extra_params,
         )
-        response = self.auth.query(
+        response = await self.auth.async_query(
             API_URI + url,
             method=method,
             extra_params=extra_params,
@@ -272,6 +273,22 @@ class Ring:
                     alerts[key] = re
 
         return list(alerts.values())
+
+    DEPRECATED_API_QUERIES: ClassVar = {
+        "update_devices",
+        "update_data",
+        "update_dings",
+        "update_groups",
+        "create_session",
+        "query",
+    }
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if name in self.DEPRECATED_API_QUERIES:
+            return self.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)
 
 
 class RingDevices:

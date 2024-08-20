@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from ring_doorbell.const import (
     GROUP_DEVICES_ENDPOINT,
@@ -34,10 +34,11 @@ class RingLightGroup:
         """Return __repr__."""
         return f"<{self.__class__.__name__}: {self.name}>"
 
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Update this device info."""
         url = GROUP_DEVICES_ENDPOINT.format(self.location_id, self.group_id)
-        self._health_attrs = self._ring.query(url).json()
+        resp = await self._ring.async_query(url)
+        self._health_attrs = resp.json()
         self._health_attrs_fetched = True
 
     @property
@@ -95,19 +96,23 @@ class RingLightGroup:
     def lights(self) -> bool:
         """Return lights status."""
         if not self._health_attrs_fetched:
-            self.update()
+            msg = (
+                "You need to call update on the "
+                "group before accessing the lights property."
+            )
+            raise RingError(msg)
         return self._health_attrs["lights_on"]
 
-    @lights.setter
-    def lights(self, value: bool | tuple[bool, int]) -> None:
+    async def async_set_lights(
+        self,
+        state: bool | tuple[bool, int],
+        duration: int | None = None,
+    ) -> None:
         """Control the lights."""
         values = ["True", "False"]
-        state = None
-        duration = None
-        if isinstance(value, tuple):
-            state, duration = value
-        else:
-            state = value
+        if isinstance(state, tuple):
+            state, duration = state
+
         if not isinstance(state, bool):
             raise RingError(MSG_ALLOWED_VALUES.format(", ".join(values)))
 
@@ -115,5 +120,26 @@ class RingLightGroup:
         payload: dict[str, dict[str, bool | int]] = {"lights_on": {"enabled": state}}
         if duration is not None:
             payload["lights_on"]["duration_seconds"] = duration
-        self._ring.query(url, method="POST", json=payload)
-        self.update()
+        await self._ring.async_query(url, method="POST", json=payload)
+        await self.async_update()
+
+    DEPRECATED_API_QUERIES: ClassVar = {
+        "update",
+    }
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        "lights",
+    }
+
+    def __getattr__(self, name: str) -> Any:
+        """Get a deprecated attribute or raise an error."""
+        if name in self.DEPRECATED_API_QUERIES:
+            return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
+        msg = f"{self.__class__.__name__} has no attribute {name!r}"
+        raise AttributeError(msg)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set a deprecated attribute or raise an error."""
+        if name in self.DEPRECATED_API_PROPERTY_SETTERS:
+            self._ring.auth._dep_handler.set_api_property(self, name, value)  # noqa: SLF001
+        else:
+            super().__setattr__(name, value)

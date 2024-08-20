@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from ring_doorbell.const import (
     DOORBELLS_ENDPOINT,
@@ -48,13 +48,12 @@ class RingOther(RingGeneric):
         """Return Ring device family type."""
         return "other"
 
-    def update_health_data(self) -> None:
+    async def async_update_health_data(self) -> None:
         """Update health attrs."""
-        self._health_attrs = (
-            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id))
-            .json()
-            .get("device_health", {})
+        resp = await self._ring.async_query(
+            HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id)
         )
+        self._health_attrs = resp.json().get("device_health", {})
 
     @property
     def model(self) -> str:
@@ -121,8 +120,8 @@ class RingOther(RingGeneric):
             return self._attrs["settings"].get("doorbell_volume", 0)
         return 0
 
-    @doorbell_volume.setter
-    def doorbell_volume(self, value: int) -> None:
+    async def async_set_doorbell_volume(self, value: int) -> None:
+        """Set the doorbell volume."""
         if not (
             (isinstance(value, int))
             and (OTHER_DOORBELL_VOL_MIN <= value <= OTHER_DOORBELL_VOL_MAX)
@@ -135,8 +134,8 @@ class RingOther(RingGeneric):
             "doorbot[settings][doorbell_volume]": str(value),
         }
         url = DOORBELLS_ENDPOINT.format(self.device_api_id)
-        self._ring.query(url, extra_params=params, method="PUT")
-        self._ring.update_devices()
+        await self._ring.async_query(url, extra_params=params, method="PUT")
+        await self._ring.async_update_devices()
 
     @property
     def keep_alive_auto(self) -> float | None:
@@ -145,14 +144,13 @@ class RingOther(RingGeneric):
             return self._attrs["settings"].get("keep_alive_auto")
         return None
 
-    @keep_alive_auto.setter
-    def keep_alive_auto(self, value: float) -> None:
+    async def async_set_keep_alive_auto(self, value: float) -> None:
         """Update the keep alive auto setting."""
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"keep_alive_settings": {"keep_alive_auto": value}}
 
-        self._ring.query(url, method="PATCH", json=payload)
-        self._ring.update_devices()
+        await self._ring.async_query(url, method="PATCH", json=payload)
+        await self._ring.async_update_devices()
 
     @property
     def mic_volume(self) -> int | None:
@@ -161,16 +159,16 @@ class RingOther(RingGeneric):
             return self._attrs["settings"].get("mic_volume")
         return None
 
-    @mic_volume.setter
-    def mic_volume(self, value: int) -> None:
+    async def async_set_mic_volume(self, value: int) -> None:
+        """Set the mic volume."""
         if not ((isinstance(value, int)) and (MIC_VOL_MIN <= value <= MIC_VOL_MAX)):
             raise RingError(MSG_VOL_OUTBOUND.format(MIC_VOL_MIN, MIC_VOL_MAX))
 
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"volume_settings": {"mic_volume": value}}
 
-        self._ring.query(url, method="PATCH", json=payload)
-        self._ring.update_devices()
+        await self._ring.async_query(url, method="PATCH", json=payload)
+        await self._ring.async_update_devices()
 
     @property
     def voice_volume(self) -> int | None:
@@ -179,40 +177,34 @@ class RingOther(RingGeneric):
             return self._attrs["settings"].get("voice_volume")
         return None
 
-    @voice_volume.setter
-    def voice_volume(self, value: int) -> None:
+    async def async_set_voice_volume(self, value: int) -> None:
+        """Set the voice volume."""
         if not ((isinstance(value, int)) and (VOICE_VOL_MIN <= value <= VOICE_VOL_MAX)):
             raise RingError(MSG_VOL_OUTBOUND.format(VOICE_VOL_MIN, VOICE_VOL_MAX))
 
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"volume_settings": {"voice_volume": value}}
 
-        self._ring.query(url, method="PATCH", json=payload)
-        self._ring.update_devices()
+        await self._ring.async_query(url, method="PATCH", json=payload)
+        await self._ring.async_update_devices()
 
-    @property
-    def clip_length_max(self) -> int | None:
-        """Maximum clip length.
+    async def async_get_clip_length_max(self) -> int | None:
+        """Get the Maximum clip length."""
+        url = SETTINGS_ENDPOINT.format(self.device_api_id)
+        resp = await self._ring.async_query(url, method="GET")
+        return resp.json().get("video_settings", {}).get("clip_length_max")
+
+    async def async_set_clip_length_max(self, value: int) -> None:
+        """Set the maximum clip length.
 
         This value sets an effective refractory period on consecutive rigns
         eg if set to default value of 60, rings occuring with 60 seconds of
         first will not be detected.
         """
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
-
-        return (
-            self._ring.query(url, method="GET")
-            .json()
-            .get("video_settings", {})
-            .get("clip_length_max")
-        )
-
-    @clip_length_max.setter
-    def clip_length_max(self, value: int) -> None:
-        url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"video_settings": {"clip_length_max": value}}
-        self._ring.query(url, method="PATCH", json=payload)
-        self._ring.update_devices()
+        await self._ring.async_query(url, method="PATCH", json=payload)
+        await self._ring.async_update_devices()
 
     @property
     def connection_status(self) -> str | None:
@@ -221,16 +213,16 @@ class RingOther(RingGeneric):
             return self._attrs.get("alerts", {}).get("connection")
         return None
 
-    @property
-    def allowed_users(self) -> list[dict[str, Any]] | None:
+    async def async_get_allowed_users(self) -> list[dict[str, Any]] | None:
         """Return list of users allowed or invited to access."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_ALLOWED_USERS.format(self.location_id)
-            return self._ring.query(url, method="GET").json()
+            resp = await self._ring.async_query(url, method="GET")
+            return resp.json()
 
         return None
 
-    def open_door(self, user_id: int = -1) -> bool:
+    async def async_open_door(self, user_id: int = -1) -> bool:
         """Open the door."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_OPEN_ENDPOINT.format(self.device_api_id)
@@ -250,15 +242,15 @@ class RingOther(RingGeneric):
                     },
                 },
             }
-
-            response = self._ring.query(url, method="PUT", json=payload).json()
-            self._ring.update_devices()
+            resp = await self._ring.async_query(url, method="PUT", json=payload)
+            response = resp.json()
+            await self._ring.async_update_devices()
             if response.get("result", {}).get("code", -1) == 0:
                 return True
 
         return False
 
-    def invite_access(self, email: str) -> bool:
+    async def async_invite_access(self, email: str) -> bool:
         """Invite user."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_ENDPOINT.format(self.location_id)
@@ -269,16 +261,37 @@ class RingOther(RingGeneric):
                     "group_ids": [],
                 }
             }
-            self._ring.query(url, method="POST", json=payload)
+            await self._ring.async_query(url, method="POST", json=payload)
             return True
 
         return False
 
-    def remove_access(self, user_id: int) -> bool:
+    async def async_remove_access(self, user_id: int) -> bool:
         """Remove user access or invitation."""
         if self.kind in INTERCOM_KINDS:
             url = INTERCOM_INVITATIONS_DELETE_ENDPOINT.format(self.location_id, user_id)
-            self._ring.query(url, method="DELETE")
+            await self._ring.async_query(url, method="DELETE")
             return True
 
         return False
+
+    DEPRECATED_API_QUERIES: ClassVar = {
+        *RingGeneric.DEPRECATED_API_QUERIES,
+        "update_health_data",
+        "open_door",
+        "invite_access",
+        "remove_access",
+    }
+    DEPRECATED_API_PROPERTY_GETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_GETTERS,
+        "clip_length_max",
+        "allowed_users",
+    }
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_SETTERS,
+        "doorbell_volume",
+        "keep_alive_auto",
+        "mic_volume",
+        "voice_volume",
+        "clip_length_max",
+    }

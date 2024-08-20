@@ -3,10 +3,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
+
+import aiofiles
 
 from ring_doorbell.const import (
     DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
@@ -63,13 +66,12 @@ class RingDoorBell(RingGeneric):
         """Return Ring device family type."""
         return "authorized_doorbots" if self.shared else "doorbots"
 
-    def update_health_data(self) -> None:
+    async def async_update_health_data(self) -> None:
         """Update health attrs."""
-        self._health_attrs = (
-            self._ring.query(HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id))
-            .json()
-            .get("device_health", {})
+        resp = await self._ring.async_query(
+            HEALTH_DOORBELL_ENDPOINT.format(self.device_api_id)
         )
+        self._health_attrs = resp.json().get("device_health", {})
 
     @property
     def model(self) -> str:  # noqa: C901, PLR0911
@@ -181,8 +183,7 @@ class RingDoorBell(RingGeneric):
         else:
             return None
 
-    @existing_doorbell_type.setter
-    def existing_doorbell_type(self, value: int) -> None:
+    async def async_set_existing_doorbell_type(self, value: int) -> None:
         """
         Return existing doorbell type.
 
@@ -199,8 +200,8 @@ class RingDoorBell(RingGeneric):
         }
         if self.existing_doorbell_type:
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
-            self._ring.query(url, extra_params=params, method="PUT")
-            self._ring.update_devices()
+            await self._ring.async_query(url, extra_params=params, method="PUT")
+            await self._ring.async_update_devices()
 
     @property
     def existing_doorbell_type_enabled(self) -> bool | None:
@@ -211,8 +212,7 @@ class RingDoorBell(RingGeneric):
             return self._get_chime_setting("enable")
         return False
 
-    @existing_doorbell_type_enabled.setter
-    def existing_doorbell_type_enabled(self, value: bool) -> None:
+    async def async_set_existing_doorbell_type_enabled(self, value: bool) -> None:  # noqa: FBT001
         """Enable/disable the existing doorbell if Digital/Mechanical."""
         if self.existing_doorbell_type:
             if not isinstance(value, bool):
@@ -226,8 +226,8 @@ class RingDoorBell(RingGeneric):
                 "doorbot[settings][chime_settings][enable]": value,
             }
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
-            self._ring.query(url, extra_params=params, method="PUT")
-            self._ring.update_devices()
+            await self._ring.async_query(url, extra_params=params, method="PUT")
+            await self._ring.async_update_devices()
 
     @property
     def existing_doorbell_type_duration(self) -> int | None:
@@ -239,8 +239,7 @@ class RingDoorBell(RingGeneric):
             return self._get_chime_setting("duration")
         return None
 
-    @existing_doorbell_type_duration.setter
-    def existing_doorbell_type_duration(self, value: int) -> None:
+    async def async_set_existing_doorbell_type_duration(self, value: int) -> None:
         """Set duration for Digital chime."""
         if self.existing_doorbell_type:
             if not (
@@ -257,32 +256,31 @@ class RingDoorBell(RingGeneric):
                     "doorbot[settings][chime_settings][duration]": value,
                 }
                 url = DOORBELLS_ENDPOINT.format(self.device_api_id)
-                self._ring.query(url, extra_params=params, method="PUT")
-                self._ring.update_devices()
+                await self._ring.async_query(url, extra_params=params, method="PUT")
+                await self._ring.async_update_devices()
 
-    @property
-    def last_recording_id(self) -> int | None:
+    async def async_get_last_recording_id(self) -> int | None:
         """Return the last recording ID."""
         try:
-            res = self.history(limit=1)
+            res = await self.async_history(limit=1)
             return res[0].get("id") if res else None
         except (IndexError, TypeError):
             return None
 
-    @property
-    def live_streaming_json(self) -> dict[str, Any] | None:
+    async def async_get_live_streaming_json(self) -> dict[str, Any] | None:
         """Return JSON for live streaming."""
         url = LIVE_STREAMING_ENDPOINT.format(self.device_api_id)
-        req = self._ring.query(url, method="POST")
+        req = await self._ring.async_query(url, method="POST")
         if req and req.status_code == 200:
             url = DINGS_ENDPOINT
             try:
-                return self._ring.query(url).json()[0]
+                resp = await self._ring.async_query(url)
+                return resp.json()[0]
             except (IndexError, TypeError):
                 pass
         return None
 
-    def recording_download(
+    async def async_recording_download(
         self,
         recording_id: int,
         filename: str | None = None,
@@ -299,14 +297,14 @@ class RingDoorBell(RingGeneric):
         url = URL_RECORDING.format(recording_id)
         try:
             # Video download needs a longer timeout to get the large video file
-            req = self._ring.query(url, timeout=timeout)
+            req = await self._ring.async_query(url, timeout=timeout)
             if req.status_code == 200:
                 if filename:
                     if Path(filename).is_file() and not override:
                         raise RingError(FILE_EXISTS.format(filename))
 
-                    with Path(filename).open("wb") as recording:
-                        recording.write(req.content)
+                    async with aiofiles.open(filename, "wb") as recording:
+                        await recording.write(req.content)
                         return None
                 else:
                     return req.content
@@ -321,7 +319,7 @@ class RingDoorBell(RingGeneric):
             _LOGGER.exception(msg)
             raise RingError(msg) from error
 
-    def recording_url(self, recording_id: int) -> str | None:
+    async def async_recording_url(self, recording_id: int) -> str | None:
         """Return HTTPS recording URL."""
         if not self.has_subscription:
             msg = "Your Ring account does not have an active subscription."
@@ -329,7 +327,7 @@ class RingDoorBell(RingGeneric):
             return None
 
         url = URL_RECORDING_SHARE_PLAY.format(recording_id)
-        req = self._ring.query(url)
+        req = await self._ring.async_query(url)
         data = req.json()
         if req and req.status_code == 200 and data is not None:
             return data["url"]
@@ -360,11 +358,11 @@ class RingDoorBell(RingGeneric):
 
     @property
     def volume(self) -> int:
-        """Return volume."""
+        """Return the volume."""
         return self._attrs["settings"].get("doorbell_volume", 0)
 
-    @volume.setter
-    def volume(self, value: int) -> None:
+    async def async_set_volume(self, value: int) -> None:
+        """Set the volume."""
         if not (
             (isinstance(value, int)) and (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)
         ):
@@ -375,8 +373,8 @@ class RingDoorBell(RingGeneric):
             "doorbot[settings][doorbell_volume]": str(value),
         }
         url = DOORBELLS_ENDPOINT.format(self.device_api_id)
-        self._ring.query(url, extra_params=params, method="PUT")
-        self._ring.update_devices()
+        await self._ring.async_query(url, extra_params=params, method="PUT")
+        await self._ring.async_update_devices()
 
     @property
     def connection_status(self) -> str | None:
@@ -385,24 +383,26 @@ class RingDoorBell(RingGeneric):
             return alerts.get("connection")
         return None
 
-    def get_snapshot(
+    async def async_get_snapshot(
         self, retries: int = 3, delay: int = 1, filename: str | None = None
     ) -> bytes | None:
         """Take a snapshot and download it."""
         url = SNAPSHOT_TIMESTAMP_ENDPOINT
         payload = {"doorbot_ids": [self._attrs.get("id")]}
-        self._ring.query(url, method="POST", json=payload)
+        await self._ring.async_query(url, method="POST", json=payload)
         request_time = time.time()
         for _ in range(retries):
-            time.sleep(delay)
-            response = self._ring.query(url, method="POST", json=payload).json()
+            await asyncio.sleep(delay)
+            resp = await self._ring.async_query(url, method="POST", json=payload)
+            response = resp.json()
             if response["timestamps"][0]["timestamp"] / 1000 > request_time:
-                snapshot = self._ring.query(
+                resp = await self._ring.async_query(
                     SNAPSHOT_ENDPOINT.format(self._attrs.get("id"))
-                ).content
+                )
+                snapshot = resp.content
                 if filename:
-                    with Path(filename).open("wb") as jpg:
-                        jpg.write(snapshot)
+                    async with aiofiles.open(filename, "wb") as jpg:
+                        await jpg.write(snapshot)
                     return None
                 return snapshot
         return None
@@ -417,8 +417,7 @@ class RingDoorBell(RingGeneric):
         """Return motion detection enabled state."""
         return state if (state := self._motion_detection_state()) else False
 
-    @motion_detection.setter
-    def motion_detection(self, state: bool) -> None:
+    async def async_set_motion_detection(self, state: bool) -> None:  # noqa: FBT001
         """Set the motion detection enabled state."""
         values = [True, False]
         if state not in values:
@@ -436,5 +435,26 @@ class RingDoorBell(RingGeneric):
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"motion_settings": {"motion_detection_enabled": state}}
 
-        self._ring.query(url, method="PATCH", json=payload)
-        self._ring.update_devices()
+        await self._ring.async_query(url, method="PATCH", json=payload)
+        await self._ring.async_update_devices()
+
+    DEPRECATED_API_QUERIES: ClassVar = {
+        *RingGeneric.DEPRECATED_API_QUERIES,
+        "update_health_data",
+        "recording_download",
+        "recording_url",
+        "get_snapshot",
+    }
+    DEPRECATED_API_PROPERTY_GETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_GETTERS,
+        "last_recording_id",
+        "live_streaming_json",
+    }
+    DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
+        *RingGeneric.DEPRECATED_API_PROPERTY_SETTERS,
+        "existing_doorbell_type",
+        "existing_doorbell_type_enabled",
+        "existing_doorbell_type_duration",
+        "volume",
+        "motion_detection",
+    }

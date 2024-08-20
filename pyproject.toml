@@ -37,16 +37,16 @@ ring-doorbell = "ring_doorbell.cli:cli"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-requests = ">=2.0.0"
-requests-oauthlib = ">=1.3.0,<2"
 oauthlib = ">=3.0.0,<4"
 pytz = ">=2022.0"
 asyncclick = ">=8"
+aiohttp = ">=3"
+aiofiles = ">=23"
 anyio = "*" # see https://github.com/python-trio/asyncclick/issues/18
 sphinx = {version = "<7.2.6", optional = true}
 sphinx-rtd-theme = {version = "^1.3.0", optional = true}
 sphinx-github-changelog = {version = "^1.2.1", optional = true}
-firebase-messaging = {version = "^0.2.1", optional = true}
+firebase-messaging = {version = "^0.3.0", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 mock = "*"
@@ -56,12 +56,14 @@ pytest-cov = "*"
 requests-mock = "*"
 pytest-asyncio = "*"
 pytest-mock = "*"
-pytest-socket = "^0.6.0"
+pytest-socket = "*"
 ruff = "*"
-types-requests-oauthlib = "1.3"
-types-pytz = "^2024.1.0.20240203"
-types-click = "^7.1.8"
+types-pytz = ">=2022.0"
 pytest-freezer = "^0.4"
+types-oauthlib = ">=3.0.0,<4"
+aioresponses = "^0.7.6"
+types-aiofiles = ">=23"
+mypy = "^1"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-rtd-theme", "sphinx-github-changelog"]
@@ -73,7 +75,8 @@ testpaths = [
 ]
 norecursedirs = ".git"
 asyncio_mode = "auto"
-addopts = "--allow-hosts=127.0.0.1,::1"
+#addopts = "--allow-hosts=127.0.0.1,::1"
+addopts = "--force-enable-socket"
 filterwarnings = [
     "ignore:.*google._upb._message.MessageMapContainer uses PyType_Spec.*:DeprecationWarning",
     "ignore:.*google._upb._message.ScalarMapContainer uses PyType_Spec.*:DeprecationWarning",
@@ -98,11 +101,13 @@ ignore = [
   "D417", # False positives in some occasions
   "ISC001", # Conflicts with other rules
   "PLR2004", # Just annoying, not really useful
+  "TRY003", # Long exception messages in custom exception classes
 ]
 select = ["ALL"]
 exclude = [
     "ring_doorbell/cli.py",
-    "test.py"
+    "test.py",
+    "test_sync.py"
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -110,8 +115,11 @@ convention = "pep257"
 
 [tool.mypy]
 exclude = [
-    '/scripts/',  # TOML literal string (single-quotes, no escaping necessary)
+    'scripts/.*',  # TOML literal string (single-quotes, no escaping necessary)
     'tests/.*',
+    'docs/.*',
+    'test\.py$',
+    'test_sync\.py$',
 ]
 disallow_untyped_defs = true
 

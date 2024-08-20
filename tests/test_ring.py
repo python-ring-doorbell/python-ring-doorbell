@@ -1,11 +1,15 @@
 """The tests for the Ring platform."""
 
+import asyncio
 from datetime import datetime, timezone
 
 import pytest
 from freezegun.api import FrozenDateTimeFactory
-from ring_doorbell import RingError
+from ring_doorbell import Auth, Ring, RingError
+from ring_doorbell.const import USER_AGENT
 from ring_doorbell.util import parse_datetime
+
+from .conftest import json_request_kwargs, load_fixture_as_dict, nojson_request_kwargs
 
 
 def test_basic_attributes(ring):
@@ -18,7 +22,7 @@ def test_basic_attributes(ring):
     assert len(data["other"]) == 1
 
 
-def test_chime_attributes(ring):
+async def test_chime_attributes(ring):
     """Test the Ring Chime class and methods."""
     dev = ring.devices()["chimes"][0]
 
@@ -34,15 +38,15 @@ def test_chime_attributes(ring):
     assert dev.timezone == "America/New_York"
     assert dev.volume == 2
 
-    assert len(dev.history()) == 0
+    assert len(await dev.async_history()) == 0
 
-    dev.update_health_data()
+    await dev.async_update_health_data()
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
     assert dev.wifi_signal_strength != 100
 
 
-def test_doorbell_attributes(ring):
+async def test_doorbell_attributes(ring):
     data = ring.devices()
     dev = data["doorbots"][0]
     assert dev.name == "Front Door"
@@ -59,14 +63,21 @@ def test_doorbell_attributes(ring):
     assert dev.has_subscription is True
     assert dev.connection_status == "online"
 
-    assert isinstance(dev.history(limit=1, kind="motion"), list)
-    assert len(dev.history(kind="ding")) == 1
-    assert len(dev.history(limit=1, kind="motion")) == 2
-    assert len(dev.history(limit=1, kind="motion", enforce_limit=True, retry=50)) == 1
+    assert isinstance(await dev.async_history(limit=1, kind="motion"), list)
+    assert len(await dev.async_history(kind="ding")) == 1
+    assert len(await dev.async_history(limit=1, kind="motion")) == 2
+    assert (
+        len(
+            await dev.async_history(
+                limit=1, kind="motion", enforce_limit=True, retry=50
+            )
+        )
+        == 1
+    )
 
     assert dev.existing_doorbell_type == "Mechanical"
 
-    dev.update_health_data()
+    await dev.async_update_health_data()
 
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
@@ -102,24 +113,39 @@ def test_stickup_cam_attributes(ring):
     assert dev.siren == 0
 
 
-def test_stickup_cam_controls(ring, requests_mock):
+async def test_stickup_cam_controls(ring, aioresponses_mock):
     dev = ring.devices()["stickup_cams"][0]
 
-    dev.lights = "off"
-    dev.lights = "on"
-    dev.siren = 0
-    dev.siren = 30
+    kwargs = nojson_request_kwargs()
 
-    history = list(filter(lambda x: x.method == "PUT", requests_mock.request_history))
-    assert history[0].path == "/clients_api/doorbots/987652/floodlight_light_off"
-    assert history[1].path == "/clients_api/doorbots/987652/floodlight_light_on"
-    assert history[2].path == "/clients_api/doorbots/987652/siren_off"
-    assert "duration" not in history[2].qs
-    assert history[3].path == "/clients_api/doorbots/987652/siren_on"
-    assert history[3].qs["duration"][0] == "30"
+    await dev.async_set_lights("off")
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652/floodlight_light_off",
+        method="PUT",
+        **kwargs,
+    )
+    await dev.async_set_lights("on")
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652/floodlight_light_on",
+        method="PUT",
+        **kwargs,
+    )
+    await dev.async_set_siren(0)
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652/siren_off",
+        method="PUT",
+        **kwargs,
+    )
+    await dev.async_set_siren(30)
+    kwargs["params"] = {"duration": 30}
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652/siren_on",
+        method="PUT",
+        **kwargs,
+    )
 
 
-def test_light_groups(ring):
+async def test_light_groups(ring):
     group = ring.groups()["mock-group-id"]
 
     assert group.name == "Landscape"
@@ -131,44 +157,46 @@ def test_light_groups(ring):
     with pytest.raises(RingError):
         group.has_capability("something-else")
 
-    assert group.lights is False
+    with pytest.raises(
+        RingError,
+        match=(
+            "You need to call update on the group before "
+            "accessing the lights property."
+        ),
+    ):
+        assert group.lights is False
+    await group.async_update()
 
     # Attempt turning on lights
-    group.lights = True
+    await group.async_set_lights(state=True)
 
     # Attempt turning off lights
-    group.lights = False
+    await group.async_set_lights(state=False)
 
     # Attempt turning on lights for 30 seconds
-    group.lights = (True, 30)
-
-    # Attempt setting lights to invalid value
-    with pytest.raises(RingError):
-        group.lights = 30
+    await group.async_set_lights(state=True, duration=30)
 
 
-def test_motion_detection_enable(ring, requests_mock):
+async def test_motion_detection_enable(ring, aioresponses_mock):
     dev = ring.devices()["doorbots"][0]
 
-    dev.motion_detection = True
-    dev.motion_detection = False
-
-    history = list(filter(lambda x: x.method == "PATCH", requests_mock.request_history))
-    assert history[len(history) - 2].path == "/devices/v1/devices/987652/settings"
-    assert (
-        history[len(history) - 2].text
-        == '{"motion_settings": {"motion_detection_enabled": true}}'
-    )
-    assert history[len(history) - 1].path == "/devices/v1/devices/987652/settings"
-    assert (
-        history[len(history) - 1].text
-        == '{"motion_settings": {"motion_detection_enabled": false}}'
+    kwargs = json_request_kwargs()
+    await dev.async_set_motion_detection(state=True)
+    kwargs["json"] = {"motion_settings": {"motion_detection_enabled": True}}
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/devices/v1/devices/987652/settings",
+        method="PATCH",
+        **kwargs,
     )
 
-    active_dings = ring.active_alerts()
+    await dev.async_set_motion_detection(state=False)
 
-    assert len(active_dings) == 3
-    assert len(ring.active_alerts()) == 3
+    kwargs["json"] = {"motion_settings": {"motion_detection_enabled": False}}
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/devices/v1/devices/987652/settings",
+        method="PATCH",
+        **kwargs,
+    )
 
 
 @pytest.mark.parametrize(
@@ -216,3 +244,48 @@ def test_datetime_parse(
     )
     assert dt == expected
     assert is_error_in_log is error_in_log
+
+
+async def test_sync_queries_from_event_loop():
+    auth = Auth(USER_AGENT, token=load_fixture_as_dict("ring_oauth.json"))
+    ring = Ring(auth)
+
+    assert asyncio.get_running_loop()
+
+    msg = (
+        "You cannot call deprecated sync function Ring.update_devices "
+        "from within a running event loop."
+    )
+    with pytest.raises(RingError, match=msg):
+        ring.update_devices()
+
+
+async def test_sync_queries_from_executor():
+    auth = Auth(USER_AGENT, token=load_fixture_as_dict("ring_oauth.json"))
+    ring = Ring(auth)
+
+    loop = asyncio.get_running_loop()
+
+    assert ring.devices_data == {}
+    # This will run the query inan executor thread
+    msg = "Ring.update_devices is deprecated, use Ring.async_update_devices"
+    with pytest.deprecated_call(match=msg):
+        await loop.run_in_executor(None, ring.update_devices)
+
+    assert ring.devices_data
+
+
+def test_sync_queries_with_no_event_loop():
+    auth = Auth(USER_AGENT, token=load_fixture_as_dict("ring_oauth.json"))
+
+    ring = Ring(auth)
+
+    assert not ring.devices_data
+    msg = "Ring.update_devices is deprecated, use Ring.async_update_devices"
+    with pytest.deprecated_call(match=msg):
+        ring.update_devices()
+
+    assert ring.devices_data
+
+    with pytest.deprecated_call():
+        auth.close()
