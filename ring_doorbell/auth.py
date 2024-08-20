@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import uuid
+from asyncio import TimeoutError
+from functools import cached_property
 from json import loads as json_loads
 from typing import Any, Callable, ClassVar
 
-from aiohttp import BasicAuth, ClientSession
+from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSession
 from oauthlib.common import urldecode
 from oauthlib.oauth2 import (
     LegacyApplicationClient,
@@ -15,7 +17,6 @@ from oauthlib.oauth2 import (
     OAuth2Error,
     TokenExpiredError,
 )
-from requests import HTTPError, Timeout
 
 from ring_doorbell.const import NAMESPACE_UUID, TIMEOUT, OAuth
 from ring_doorbell.exceptions import (
@@ -24,7 +25,7 @@ from ring_doorbell.exceptions import (
     RingError,
     RingTimeout,
 )
-from ring_doorbell.util import get_deprecated_sync_api_query
+from ring_doorbell.util import _DeprecatedSyncApiHandler
 
 
 class Auth:
@@ -228,9 +229,12 @@ class Auth:
                 )
         except AuthenticationError:
             raise  # refresh_tokens will return this error if not valid
-        except Timeout as ex:
+        except TimeoutError as ex:
             msg = f"Timeout error during query of url {url}: {ex}"
             raise RingTimeout(msg) from ex
+        except ClientError as ex:
+            msg = f"aiohttp Client error during query of url {url}: {ex}"
+            raise RingError(msg) from ex
         except Exception as ex:  # noqa: BLE001
             msg = f"Unknown error during query of url {url}: {ex}"
             raise RingError(msg) from ex
@@ -243,7 +247,7 @@ class Auth:
             if raise_for_status:
                 try:
                     resp.raise_for_status()
-                except HTTPError as ex:
+                except ClientResponseError as ex:
                     msg = (
                         f"HTTP error with status code {resp.status} "
                         f"during query of url {url}: {ex}"
@@ -253,17 +257,20 @@ class Auth:
             response_data = await resp.read()
         return Auth.Response(response_data, resp.status)
 
-    DEPRECATED_API_CALLS: ClassVar = {
+    @cached_property
+    def _dep_handler(self) -> _DeprecatedSyncApiHandler:
+        return _DeprecatedSyncApiHandler(self)
+
+    DEPRECATED_API_QUERIES: ClassVar = {
         "fetch_token",
         "refresh_tokens",
         "close",
+        "query",
     }
 
     def __getattr__(self, name: str) -> Any:
         """Get a deprecated attribute or raise an error."""
-        if deprecated_sync_api_query := get_deprecated_sync_api_query(
-            self, name, self.DEPRECATED_API_CALLS
-        ):
-            return deprecated_sync_api_query
+        if name in self.DEPRECATED_API_QUERIES:
+            return self._dep_handler.get_api_query(self, name)
         msg = f"{self.__class__.__name__} has no attribute {name!r}"
         raise AttributeError(msg)

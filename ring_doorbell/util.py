@@ -3,19 +3,32 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import datetime
 import logging
+from contextlib import suppress
 from functools import update_wrapper
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from threading import Lock
+from typing import TYPE_CHECKING, Any, Callable
 from warnings import warn
 
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import Concatenate, ParamSpec, TypeVar
 
 from ring_doorbell.exceptions import RingError
 
 if TYPE_CHECKING:
     from collections.abc import Coroutine
+
+    from .auth import Auth
+    from .generic import RingGeneric
+    from .group import RingLightGroup
+    from .listen.eventlistener import RingEventListener
+    from .ring import Ring
+
+    _T = TypeVar(
+        "_T", bound=Auth | Ring | RingGeneric | RingLightGroup | RingEventListener
+    )
+    _R = TypeVar("_R")
+    _P = ParamSpec("_P")
 
 _logger = logging.getLogger(__name__)
 
@@ -46,52 +59,75 @@ def parse_datetime(datetime_str: str) -> datetime.datetime:
     return res
 
 
-def _check_no_loop(classname: str, method_name: str) -> None:
-    current_loop = None
-    with contextlib.suppress(RuntimeError):
-        current_loop = asyncio.get_running_loop()
-    if current_loop:
-        msg = (
-            f"You cannot call deprecated sync function {classname}.{method_name} "
-            "from within a running event loop."
-        )
-        raise RingError(msg)
+class _DeprecatedSyncApiHandler:
+    def __init__(self, auth: Auth) -> None:
+        self.auth = auth
+        self._sync_lock = Lock()
 
+    async def run_and_close_session(
+        self,
+        async_method: Callable[Concatenate[_T, _P], Coroutine[Any, Any, _R]],
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> _R:
+        try:
+            self._sync_lock.acquire()
+            res = await async_method(*args, **kwargs)
+        finally:
+            with suppress(Exception):
+                await self.auth.async_close()
+            self._sync_lock.release()
 
-_T = TypeVar("_T")
-_R = TypeVar("_R")
-_P = ParamSpec("_P")
+        return res
 
-
-def get_deprecated_sync_api_query(
-    class_instance: object,
-    method_name: str,
-    deprecated_api_calls: set[str],
-    deprecated_property_getters: set[str] | None = None,
-) -> Any:
-    """Return deprecated sync api query attribute."""
-    classname = type(class_instance).__name__
-
-    def _deprecated_sync_function(
-        async_func: Callable[Concatenate[_T, _P], Coroutine[Any, Any, _R]],
-    ) -> Callable[_P, _R]:
-        def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _R:
-            _check_no_loop(classname, method_name)
+    @staticmethod
+    def check_no_loop(classname: str, method_name: str) -> None:
+        current_loop = None
+        with suppress(RuntimeError):
+            current_loop = asyncio.get_running_loop()
+        if current_loop:
             msg = (
-                f"{classname}.{method_name} is deprecated, use "
-                f"{classname}.{async_method_name}"
+                f"You cannot call deprecated sync function {classname}.{method_name} "
+                "from within a running event loop."
             )
-            warn(msg, DeprecationWarning, stacklevel=1)
-            return asyncio.run(async_func(*args, **kwargs))
+            raise RingError(msg)
 
-        return update_wrapper(wrapper, async_func)
+    def get_api_query(
+        self,
+        class_instance: _T,
+        method_name: str,
+    ) -> Any:
+        """Return deprecated sync api query attribute."""
+        classname = type(class_instance).__name__
 
-    if method_name in deprecated_api_calls:
+        def _deprecated_sync_function(
+            async_func: Callable[Concatenate[_T, _P], Coroutine[Any, Any, _R]],
+        ) -> Callable[_P, _R]:
+            def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _R:
+                self.check_no_loop(classname, method_name)
+                msg = (
+                    f"{classname}.{method_name} is deprecated, use "
+                    f"{classname}.{async_method_name}"
+                )
+                warn(msg, DeprecationWarning, stacklevel=1)
+                return asyncio.run(
+                    self.run_and_close_session(async_func, *args, **kwargs)
+                )
+
+            return update_wrapper(wrapper, async_func)
+
         async_method_name = f"async_{method_name}"
         async_method = getattr(class_instance, async_method_name)
         return _deprecated_sync_function(async_method)
-    if deprecated_property_getters and method_name in deprecated_property_getters:
-        _check_no_loop(classname, method_name)
+
+    def get_api_property(
+        self,
+        class_instance: _T,
+        method_name: str,
+    ) -> Any:
+        """Return deprecated sync api property value."""
+        classname = type(class_instance).__name__
+        self.check_no_loop(classname, method_name)
         async_method_name = f"async_get_{method_name}"
         msg = (
             f"{classname}.{method_name} is deprecated, use "
@@ -99,21 +135,18 @@ def get_deprecated_sync_api_query(
         )
         warn(msg, DeprecationWarning, stacklevel=1)
         async_method = getattr(class_instance, async_method_name)
-        return asyncio.run(async_method())
-    return None
+        return asyncio.run(self.run_and_close_session(async_method))
 
+    def set_api_property(
+        self,
+        class_instance: _T,
+        property_name: str,
+        value: Any,
+    ) -> None:
+        """Set sync api property value."""
+        classname = type(class_instance).__name__
 
-def set_deprecated_sync_api_property(
-    class_instance: object,
-    property_name: str,
-    value: Any,
-    deprecated_property_setters: set[str],
-) -> bool:
-    """Return deprecated sync api query attribute."""
-    classname = type(class_instance).__name__
-
-    if property_name in deprecated_property_setters:
-        _check_no_loop(classname, property_name)
+        self.check_no_loop(classname, property_name)
         async_method_name = f"async_set_{property_name}"
         msg = (
             f"{classname}.{property_name} is deprecated, use "
@@ -121,6 +154,4 @@ def set_deprecated_sync_api_property(
         )
         warn(msg, DeprecationWarning, stacklevel=1)
         async_method = getattr(class_instance, async_method_name)
-        asyncio.run(async_method(value))
-        return True
-    return False
+        asyncio.run(self.run_and_close_session(async_method, value))

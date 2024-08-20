@@ -15,7 +15,6 @@ from ring_doorbell.exceptions import RingError
 from ring_doorbell.group import RingLightGroup
 from ring_doorbell.other import RingOther
 from ring_doorbell.stickup_cam import RingStickUpCam
-from ring_doorbell.util import get_deprecated_sync_api_query
 
 from .const import (
     API_URI,
@@ -275,20 +274,19 @@ class Ring:
 
         return list(alerts.values())
 
-    DEPRECATED_API_CALLS: ClassVar = {
+    DEPRECATED_API_QUERIES: ClassVar = {
         "update_devices",
         "update_data",
         "update_dings",
         "update_groups",
+        "create_session",
         "query",
     }
 
     def __getattr__(self, name: str) -> Any:
         """Get a deprecated attribute or raise an error."""
-        if deprecated_sync_api_query := get_deprecated_sync_api_query(
-            self, name, self.DEPRECATED_API_CALLS
-        ):
-            return deprecated_sync_api_query
+        if name in self.DEPRECATED_API_QUERIES:
+            return self.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
         msg = f"{self.__class__.__name__} has no attribute {name!r}"
         raise AttributeError(msg)
 

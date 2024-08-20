@@ -25,7 +25,7 @@ from ring_doorbell.const import (
 )
 from ring_doorbell.event import RingEvent
 from ring_doorbell.exceptions import RingError
-from ring_doorbell.util import get_deprecated_sync_api_query, parse_datetime
+from ring_doorbell.util import parse_datetime
 
 from .listenerconfig import RingEventListenerConfig
 
@@ -260,15 +260,14 @@ class RingEventListener:
             for callback in self._callbacks.values():
                 callback(re)
 
-    DEPRECATED_API_CALLS: ClassVar = {
+    DEPRECATED_API_QUERIES: ClassVar = {
         "start",
+        "add_subscription_to_ring",
     }
 
     def __getattr__(self, name: str) -> Any:
         """Get a deprecated attribute or raise an error."""
-        if deprecated_sync_api_query := get_deprecated_sync_api_query(
-            self, name, self.DEPRECATED_API_CALLS
-        ):
-            return deprecated_sync_api_query
+        if name in self.DEPRECATED_API_QUERIES:
+            return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
         msg = f"{self.__class__.__name__} has no attribute {name!r}"
         raise AttributeError(msg)

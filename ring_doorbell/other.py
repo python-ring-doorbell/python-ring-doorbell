@@ -275,8 +275,8 @@ class RingOther(RingGeneric):
 
         return False
 
-    DEPRECATED_API_CALLS: ClassVar = {
-        *RingGeneric.DEPRECATED_API_CALLS,
+    DEPRECATED_API_QUERIES: ClassVar = {
+        *RingGeneric.DEPRECATED_API_QUERIES,
         "update_health_data",
         "open_door",
         "invite_access",

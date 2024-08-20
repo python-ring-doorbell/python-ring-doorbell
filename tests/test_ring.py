@@ -257,7 +257,6 @@ async def test_sync_queries_from_event_loop():
         "from within a running event loop."
     )
     with pytest.raises(RingError, match=msg):
-        # This will run the query on this loop
         ring.update_devices()
 
 

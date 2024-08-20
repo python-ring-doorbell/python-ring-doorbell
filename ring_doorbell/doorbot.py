@@ -438,8 +438,8 @@ class RingDoorBell(RingGeneric):
         await self._ring.async_query(url, method="PATCH", json=payload)
         await self._ring.async_update_devices()
 
-    DEPRECATED_API_CALLS: ClassVar = {
-        *RingGeneric.DEPRECATED_API_CALLS,
+    DEPRECATED_API_QUERIES: ClassVar = {
+        *RingGeneric.DEPRECATED_API_QUERIES,
         "update_health_data",
         "recording_download",
         "recording_url",

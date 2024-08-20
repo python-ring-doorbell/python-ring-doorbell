@@ -13,10 +13,6 @@ from ring_doorbell.const import (
     RingCapability,
 )
 from ring_doorbell.exceptions import RingError
-from ring_doorbell.util import (
-    get_deprecated_sync_api_query,
-    set_deprecated_sync_api_property,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -127,7 +123,7 @@ class RingLightGroup:
         await self._ring.async_query(url, method="POST", json=payload)
         await self.async_update()
 
-    DEPRECATED_API_CALLS: ClassVar = {
+    DEPRECATED_API_QUERIES: ClassVar = {
         "update",
     }
     DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
@@ -136,16 +132,14 @@ class RingLightGroup:
 
     def __getattr__(self, name: str) -> Any:
         """Get a deprecated attribute or raise an error."""
-        if deprecated_sync_api_query := get_deprecated_sync_api_query(
-            self, name, self.DEPRECATED_API_CALLS
-        ):
-            return deprecated_sync_api_query
+        if name in self.DEPRECATED_API_QUERIES:
+            return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
         msg = f"{self.__class__.__name__} has no attribute {name!r}"
         raise AttributeError(msg)
 
     def __setattr__(self, name: str, value: Any) -> None:
         """Set a deprecated attribute or raise an error."""
-        if not set_deprecated_sync_api_property(
-            self, name, value, self.DEPRECATED_API_PROPERTY_SETTERS
-        ):
+        if name in self.DEPRECATED_API_PROPERTY_SETTERS:
+            self._ring.auth._dep_handler.set_api_property(self, name, value)  # noqa: SLF001
+        else:
             super().__setattr__(name, value)
