@@ -1,0 +1,10 @@
+output=CHANGELOG.md
+user=tchellomello
+project=python-ring-doorbell
+release_branch=master
+usernames-as-github-logins=true
+breaking_labels=breaking change
+add-sections={"new-device":{"prefix":"**Added support for devices:**","labels":["new device"]},"docs":{"prefix":"**Documentation updates:**","labels":["documentation"]},"maintenance":{"prefix":"**Project maintenance:**","labels":["maintenance"]}}
+exclude-labels=duplicate,question,invalid,wontfix,release-prep,stale
+issues-wo-labels=false
+unreleased=false
