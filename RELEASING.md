@@ -142,11 +142,13 @@ git rebase upstream/master
 Note, add changelog release notes as the tag commit message so `gh release create --notes-from-tag` can be used to create a release draft.
 
 ```bash
-git tag --annotate $NEW_RELEASE -m "$RELEASE_NOTES"
+git tag --annotate $NEW_RELEASE -m "$RELEASE_NOTES"  # to create a signed tag replace --annotate with --sign
 git push upstream $NEW_RELEASE
 ```
 
 ### Create release
+
+N.B. the `--notes-from-tag` option requires gh cli version >= 2.35.0
 
 #### Pre-releases
 
