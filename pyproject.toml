@@ -45,7 +45,7 @@ aiofiles = ">=23"
 anyio = "*" # see https://github.com/python-trio/asyncclick/issues/18
 sphinx = {version = "<7.2.6", optional = true}
 sphinx-rtd-theme = {version = "^1.3.0", optional = true}
-sphinx-github-changelog = {version = "^1.2.1", optional = true}
+myst-parser = { version = "*", optional = true }
 firebase-messaging = {version = "^0.3.0", optional = true}
 
 [tool.poetry.group.dev.dependencies]
@@ -66,7 +66,7 @@ types-aiofiles = ">=23"
 mypy = "^1"
 
 [tool.poetry.extras]
-docs = ["sphinx", "sphinx-rtd-theme", "sphinx-github-changelog"]
+docs = ["sphinx", "sphinx-rtd-theme", "myst-parser"]
 listen = ["firebase-messaging"]
 
 [tool.pytest.ini_options]
