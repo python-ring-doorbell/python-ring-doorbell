@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.9.0](https://github.com/tchellomello/python-ring-doorbell/tree/0.9.0) (2024-08-21)
+
+[Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.8.12...0.9.0)
+
+**Release highlights:**
+
+- Async support for the library
+- Removed python 3.8 support
+
+**Breaking changes:**
+
+- Synchronous api calls are now deprecated.  For example calling `Ring.update_data()` will emit a deprecation warning to use `await Ring.async_update_data()` which should be run within an event loop via `asyncio.run()`.  See `test.py` for an example.
+- Calling the deprecated sync api methods from inside a running event loop is not supported.  This is unlikely to affect many consumers as the norm if running in an event loop is to make synchronous api calls from an executor thread.
+- Python 3.8 is no longer officially supported and could break in future releases.
+
+**Breaking change pull requests:**
+
+- Drop python3.8 support and enable python3.13 in the CI [\#398](https://github.com/tchellomello/python-ring-doorbell/pull/398) (@sdb9696)
+
+**Implemented enhancements:**
+
+- Make library fully async [\#361](https://github.com/tchellomello/python-ring-doorbell/pull/361) (@sdb9696)
+
+**Fixed bugs:**
+
+- Small change to modify the timestamp [\#378](https://github.com/tchellomello/python-ring-doorbell/pull/378) (@AndrewMohawk)
+
+**Project maintenance:**
+
+- Update instructions for releasing and migrate changelog [\#407](https://github.com/tchellomello/python-ring-doorbell/pull/407) (@sdb9696)
+- Add .vscode folder to gitignore [\#397](https://github.com/tchellomello/python-ring-doorbell/pull/397) (@sdb9696)
+- Update dependencies [\#396](https://github.com/tchellomello/python-ring-doorbell/pull/396) (@sdb9696)
+- Reduce lock and stale workflow frequency [\#388](https://github.com/tchellomello/python-ring-doorbell/pull/388) (@sdb9696)
+
 ## [0.8.12](https://github.com/tchellomello/python-ring-doorbell/tree/0.8.12) (2024-06-27)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.8.11...0.8.12)
@@ -202,10 +236,6 @@
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.7.0...0.7.1)
 
-**Fixed bugs:**
-
-- TypeError: 'NoneType' object is not iterable [\#240](https://github.com/tchellomello/python-ring-doorbell/issues/240)
-
 **Merged pull requests:**
 
 - fix memory growth when calling url\_recording [\#253](https://github.com/tchellomello/python-ring-doorbell/pull/253) (@prwood80)
@@ -232,10 +262,6 @@
 ## [0.6.1](https://github.com/tchellomello/python-ring-doorbell/tree/0.6.1) (2020-09-28)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.6.0...0.6.1)
-
-**Fixed bugs:**
-
-- test.py Line 31 is missing the User-Agent [\#189](https://github.com/tchellomello/python-ring-doorbell/issues/189)
 
 **Merged pull requests:**
 
@@ -283,10 +309,6 @@ The `Auth` class no longer takes an `otp_callback` but now takes an `otp_code`. 
 
 - Removed otp\_callback [\#180](https://github.com/tchellomello/python-ring-doorbell/pull/180) (@steve-gombos)
 
-**Fixed bugs:**
-
-- Issues with token refresh requests [\#174](https://github.com/tchellomello/python-ring-doorbell/issues/174)
-
 **Merged pull requests:**
 
 - Increased timeout from 5 to 10 seconds [\#179](https://github.com/tchellomello/python-ring-doorbell/pull/179) (@cyberjunky)
@@ -308,17 +330,8 @@ Example usage in `test.py`.
 **Implemented enhancements:**
 
 - Auth and ring class refactor [\#175](https://github.com/tchellomello/python-ring-doorbell/pull/175) (@steve-gombos)
-- Use auth expires\_in to refresh oauth tokens [\#167](https://github.com/tchellomello/python-ring-doorbell/pull/167) (@jeromelaban)
 - Implemented timeouts for HTTP requests methods [\#165](https://github.com/tchellomello/python-ring-doorbell/pull/165) (@tchellomello)
 - Support for device model name property and has capability method [\#116](https://github.com/tchellomello/python-ring-doorbell/pull/116) (@jsetton)
-- Fixes battery\_life attribute because sometimes the JSON return a str instead of an int [\#92](https://github.com/tchellomello/python-ring-doorbell/pull/92) (@tchellomello)
-
-**Fixed bugs:**
-
-- 0.2.9 breaks recording\_download [\#171](https://github.com/tchellomello/python-ring-doorbell/issues/171)
-- Video download fix [\#172](https://github.com/tchellomello/python-ring-doorbell/pull/172) (@ZachBenz)
-- OAuth Fixes [\#152](https://github.com/tchellomello/python-ring-doorbell/pull/152) (@steve-gombos)
-- Added oauth bearer token authentication to Ring [\#96](https://github.com/tchellomello/python-ring-doorbell/pull/96) (@tchellomello)
 
 **Merged pull requests:**
 
@@ -357,10 +370,6 @@ Example usage in `test.py`.
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.2.5...0.2.6)
 
-**Fixed bugs:**
-
-- 401 Client Error: Unauthorized for url [\#146](https://github.com/tchellomello/python-ring-doorbell/issues/146)
-
 ## [0.2.5](https://github.com/tchellomello/python-ring-doorbell/tree/0.2.5) (2019-12-20)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.2.3...0.2.5)
@@ -385,20 +394,9 @@ Example usage in `test.py`.
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.2.0...0.2.1)
 
-**Implemented enhancements:**
-
-- Authentication issues [\#94](https://github.com/tchellomello/python-ring-doorbell/issues/94)
-- \[bug\] Battery life shows 100 when its not [\#91](https://github.com/tchellomello/python-ring-doorbell/issues/91)
-- Should session cache be saved if save session is set to False? [\#79](https://github.com/tchellomello/python-ring-doorbell/issues/79)
-
 ## [0.2.0](https://github.com/tchellomello/python-ring-doorbell/tree/0.2.0) (2018-05-16)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.1.9...0.2.0)
-
-**Fixed bugs:**
-
-- Getting TypeError [\#86](https://github.com/tchellomello/python-ring-doorbell/issues/86)
-- Make sure battery\_life argument exists before comparison [\#88](https://github.com/tchellomello/python-ring-doorbell/pull/88) (@tchellomello)
 
 **Closed issues:**
 
@@ -421,11 +419,6 @@ Example usage in `test.py`.
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.1.7...0.1.8)
 
-**Implemented enhancements:**
-
-- Add a controller to only call download\_url\(\) or download\_video\(\) if account has subscription [\#71](https://github.com/tchellomello/python-ring-doorbell/issues/71)
-- Added controllter to verify if account has subscription [\#72](https://github.com/tchellomello/python-ring-doorbell/pull/72) (@tchellomello)
-
 ## [0.1.7](https://github.com/tchellomello/python-ring-doorbell/tree/0.1.7) (2017-11-14)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.1.6...0.1.7)
@@ -434,13 +427,6 @@ Example usage in `test.py`.
 
 - Doorbell history does not return all events [\#63](https://github.com/tchellomello/python-ring-doorbell/issues/63)
 - Allows `older_than` parameter to history\(\) method [\#69](https://github.com/tchellomello/python-ring-doorbell/pull/69) (@tchellomello)
-
-**Fixed bugs:**
-
-- Change to logger.debug when calling the history\(\) method [\#67](https://github.com/tchellomello/python-ring-doorbell/issues/67)
-- Traceback if req is None [\#64](https://github.com/tchellomello/python-ring-doorbell/issues/64)
-- Changed from warning to logger.debug [\#68](https://github.com/tchellomello/python-ring-doorbell/pull/68) (@tchellomello)
-- Fixed traceback when req.status\_code is None [\#65](https://github.com/tchellomello/python-ring-doorbell/pull/65) (@tchellomello)
 
 **Merged pull requests:**
 
@@ -464,16 +450,9 @@ Example usage in `test.py`.
 - Split source code into different files [\#54](https://github.com/tchellomello/python-ring-doorbell/issues/54)
 - Fix \_\_init\_\_ methods [\#49](https://github.com/tchellomello/python-ring-doorbell/issues/49)
 - How to get RSSI? [\#47](https://github.com/tchellomello/python-ring-doorbell/issues/47)
-- Limit not returning what I expected [\#45](https://github.com/tchellomello/python-ring-doorbell/issues/45)
-- Allows history to enforce to return minimum number of events for a given type [\#56](https://github.com/tchellomello/python-ring-doorbell/pull/56) (@tchellomello)
 - House keeping: split source code into different files [\#55](https://github.com/tchellomello/python-ring-doorbell/pull/55) (@tchellomello)
 - Refactored unittests [\#53](https://github.com/tchellomello/python-ring-doorbell/pull/53) (@tchellomello)
-- Refactored methods to don't override \_\_init\_\_ from RingGeneric [\#52](https://github.com/tchellomello/python-ring-doorbell/pull/52) (@tchellomello)
 - Implemented health parameters reporting \(wifi, wifi\_rssi\) [\#50](https://github.com/tchellomello/python-ring-doorbell/pull/50) (@tchellomello)
-
-**Fixed bugs:**
-
-- Fix Unit Tests [\#51](https://github.com/tchellomello/python-ring-doorbell/issues/51)
 
 **Merged pull requests:**
 
@@ -484,10 +463,6 @@ Example usage in `test.py`.
 ## [0.1.4](https://github.com/tchellomello/python-ring-doorbell/tree/0.1.4) (2017-04-30)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/v0.1.3...0.1.4)
-
-**Fixed bugs:**
-
-- AttributeError: 'Ring' object has no attribute 'has\_subscription' [\#40](https://github.com/tchellomello/python-ring-doorbell/issues/40)
 
 **Merged pull requests:**
 
@@ -505,12 +480,6 @@ Example usage in `test.py`.
 
 - Feature request: Change Chime ring [\#19](https://github.com/tchellomello/python-ring-doorbell/issues/19)
 - Allows to filter history by event kind: 'motion', 'on\_demand', 'ding' [\#20](https://github.com/tchellomello/python-ring-doorbell/pull/20) (@tchellomello)
-
-**Fixed bugs:**
-
-- Doesn't work with shared doorbells/Chimes [\#31](https://github.com/tchellomello/python-ring-doorbell/issues/31)
-- Fixes traceback when response is not a list. [\#33](https://github.com/tchellomello/python-ring-doorbell/pull/33) (@tchellomello)
-- Added the ability to load devices shared to the Ring account. Fixes issue \#31 [\#32](https://github.com/tchellomello/python-ring-doorbell/pull/32) (@tchellomello)
 
 **Merged pull requests:**
 
@@ -562,12 +531,6 @@ The code was refactored to allow to manipulate the objects in a better way.
 ## [0.0.2](https://github.com/tchellomello/python-ring-doorbell/tree/0.0.2) (2017-02-15)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.0.1...0.0.2)
-
-**Fixed bugs:**
-
-- Fix battery\_lifetime\(\)  function [\#6](https://github.com/tchellomello/python-ring-doorbell/issues/6)
-- Fix traceback when trying to download a recording without subscription [\#3](https://github.com/tchellomello/python-ring-doorbell/issues/3)
-- Fix range for battery information [\#7](https://github.com/tchellomello/python-ring-doorbell/pull/7) (@tchellomello)
 
 ## [0.0.1](https://github.com/tchellomello/python-ring-doorbell/tree/0.0.1) (2017-02-12)
 
