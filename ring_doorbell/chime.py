@@ -57,9 +57,7 @@ class RingChime(RingGeneric):
             if isinstance(capability, RingCapability)
             else RingCapability.from_name(capability)
         )
-        if capability == RingCapability.VOLUME:
-            return True
-        return False
+        return capability == RingCapability.VOLUME
 
     @property
     def volume(self) -> int:

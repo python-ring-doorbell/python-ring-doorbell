@@ -189,8 +189,7 @@ class RingGeneric:
 
         # set cap for max queries
         # pylint:disable=consider-using-min-builtin
-        if retry > 10:
-            retry = 10
+        retry = min(retry, 10)
 
         while True:
             params = {"limit": limit}

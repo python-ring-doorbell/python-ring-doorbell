@@ -45,7 +45,7 @@ def pytest_configure(config):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 async def auth():
     """Return auth object."""
     auth = Auth(USER_AGENT)
@@ -55,7 +55,7 @@ async def auth():
     await auth.async_close()
 
 
-@pytest.fixture()
+@pytest.fixture
 async def ring(auth):
     """Return updated ring object."""
     ring = Ring(auth)
@@ -97,7 +97,7 @@ def callback(url, **kwargs):  # noqa: ANN003
 
 
 # tests to pull in request_mock and append uris
-@pytest.fixture()
+@pytest.fixture
 def devices_fixture():
     class Devices:
         def __init__(self) -> None:
@@ -117,7 +117,7 @@ def devices_fixture():
     return Devices()
 
 
-@pytest.fixture()
+@pytest.fixture
 def putpatch_status_fixture():
     class StatusOverrides:
         def __init__(self) -> None:

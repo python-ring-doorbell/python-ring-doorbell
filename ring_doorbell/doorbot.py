@@ -155,9 +155,7 @@ class RingDoorBell(RingGeneric):
         if bl2 := self._attrs.get("battery_life_2"):  # Camera has two battery bays
             value += int(bl2)
 
-        if value > 100:
-            value = 100
-        return value
+        return min(value, 100)
 
     def _get_chime_setting(self, setting: str) -> Any | None:
         if (settings := self._attrs.get("settings")) and (
@@ -337,17 +335,13 @@ class RingDoorBell(RingGeneric):
     def subscribed(self) -> bool:
         """Return if is online."""
         result = self._attrs.get("subscribed")
-        if result is None:
-            return False
-        return True
+        return result is not None
 
     @property
     def subscribed_motion(self) -> bool:
         """Return if is subscribed_motion."""
         result = self._attrs.get("subscribed_motions")
-        if result is None:
-            return False
-        return True
+        return result is not None
 
     @property
     def has_subscription(self) -> bool:

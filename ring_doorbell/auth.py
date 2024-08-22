@@ -31,7 +31,7 @@ from ring_doorbell.util import _DeprecatedSyncApiHandler
 class Auth:
     """A Python Auth class for Ring."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         user_agent: str,
         token: dict[str, Any] | None = None,
@@ -235,7 +235,7 @@ class Auth:
         except ClientError as ex:
             msg = f"aiohttp Client error during query of url {url}: {ex}"
             raise RingError(msg) from ex
-        except Exception as ex:  # noqa: BLE001
+        except Exception as ex:
             msg = f"Unknown error during query of url {url}: {ex}"
             raise RingError(msg) from ex
 

@@ -204,7 +204,7 @@ async def test_motion_detection(ring, aioresponses_mock, devices_fixture):
 @pytest.mark.skipif(
     can_listen is False, reason="requires the extra [listen] to be installed"
 )
-@pytest.mark.nolistenmock()
+@pytest.mark.nolistenmock
 async def test_listen_store_credentials(mocker, auth):
     runner = CliRunner()
     import firebase_messaging

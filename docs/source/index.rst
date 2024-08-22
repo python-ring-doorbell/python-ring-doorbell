@@ -13,10 +13,7 @@ Welcome to python-ring-doorbell's documentation!
    :hidden:
    :titlesonly:
    :maxdepth: 0
-   
+
    Home <self>
    contributing
    changelog
-
-   
-

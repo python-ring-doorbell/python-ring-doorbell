@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from itertools import chain
 from time import time
-from typing import TYPE_CHECKING, Any, ClassVar, Iterator, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from ring_doorbell import RingEvent
 from ring_doorbell.chime import RingChime
@@ -27,6 +27,8 @@ from .const import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping, Sequence
+
     from ring_doorbell.auth import Auth
     from ring_doorbell.generic import RingGeneric
 

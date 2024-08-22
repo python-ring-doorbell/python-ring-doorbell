@@ -57,7 +57,7 @@ Ready to contribute? Here's how to set up `python-ring-doorbell` for local devel
 #.  We are using `poetry <https://python-poetry.org/>`_ for dependency management.
 
     If you dont have poetry installed you can install it with::
-    
+
     $ curl -sSL https://install.python-poetry.org | python3 -
 
     This installs Poetry in a virtual environment to isolate it from the rest of your system.  Then to install `python-ring-doorbell`::
@@ -69,7 +69,7 @@ Ready to contribute? Here's how to set up `python-ring-doorbell` for local devel
     If you want to be able to build the docs (not necessary unless you are working on the doc generation)::
 
     $ poetry install --extras docs
-    
+
 #.  Create a branch for local development::
 
     $ git checkout -b NAME-OF-YOUR-BUGFIX-OR-FEATURE
@@ -99,13 +99,13 @@ Poetry
 Dependencies
 ^^^^^^^^^^^^
 
-Poetry is very useful at managing virtual environments and ensuring that dependencies all match up for you.  
+Poetry is very useful at managing virtual environments and ensuring that dependencies all match up for you.
 It manages this with the use of the `poetry.lock` file which contains all the exact versions to be installed.
 This means that if you add any dependecies you should do it via::
 
-    $ poetry add pypi_project_name  
+    $ poetry add pypi_project_name
 
-rather than pip.  This will update `pyproject.toml` and `poetry.lock` accordingly.  
+rather than pip.  This will update `pyproject.toml` and `poetry.lock` accordingly.
 If you install something in the virtual environment directly via pip you will need to run::
 
     $ poetry lock --no-update
