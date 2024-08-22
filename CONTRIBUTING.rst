@@ -62,13 +62,9 @@ Ready to contribute? Here's how to set up `python-ring-doorbell` for local devel
 
     This installs Poetry in a virtual environment to isolate it from the rest of your system.  Then to install `python-ring-doorbell`::
 
-    $ poetry install
+    $ poetry install --all-extras
 
     Poetry will create a virtual environment for you and install all the requirements
-
-    If you want to be able to build the docs (not necessary unless you are working on the doc generation)::
-
-    $ poetry install --extras docs
 
 #.  Create a branch for local development::
 
@@ -76,9 +72,18 @@ Ready to contribute? Here's how to set up `python-ring-doorbell` for local devel
 
     Now you can make your changes locally.
 
-#.  We are using `tox <https://tox.wiki/>`_ for testing and linting::
+#.  To make sure your changes will pass the CI install pre-commit::
 
-    $ poetry run tox -r
+    $ pre-commit install
+
+    You can check your changes prior to commit with::
+
+    $ pre-commit run  # Runs against files added to staging
+    $ pre-commit run --all-file # Runs against files not yet added to staging
+
+#.  To test your changes::
+
+    $ poetry run pytest
 
 #.  Commit your changes and push your branch to GitHub::
 
