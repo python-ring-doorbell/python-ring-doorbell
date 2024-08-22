@@ -75,8 +75,8 @@ testpaths = [
 ]
 norecursedirs = ".git"
 asyncio_mode = "auto"
-#addopts = "--allow-hosts=127.0.0.1,::1"
-addopts = "--force-enable-socket"
+addopts = "--allow-hosts=127.0.0.1,::1"
+#addopts = "--force-enable-socket"
 filterwarnings = [
     "ignore:.*google._upb._message.MessageMapContainer uses PyType_Spec.*:DeprecationWarning",
     "ignore:.*google._upb._message.ScalarMapContainer uses PyType_Spec.*:DeprecationWarning",
@@ -88,13 +88,14 @@ source = ["ring_doorbell"]
 branch = true
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 ignore = [
   "ANN101", # Self... explanatory
   "ANN102", # cls... just as useless
-  "ANN401", # Opinioated warning on disallowing dynamically typed expressions
+  "ANN401", # Opinionated warning on disallowing dynamically typed expressions
+  "ASYNC109", # Opinionated warning on not allowing timeout parameters in favour of asyncio.timeout
   "COM812", # Conflicts with other rules
   "D203", # Conflicts with other rules
   "D213", # Conflicts with other rules
@@ -115,8 +116,7 @@ convention = "pep257"
 
 [tool.mypy]
 exclude = [
-    'scripts/.*',  # TOML literal string (single-quotes, no escaping necessary)
-    'tests/.*',
+    'tests/.*',  # TOML literal string (single-quotes, no escaping necessary)
     'docs/.*',
     'test\.py$',
     'test_sync\.py$',
@@ -128,6 +128,12 @@ module = [
     "ring_doorbell.cli"
 ]
 disallow_untyped_defs = false
+
+[tool.doc8]
+paths = ["docs"]
+ignore = ["D001"]
+ignore-path =  ["docs/build"]
+ignore-path-errors = ["docs/source/index.rst;D000"]
 
 [build-system]
 requires = ["poetry-core"]

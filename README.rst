@@ -53,7 +53,7 @@ will need to install with the `listen` extra::
 
     $ pip install ring_doorbell[listen]
 
-The api will then start listening for push events after you have first called `update_dings()` 
+The api will then start listening for push events after you have first called `update_dings()`
 or `update_data()` but only if there is a running `asyncio <https://docs.python.org/3/library/asyncio.html>`_ event loop (which there will be if using the CLI)
 
 Using the CLI
@@ -62,7 +62,7 @@ Using the CLI
 The CLI is work in progress and currently has the following commands:
 
 1.  Show your devices::
-    
+
     $ ring-doorbell
 
     Or::
@@ -70,7 +70,7 @@ The CLI is work in progress and currently has the following commands:
     $ ring-doorbell show
 
 #.  List your device names (with device kind)::
-    
+
     $ ring-doorbell list
 
 #.  Either count or download your vidoes or both::
@@ -297,4 +297,4 @@ Credits && Thanks
 * The creators of mitmproxy (https://mitmproxy.org/) great http and https traffic inspector
 * @mfussenegger for his post on mitmproxy and virtualbox https://zignar.net/2015/12/31/sniffing-vbox-traffic-mitmproxy/
 * To the project http://www.android-x86.org/ which allowed me to install Android on KVM.
-* Many thanks to Carles Pina I Estany <carles@pina.cat> for creating the python-ring-doorbell Debian Package (https://tracker.debian.org/pkg/python-ring-doorbell). 
+* Many thanks to Carles Pina I Estany <carles@pina.cat> for creating the python-ring-doorbell Debian Package (https://tracker.debian.org/pkg/python-ring-doorbell).

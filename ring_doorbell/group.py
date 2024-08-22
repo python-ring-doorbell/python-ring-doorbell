@@ -88,9 +88,7 @@ class RingLightGroup:
             if isinstance(capability, RingCapability)
             else RingCapability.from_name(capability)
         )
-        if capability == RingCapability.LIGHT:
-            return True
-        return False
+        return capability == RingCapability.LIGHT
 
     @property
     def lights(self) -> bool:

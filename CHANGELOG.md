@@ -275,7 +275,7 @@
 
 **Major breaking change:**
 
-Ring APIs offer 1 endpoint with all device info. 1 with all health for doorbells etc. The API used to make a request from each device to the "all device" endpoint and fetch its own data. 
+Ring APIs offer 1 endpoint with all device info. 1 with all health for doorbells etc. The API used to make a request from each device to the "all device" endpoint and fetch its own data.
 
 With the new approach we now just fetch the data once and each device will fetch that data. This significantly reduces the number of requests.
 
@@ -303,7 +303,7 @@ Changes:
 
 **Breaking Change:**
 
-The `Auth` class no longer takes an `otp_callback` but now takes an `otp_code`. It raises `MissingTokenError` if `otp_code` is required. See the [updated example](https://github.com/tchellomello/python-ring-doorbell/blob/261eaf96875e51fc266a5dbfc6198f8cbb8006e0/test.py). 
+The `Auth` class no longer takes an `otp_callback` but now takes an `otp_code`. It raises `MissingTokenError` if `otp_code` is required. See the [updated example](https://github.com/tchellomello/python-ring-doorbell/blob/261eaf96875e51fc266a5dbfc6198f8cbb8006e0/test.py).
 
 **Implemented enhancements:**
 

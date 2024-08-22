@@ -92,9 +92,7 @@ class RingOther(RingGeneric):
         """Return if is online."""
         if self.kind in INTERCOM_KINDS:
             result = self._attrs.get("subscribed")
-            if result is None:
-                return False
-            return True
+            return result is not None
         return False
 
     @property

@@ -114,7 +114,7 @@ async def test_intercom_unlock(auth, mocker):
     listener.stop()
 
 
-@pytest.mark.nolistenmock()
+@pytest.mark.nolistenmock
 async def test_listen_subscribe_fail(auth, mocker, caplog, putpatch_status_fixture):
     checkinmock = mocker.patch(
         "firebase_messaging.FcmPushClient.checkin", return_value="foobar"
@@ -149,7 +149,7 @@ async def test_listen_subscribe_fail(auth, mocker, caplog, putpatch_status_fixtu
     )
 
 
-@pytest.mark.nolistenmock()
+@pytest.mark.nolistenmock
 async def test_listen_gcm_fail(auth, mocker):
     # Check in gets and error so register is called, the subscribe gets an error
     credentials = json.loads(load_fixture("ring_listen_credentials.json"))
@@ -173,7 +173,7 @@ async def test_listen_gcm_fail(auth, mocker):
     assert connectmock.call_count == 1
 
 
-@pytest.mark.nolistenmock()
+@pytest.mark.nolistenmock
 async def test_listen_fcm_fail(auth, mocker, caplog):
     checkinmock = mocker.patch(
         "firebase_messaging.FcmPushClient.checkin", return_value=None
