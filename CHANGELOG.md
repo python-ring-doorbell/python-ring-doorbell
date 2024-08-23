@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.1](https://github.com/tchellomello/python-ring-doorbell/tree/0.9.1) (2024-08-23)
+
+[Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.9.0...0.9.1)
+
+Hotfix for missing typing_extensions dependency
+
+**Fixed bugs:**
+
+- Fix missing typing\_extensions dependency [\#413](https://github.com/tchellomello/python-ring-doorbell/pull/413) (@sdb9696)
+
+**Project maintenance:**
+
+- Update contributing docs to remove tox step [\#411](https://github.com/tchellomello/python-ring-doorbell/pull/411) (@sdb9696)
+- Update and add code checkers [\#410](https://github.com/tchellomello/python-ring-doorbell/pull/410) (@sdb9696)
+
 ## [0.9.0](https://github.com/tchellomello/python-ring-doorbell/tree/0.9.0) (2024-08-21)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.8.12...0.9.0)
