@@ -6,7 +6,7 @@ import asyncio
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Callable, ClassVar
+from typing import TYPE_CHECKING, Any, Callable
 
 from async_timeout import timeout as asyncio_timeout
 from firebase_messaging import FcmPushClient, FcmRegisterConfig
@@ -87,7 +87,7 @@ class RingEventListener:
         if self._credentials_updated_callback:
             self._credentials_updated_callback(creds)
 
-    async def async_add_subscription_to_ring(self, token: str) -> None:
+    async def add_subscription_to_ring(self, token: str) -> None:
         """Add subscription to ring."""
         if not self._ring.session:
             await self._ring.async_create_session()
@@ -186,7 +186,7 @@ class RingEventListener:
             return False
 
         if not self.subscribed:
-            await self.async_add_subscription_to_ring(self.fcm_token)
+            await self.add_subscription_to_ring(self.fcm_token)
         if self.subscribed:
             self.add_notification_callback(self._ring._add_event_to_dings_data)  # noqa: SLF001
 
@@ -209,7 +209,7 @@ class RingEventListener:
             if since_refresh > self.SESSION_REFRESH_INTERVAL:
                 _logger.debug("Refreshing ring session")
                 await self._ring.async_create_session()
-                await self.async_add_subscription_to_ring(self.fcm_token)
+                await self.add_subscription_to_ring(self.fcm_token)
                 break
 
             sleep_for = 1 + time.monotonic() - self._ring.session_refresh_time
@@ -322,15 +322,3 @@ class RingEventListener:
             )
             return None
         return re
-
-    DEPRECATED_API_QUERIES: ClassVar = {
-        "start",
-        "add_subscription_to_ring",
-    }
-
-    def __getattr__(self, name: str) -> Any:
-        """Get a deprecated attribute or raise an error."""
-        if name in self.DEPRECATED_API_QUERIES:
-            return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
-        msg = f"{self.__class__.__name__} has no attribute {name!r}"
-        raise AttributeError(msg)

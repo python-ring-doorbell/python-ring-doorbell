@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.2](https://github.com/tchellomello/python-ring-doorbell/tree/0.9.2) (2024-08-29)
+
+[Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.9.1...0.9.2)
+
+**Release highlights:**
+
+- Fixes the broken event listener by migrating to the new `firebase-messaging` library to support FCM HTTP v1 api
+- **breaking** - the `RingEventListener` will only support async queries. Hence `start` and `stop` are now async defs
+
+**Fixed bugs:**
+
+- Fix event listener [\#416](https://github.com/tchellomello/python-ring-doorbell/pull/416) (@sdb9696)
+
 ## [0.9.1](https://github.com/tchellomello/python-ring-doorbell/tree/0.9.1) (2024-08-23)
 
 [Full Changelog](https://github.com/tchellomello/python-ring-doorbell/compare/0.9.0...0.9.1)
