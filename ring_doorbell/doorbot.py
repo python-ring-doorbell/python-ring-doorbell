@@ -125,7 +125,11 @@ class RingDoorBell(RingGeneric):
             return True
         if capability == RingCapability.HISTORY:
             return True
-        if capability in [RingCapability.MOTION_DETECTION, RingCapability.VIDEO]:
+        if capability in [
+            RingCapability.MOTION_DETECTION,
+            RingCapability.VIDEO,
+            RingCapability.DING,
+        ]:
             return self.kind in (
                 DOORBELL_KINDS
                 + DOORBELL_2_KINDS

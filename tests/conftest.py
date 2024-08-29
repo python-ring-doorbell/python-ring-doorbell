@@ -87,8 +87,11 @@ def _listen_mock(mocker, request) -> None:
     if not can_listen or "nolistenmock" in request.keywords:
         return
 
-    mocker.patch("firebase_messaging.FcmPushClient.checkin", return_value="foobar")
+    mocker.patch(
+        "firebase_messaging.FcmPushClient.checkin_or_register", return_value="foobar"
+    )
     mocker.patch("firebase_messaging.FcmPushClient.start")
+    mocker.patch("firebase_messaging.FcmPushClient.stop")
     mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
 

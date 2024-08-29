@@ -756,12 +756,12 @@ async def listen(
             credentials = json.load(f)
 
     event_listener = RingEventListener(ring, credentials, credentials_updated_callback)
-    await event_listener.async_start()
+    await event_listener.start()
     event_listener.add_notification_callback(_event_handler(ring).on_event)
 
     await ainput("Listening, press enter to cancel\n")
 
-    event_listener.stop()
+    await event_listener.stop()
 
 
 if __name__ == "__main__":
