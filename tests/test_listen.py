@@ -1,16 +1,14 @@
 """The tests for the Ring platform."""
 
-import asyncio
 import datetime
 import json
 
 import pytest
-from ring_doorbell import Auth, Ring
-from ring_doorbell.const import USER_AGENT
+from ring_doorbell import Ring
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.listen import can_listen
 
-from tests.conftest import load_fixture, load_fixture_as_dict
+from tests.conftest import load_fixture
 
 # test_module.py
 pytestmark = pytest.mark.skipif(
@@ -24,12 +22,11 @@ if can_listen:
 async def test_listen(auth, mocker):
     import firebase_messaging
 
-    disconnectmock = mocker.patch("firebase_messaging.FcmPushClient.stop")
     ring = Ring(auth)
     listener = RingEventListener(ring)
 
-    await listener.async_start()
-    assert firebase_messaging.FcmPushClient.checkin.call_count == 1
+    await listener.start()
+    assert firebase_messaging.FcmPushClient.checkin_or_register.call_count == 1
     assert firebase_messaging.FcmPushClient.start.call_count == 1
     assert listener.subscribed is True
     assert listener.started is True
@@ -46,7 +43,6 @@ async def test_listen(auth, mocker):
     cbid = listener.add_notification_callback(lambda: 2)
     del listener._callbacks[1]
     listener.remove_notification_callback(cbid)
-    disconnectmock.assert_called()
 
 
 async def test_active_dings(auth, mocker):
@@ -54,13 +50,13 @@ async def test_active_dings(auth, mocker):
 
     ring = Ring(auth)
     listener = RingEventListener(ring)
-    await listener.async_start()
-    assert firebase_messaging.FcmPushClient.checkin.call_count == 1
+    await listener.start()
+    assert firebase_messaging.FcmPushClient.checkin_or_register.call_count == 1
     assert firebase_messaging.FcmPushClient.start.call_count == 1
     assert listener.subscribed is True
     assert listener.started is True
     num_active = len(ring.active_alerts())
-    assert num_active == 3
+    assert num_active == 0
     alertstoadd = 2
     for i in range(alertstoadd):
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
@@ -86,7 +82,7 @@ async def test_active_dings(auth, mocker):
 
     dings = ring.active_alerts()
     assert len(dings) == num_active + alertstoadd
-    listener.stop()
+    await listener.stop()
 
 
 async def test_intercom_unlock(auth, mocker):
@@ -94,13 +90,13 @@ async def test_intercom_unlock(auth, mocker):
 
     ring = Ring(auth)
     listener = RingEventListener(ring)
-    await listener.async_start()
-    assert firebase_messaging.FcmPushClient.checkin.call_count == 1
+    await listener.start()
+    assert firebase_messaging.FcmPushClient.checkin_or_register.call_count == 1
     assert firebase_messaging.FcmPushClient.start.call_count == 1
     assert listener.subscribed is True
     assert listener.started is True
     num_active = len(ring.active_alerts())
-    assert num_active == 3
+    assert num_active == 0
     alertstoadd = 2
     for i in range(alertstoadd):
         msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
@@ -111,13 +107,13 @@ async def test_intercom_unlock(auth, mocker):
     dings = ring.active_alerts()
     assert len(dings) == num_active + alertstoadd
 
-    listener.stop()
+    await listener.stop()
 
 
 @pytest.mark.nolistenmock
 async def test_listen_subscribe_fail(auth, mocker, caplog, putpatch_status_fixture):
     checkinmock = mocker.patch(
-        "firebase_messaging.FcmPushClient.checkin", return_value="foobar"
+        "firebase_messaging.FcmPushClient.checkin_or_register", return_value="foobar"
     )
     connectmock = mocker.patch("firebase_messaging.FcmPushClient.start")
     mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
@@ -126,7 +122,7 @@ async def test_listen_subscribe_fail(auth, mocker, caplog, putpatch_status_fixtu
 
     ring = Ring(auth)
     listener = RingEventListener(ring)
-    await listener.async_start()
+    await listener.start()
     # Check in gets and error so register is called
     assert checkinmock.call_count == 1
     assert listener.subscribed is False
@@ -164,7 +160,7 @@ async def test_listen_gcm_fail(auth, mocker):
 
     ring = Ring(auth)
     listener = RingEventListener(ring, credentials)
-    await listener.async_start()
+    await listener.start()
     # Check in gets and error so register is called
     assert checkinmock.call_count == 1
     assert registermock.call_count == 1
@@ -176,21 +172,21 @@ async def test_listen_gcm_fail(auth, mocker):
 @pytest.mark.nolistenmock
 async def test_listen_fcm_fail(auth, mocker, caplog):
     checkinmock = mocker.patch(
-        "firebase_messaging.FcmPushClient.checkin", return_value=None
+        "firebase_messaging.FcmPushClient.checkin_or_register", return_value=None
     )
     connectmock = mocker.patch("firebase_messaging.FcmPushClient.start")
     mocker.patch("firebase_messaging.FcmPushClient.is_started", return_value=True)
 
     ring = Ring(auth)
     listener = RingEventListener(ring)
-    await listener.async_start()
+    await listener.start()
     # Check in gets and error so register is called
     assert checkinmock.call_count == 1
 
     assert listener.subscribed is False
     assert listener.started is False
     assert connectmock.call_count == 0
-    exp = "Unable to check in to fcm, event listener not started"
+    exp = "Ring listener unable to check in to fcm, event listener not started"
     assert (
         len(
             [
@@ -201,29 +197,3 @@ async def test_listen_fcm_fail(auth, mocker, caplog):
         )
         == 1
     )
-
-
-def test_no_event_loop():
-    auth = Auth(USER_AGENT, token=load_fixture_as_dict("ring_oauth.json"))
-    ring = Ring(auth)
-    listener = RingEventListener(ring)
-
-    with pytest.deprecated_call():
-        listener.start()
-    with pytest.deprecated_call():
-        ring.update_dings()
-    assert listener.started is True
-
-
-async def test_run_in_executor(auth):
-    import firebase_messaging
-
-    ring = Ring(auth)
-    listener = RingEventListener(ring)
-    loop = asyncio.get_running_loop()
-    with pytest.deprecated_call():
-        await loop.run_in_executor(None, listener.start)
-
-    assert listener.started
-    assert firebase_messaging.FcmPushClient.checkin.call_count == 1
-    assert firebase_messaging.FcmPushClient.start.call_count == 1

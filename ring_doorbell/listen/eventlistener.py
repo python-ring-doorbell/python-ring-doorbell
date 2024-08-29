@@ -8,19 +8,24 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
-from firebase_messaging import FcmPushClient
+from async_timeout import timeout as asyncio_timeout
+from firebase_messaging import FcmPushClient, FcmRegisterConfig
 
 from ring_doorbell.const import (
     API_URI,
     API_VERSION,
     DEFAULT_LISTEN_EVENT_EXPIRES_IN,
+    FCM_API_KEY,
+    FCM_APP_ID,
+    FCM_PROJECT_ID,
+    FCM_RING_SENDER_ID,
     KIND_DING,
     KIND_INTERCOM_UNLOCK,
     KIND_MOTION,
     PUSH_ACTION_DING,
     PUSH_ACTION_INTERCOM_UNLOCK,
     PUSH_ACTION_MOTION,
-    RING_SENDER_ID,
+    PUSH_NOTIFICATION_KINDS,
     SUBSCRIPTION_ENDPOINT,
 )
 from ring_doorbell.event import RingEvent
@@ -40,6 +45,8 @@ CredentialsUpdatedCallable = Callable[[dict[str, Any]], None]
 
 class RingEventListener:
     """Class to connect to firebase cloud messaging."""
+
+    SESSION_REFRESH_INTERVAL = 60 * 60 * 12
 
     def __init__(
         self,
@@ -72,6 +79,14 @@ class RingEventListener:
         self._subscription_counter = 1
         self._intercom_unlock_counter: dict[int, int] = {}
 
+        self.session_refresh_task: asyncio.Task | None = None
+        self.fcm_token: str | None = None
+
+    def _credentials_updated_cb(self, creds: dict[str, Any]) -> None:
+        self._credentials = creds
+        if self._credentials_updated_callback:
+            self._credentials_updated_callback(creds)
+
     async def async_add_subscription_to_ring(self, token: str) -> None:
         """Add subscription to ring."""
         if not self._ring.session:
@@ -82,6 +97,7 @@ class RingEventListener:
                 "metadata": {
                     "api_version": API_VERSION,
                     "device_model": self._device_model,
+                    "pn_dict_version": "2.0.0",
                     "pn_service": "fcm",
                 },
                 "os": "android",
@@ -108,8 +124,6 @@ class RingEventListener:
         # Update devices for the intercom unlock events
         if not self._ring.devices_data:
             await self._ring.async_update_devices()
-        if not self._ring.dings_data:
-            await self._ring.async_update_dings()
 
     def add_notification_callback(self, callback: OnNotificationCallable) -> int:
         """Add a callback to be notified on event."""
@@ -132,63 +146,74 @@ class RingEventListener:
 
         del self._callbacks[subscription_id]
 
-        if len(self._callbacks) == 0 and self._receiver:
-            self._receiver.stop()
-            self._receiver = None
-
-    def stop(self) -> None:
+    async def stop(self) -> None:
         """Stop the listener."""
+        self.started = False
+
         if self._receiver:
-            self.started = False
-            self._receiver.stop()
-            self._receiver = None
+            await self._receiver.stop()
+
+        refresh_task = self.session_refresh_task
+        self.session_refresh_task = None
+        if refresh_task and not refresh_task.done():
+            refresh_task.cancel()
 
         self._callbacks = {}
 
-    async def async_start(
+    async def start(
         self,
-        callback: OnNotificationCallable | None = None,
         *,
-        listen_loop: asyncio.AbstractEventLoop | None = None,
-        callback_loop: asyncio.AbstractEventLoop | None = None,
-        timeout: int = 30,
+        timeout: int = 10,
     ) -> bool:
         """Start the listener."""
-        if not callback:
-            callback = self._ring._add_event_to_dings_data  # noqa: SLF001
-
         if not self._receiver:
-            self._receiver = FcmPushClient(
-                credentials=self._credentials,
-                credentials_updated_callback=self._credentials_updated_callback,
-                config=self._config,
-                http_client_session=self._ring.auth.http_client_session,
+            fcm_config = FcmRegisterConfig(
+                FCM_PROJECT_ID, FCM_APP_ID, FCM_API_KEY, FCM_RING_SENDER_ID
             )
-        fcm_token: str | None = await self._receiver.checkin(
-            RING_SENDER_ID, self._app_id
-        )
-        if not fcm_token:
-            _logger.error("Unable to check in to fcm, event listener not started")
+            self._receiver = FcmPushClient(
+                self._on_notification,
+                fcm_config,
+                self._credentials,
+                self._credentials_updated_cb,
+                config=self._config,
+                http_client_session=self._ring.auth._session,  # noqa: SLF001
+            )
+        self.fcm_token = await self._receiver.checkin_or_register()
+        if not self.fcm_token:
+            _logger.error(
+                "Ring listener unable to check in to fcm, " "event listener not started"
+            )
             return False
 
-        await self.async_add_subscription_to_ring(fcm_token)
+        if not self.subscribed:
+            await self.async_add_subscription_to_ring(self.fcm_token)
         if self.subscribed:
-            self.add_notification_callback(callback)
+            self.add_notification_callback(self._ring._add_event_to_dings_data)  # noqa: SLF001
 
-            self._receiver.start(
-                self._on_notification,
-                listen_event_loop=listen_loop,
-                callback_event_loop=callback_loop,
+            async with asyncio_timeout(timeout):
+                await self._receiver.start()
+            self.started = True
+            self.session_refresh_task = asyncio.create_task(
+                self._periodic_session_refresh()
             )
+        return self.started
 
-            start = time.time()
-            now = start
-            while not self._receiver.is_started() and now - start < timeout:
-                await asyncio.sleep(0.1)
-                now = time.time()
-            self.started = self._receiver.is_started()
+    async def _periodic_session_refresh(self) -> None:
+        while self.started:
+            now = time.monotonic()
+            if TYPE_CHECKING:
+                assert self._ring.session_refresh_time
+                assert self.fcm_token
+            since_refresh = now - self._ring.session_refresh_time
 
-        return self.subscribed and self.started
+            if since_refresh > self.SESSION_REFRESH_INTERVAL:
+                _logger.debug("Refreshing ring session")
+                await self._ring.async_create_session()
+                await self.async_add_subscription_to_ring(self.fcm_token)
+                break
+
+            sleep_for = 1 + time.monotonic() - self._ring.session_refresh_time
+            await asyncio.sleep(sleep_for)
 
     def _get_ding_event(self, gcm_data: dict[str, Any]) -> RingEvent:
         ding = gcm_data["ding"]
@@ -243,8 +268,48 @@ class RingEventListener:
         persistent_id: str,  # noqa: ARG002
         obj: Any | None = None,  # noqa: ARG002
     ) -> None:
-        gcm_data = json.loads(notification["data"]["gcmData"])
+        msg_data = notification["data"]
+        if "gcmData" in msg_data:
+            gcm_data = json.loads(notification["data"]["gcmData"])
+            ring_event = self._get_legacy_ring_event(gcm_data)
+        else:
+            ring_event = self._get_ring_event(msg_data)
 
+        if ring_event:
+            for callback in self._callbacks.values():
+                callback(ring_event)
+
+    def _get_ring_event(self, msg_data: dict) -> RingEvent | None:
+        if (android_config_str := msg_data.get("android_config")) is None or (
+            data_str := msg_data.get("data")
+        ) is None:
+            _logger.debug(
+                "Unexpected alert type in fcm message data.  Full message is:\n%s",
+                json.dumps(msg_data),
+            )
+            return None
+
+        android_config = json.loads(android_config_str)
+        data = json.loads(data_str)
+        event_category = android_config["category"]
+        event_kind = PUSH_NOTIFICATION_KINDS.get(event_category, "Unknown")
+        device = data["device"]
+        event = data["event"]
+        event_id = event["ding"]["id"]
+        created_at = event["ding"]["created_at"]
+        create_seconds = parse_datetime(created_at).timestamp()
+        return RingEvent(
+            event_id,
+            device["id"],
+            device_name=device.get("name"),
+            device_kind=device.get("kind"),
+            kind=event_kind,
+            now=create_seconds,
+            expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
+            state=event["ding"]["subtype"],
+        )
+
+    def _get_legacy_ring_event(self, gcm_data: dict) -> RingEvent | None:
         re: RingEvent | None = None
         if "ding" in gcm_data:
             re = self._get_ding_event(gcm_data)
@@ -253,12 +318,10 @@ class RingEventListener:
         elif "community_alert" not in gcm_data:
             _logger.debug(
                 "Unexpected alert type in gcmData.  Full message is:\n%s",
-                json.dumps(notification),
+                json.dumps(gcm_data),
             )
-            return
-        if re:
-            for callback in self._callbacks.values():
-                callback(re)
+            return None
+        return re
 
     DEPRECATED_API_QUERIES: ClassVar = {
         "start",

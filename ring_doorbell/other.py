@@ -69,7 +69,11 @@ class RingOther(RingGeneric):
             if isinstance(capability, RingCapability)
             else RingCapability.from_name(capability)
         )
-        if capability in [RingCapability.OPEN, RingCapability.HISTORY]:
+        if capability in [
+            RingCapability.OPEN,
+            RingCapability.HISTORY,
+            RingCapability.DING,
+        ]:
             return self.kind in INTERCOM_KINDS
         return False
 

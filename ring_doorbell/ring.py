@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import logging
+import time
 from itertools import chain
-from time import time
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from ring_doorbell import RingEvent
@@ -50,6 +50,7 @@ class Ring:
         self.push_dings_data: list[RingEvent] = []
         self.groups_data: dict[str, dict[str, Any]] = {}
         self.init_loop = None
+        self.session_refresh_time: float | None = None
 
     async def async_update_data(self) -> None:
         """Update all data."""
@@ -67,7 +68,7 @@ class Ring:
 
     def _add_event_to_dings_data(self, ring_event: RingEvent) -> None:
         # Purge expired push_dings
-        now = time()
+        now = time.monotonic()
         self.push_dings_data = [
             re for re in self.push_dings_data if now < re.now + re.expires_in
         ]
@@ -91,6 +92,7 @@ class Ring:
             json=session_post_data,
         )
         self.session = resp.json()
+        self.session_refresh_time = time.monotonic()
 
     async def async_update_devices(self) -> None:
         """Update device data."""
@@ -244,7 +246,7 @@ class Ring:
 
     def active_alerts(self) -> Sequence[RingEvent]:
         """Get active alerts."""
-        now = time()
+        now = time.time()
         # Purge expired push_dings
         self.push_dings_data = [
             re for re in self.push_dings_data if now < re.now + re.expires_in

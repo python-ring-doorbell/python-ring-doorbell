@@ -226,7 +226,9 @@ async def test_listen_store_credentials(mocker, auth):
         ring = Ring(auth)
         assert not Path(GCM_TOKEN_FILE).is_file()
 
-        await runner.invoke(listen, ["--store-credentials"], obj=ring)
+        await runner.invoke(
+            listen, ["--store-credentials"], obj=ring, catch_exceptions=True
+        )
         assert Path(GCM_TOKEN_FILE).is_file()
         assert firebase_messaging.fcmregister.FcmRegister.gcm_check_in.call_count == 0
         assert firebase_messaging.fcmregister.FcmRegister.register.call_count == 1
@@ -247,7 +249,7 @@ async def test_listen_event_handler(mocker, auth):
 
     ring = Ring(auth)
     listener = RingEventListener(ring)
-    await listener.async_start()
+    await listener.start()
     listener.add_notification_callback(_event_handler(ring).on_event)
 
     msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
