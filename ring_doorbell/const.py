@@ -38,7 +38,6 @@ class RingCapability(Enum):
     OPEN = auto()
     KNOCK = auto()
     PRE_ROLL = auto()
-    DING = auto()
 
     @staticmethod
     def from_name(name: str) -> RingCapability:
@@ -73,10 +72,7 @@ NAMESPACE_UUID = "379378b0-f747-4b67-a10f-3b13327e8879"
 
 DEFAULT_LISTEN_EVENT_EXPIRES_IN = 180
 # for Ring android app.  703521446232 for ring-site
-FCM_RING_SENDER_ID = "876313859327"
-FCM_API_KEY = "AIzaSyCv-hdFBmmdBBJadNy-TFwB-xN_H5m3Bk8"
-FCM_PROJECT_ID = "ring-17770"
-FCM_APP_ID = "1:876313859327:android:e10ec6ddb3c81f39"
+RING_SENDER_ID = 876313859327
 
 CLI_TOKEN_FILE = "ring_token.cache"  # noqa: S105
 GCM_TOKEN_FILE = "ring_gcm_token.cache"  # noqa: S105
@@ -116,11 +112,6 @@ INTERCOM_ALLOWED_USERS = LOCATIONS_ENDPOINT + "/users"
 KIND_DING = "ding"
 KIND_MOTION = "motion"
 KIND_INTERCOM_UNLOCK = "intercom_unlock"
-KIND_ALARM_MODE_NONE = "alarm_mode_none"
-KIND_ALARM_MODE_SOME = "alarm_mode_some"
-KIND_ALARM_SIREN = "alarm_siren"
-KIND_ALARM_SILENCED = "alarm_silenced"
-
 # chime test sound kinds
 CHIME_TEST_SOUND_KINDS = (KIND_DING, KIND_MOTION)
 
@@ -180,7 +171,6 @@ BEAM_KINDS = ["beams_ct200_transformer"]
 INTERCOM_KINDS = ["intercom_handset_audio"]
 
 # error strings
-MSG_BOOLEAN_REQUIRED = "Boolean value is required."
 MSG_EXISTING_TYPE = f"Integer value where {DOORBELL_EXISTING_TYPE}."
 MSG_GENERIC_FAIL = "Sorry.. Something went wrong..."
 FILE_EXISTS = "The file {0} already exists."
@@ -191,19 +181,6 @@ MSG_EXPECTED_ATTRIBUTE_NOT_FOUND = "Couldn't find expected attribute: {0}."
 PUSH_ACTION_DING = "com.ring.push.HANDLE_NEW_DING"
 PUSH_ACTION_MOTION = "com.ring.push.HANDLE_NEW_motion"
 PUSH_ACTION_INTERCOM_UNLOCK = "com.ring.push.INTERCOM_UNLOCK_FROM_APP"
-
-PUSH_NOTIFICATION_KINDS = {
-    PUSH_ACTION_DING: KIND_DING,  # legacy
-    "com.ring.pn.live-event.ding": KIND_DING,
-    PUSH_ACTION_MOTION: KIND_MOTION,  # legacy
-    "com.ring.pn.live-event.motion": KIND_MOTION,
-    "com.ring.pn.live-event.intercom": KIND_DING,
-    PUSH_ACTION_INTERCOM_UNLOCK: KIND_INTERCOM_UNLOCK,
-    "com.ring.push.HANDLE_NEW_SECURITY_PANEL_MODE_NONE_NOTICE": KIND_ALARM_MODE_NONE,
-    "com.ring.push.HANDLE_NEW_SECURITY_PANEL_MODE_SOME_NOTICE": KIND_ALARM_MODE_SOME,
-    "com.ring.push.HANDLE_NEW_USER_SOUND_SIREN": KIND_ALARM_SIREN,
-    "com.ring.push.HANDLE_NEW_NON_ALARM_SIREN_SILENCED": KIND_ALARM_SILENCED,
-}
 
 POST_DATA_JSON = {
     "api_version": API_VERSION,
