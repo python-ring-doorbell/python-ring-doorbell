@@ -32,6 +32,7 @@ from ring_doorbell.const import (
     HEALTH_DOORBELL_ENDPOINT,
     LIVE_STREAMING_ENDPOINT,
     MSG_ALLOWED_VALUES,
+    MSG_BOOLEAN_REQUIRED,
     MSG_EXISTING_TYPE,
     MSG_EXPECTED_ATTRIBUTE_NOT_FOUND,
     MSG_VOL_OUTBOUND,
@@ -213,23 +214,21 @@ class RingDoorBell(RingGeneric):
             return self._get_chime_setting("enable")
         return False
 
-    async def async_set_existing_doorbell_type_enabled(self, value: int) -> None:
-        """Enable/disable the existing doorbell if Digital/Mechanical.
-
-        0: Off
-        1: On
-        
-        """
-
+    async def async_set_existing_doorbell_type_enabled(self, value: bool) -> None:  # noqa: FBT001
+        """Enable/disable the existing doorbell if Digital/Mechanical."""
         if self.existing_doorbell_type:
+            if not isinstance(value, bool):
+                raise RingError(MSG_BOOLEAN_REQUIRED)
 
             if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[2]:
-                msg = f"In-Home chime is not present."
+                msg = "In-Home chime is not present."
                 raise RingError(msg)
+
+            int_value = int(value)
 
             params = {
                 "doorbot[description]": self.name,
-                "doorbot[settings][chime_settings][enable]": value,
+                "doorbot[settings][chime_settings][enable]": int_value,
             }
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             await self._ring.async_query(url, extra_params=params, method="PUT")

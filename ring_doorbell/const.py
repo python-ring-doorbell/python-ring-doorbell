@@ -180,6 +180,7 @@ BEAM_KINDS = ["beams_ct200_transformer"]
 INTERCOM_KINDS = ["intercom_handset_audio"]
 
 # error strings
+MSG_BOOLEAN_REQUIRED = "Boolean value is required."
 MSG_EXISTING_TYPE = f"Integer value where {DOORBELL_EXISTING_TYPE}."
 MSG_GENERIC_FAIL = "Sorry.. Something went wrong..."
 FILE_EXISTS = "The file {0} already exists."
