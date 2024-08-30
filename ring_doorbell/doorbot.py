@@ -215,8 +215,10 @@ class RingDoorBell(RingGeneric):
 
     async def async_set_existing_doorbell_type_enabled(self, value: int) -> None:
         """Enable/disable the existing doorbell if Digital/Mechanical.
+
         0: Off
         1: On
+        
         """
 
         if self.existing_doorbell_type:
