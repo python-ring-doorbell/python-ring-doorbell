@@ -11,7 +11,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/tchellomello/python-ring-doorbell/issues
+Report bugs at https://github.com/python-ring-doorbell/python-ring-doorbell/issues
 
 If you are reporting a bug, please include:
 
@@ -40,7 +40,7 @@ you think will help our users.
 Request Features
 ~~~~~~~~~~~~~~~~
 
-File an issue at https://github.com/tchellomello/python-ring-doorbell/issues.
+File an issue at https://github.com/python-ring-doorbell/python-ring-doorbell/issues.
 
 Get Started!
 ------------

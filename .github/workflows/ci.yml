@@ -93,4 +93,15 @@ jobs:
         with:
           file: coverage.xml
           debug: true
+          parallel: true
         if: ${{ success() && matrix.python-version == '3.12' }}
+
+  finish:
+    name: Finish coverage build
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close parallel build
+        uses: coverallsapp/github-action@v2.2.3
+        with:
+          parallel-finished: true

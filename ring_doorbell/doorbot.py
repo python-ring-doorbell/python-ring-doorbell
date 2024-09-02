@@ -221,11 +221,14 @@ class RingDoorBell(RingGeneric):
                 raise RingError(MSG_BOOLEAN_REQUIRED)
 
             if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[2]:
-                return
+                msg = "In-Home chime is not present."
+                raise RingError(msg)
+
+            int_value = int(value)
 
             params = {
                 "doorbot[description]": self.name,
-                "doorbot[settings][chime_settings][enable]": value,
+                "doorbot[settings][chime_settings][enable]": int_value,
             }
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             await self._ring.async_query(url, extra_params=params, method="PUT")

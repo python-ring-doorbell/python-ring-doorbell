@@ -6,13 +6,13 @@ Python Ring Door Bell
     :alt: PyPI Version
     :target: https://badge.fury.io/py/ring-doorbell
 
-.. image:: https://github.com/tchellomello/python-ring-doorbell/actions/workflows/ci.yml/badge.svg?branch=master
+.. image:: https://github.com/python-ring-doorbell/python-ring-doorbell/actions/workflows/ci.yml/badge.svg?branch=master
     :alt: Build Status
-    :target: https://github.com/tchellomello/python-ring-doorbell/actions/workflows/ci.yml?branch=master
+    :target: https://github.com/python-ring-doorbell/python-ring-doorbell/actions/workflows/ci.yml?branch=master
 
-.. image:: https://coveralls.io/repos/github/tchellomello/python-ring-doorbell/badge.svg?branch=master
+.. image:: https://coveralls.io/repos/github/python-ring-doorbell/python-ring-doorbell/badge.svg?branch=master
     :alt: Coverage
-    :target: https://coveralls.io/github/tchellomello/python-ring-doorbell?branch=master
+    :target: https://coveralls.io/github/python-ring-doorbell/python-ring-doorbell?branch=master
 
 .. image:: https://readthedocs.org/projects/python-ring-doorbell/badge/?version=latest
     :alt: Documentation Status
@@ -43,7 +43,7 @@ Installation
 
     # Installing latest development
     $ pip install \
-        git+https://github.com/tchellomello/python-ring-doorbell@master
+        git+https://github.com/python-ring-doorbell/python-ring-doorbell@master
 
 Event Listener
 ++++++++++++++

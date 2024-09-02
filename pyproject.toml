@@ -2,11 +2,11 @@
 name = "ring-doorbell"
 version = "0.9.2"
 description = "A Python library to communicate with Ring Door Bell (https://ring.com/)"
-authors = ["Marcelo Moreira de Mello <tchello.mello@gmail.com>"]
+authors = ["python-ring-doorbell developers"]
 license = "LGPL-3.0-or-later"
 readme = "README.rst"
-homepage = "https://github.com/tchellomello/python-ring-doorbell"
-repository = "https://github.com/tchellomello/python-ring-doorbell"
+homepage = "https://github.com/python-ring-doorbell/python-ring-doorbell"
+repository = "https://github.com/python-ring-doorbell/python-ring-doorbell"
 documentation = "http://python-ring-doorbell.readthedocs.io/"
 keywords = [
     "ring",
@@ -30,7 +30,7 @@ include = [
 ]
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/tchellomello/python-ring-doorbell/issues"
+"Bug Tracker" = "https://github.com/python-ring-doorbell/python-ring-doorbell/issues"
 
 [tool.poetry.scripts]
 ring-doorbell = "ring_doorbell.cli:cli"
