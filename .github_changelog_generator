@@ -1,5 +1,5 @@
 output=CHANGELOG.md
-user=tchellomello
+user=python-ring-doorbell
 project=python-ring-doorbell
 release-branch=master
 usernames-as-github-logins=true
