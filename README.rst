@@ -25,7 +25,7 @@ Python Ring Door Bell
 
 Python Ring Door Bell is a library written for Python that exposes the Ring.com devices as Python objects.
 
-There is also a command line interface that is work in progress. `Contributors welcome <https://python-ring-doorbell.readthedocs.io/contributing.html>`_.
+There is also a command line interface that is work in progress. `Contributors welcome <https://python-ring-doorbell.readthedocs.io/latest/contributing.html>`_.
 
 *Currently Ring.com does not provide an official API. The results of this project are merely from reverse engineering.*
 
@@ -115,8 +115,8 @@ versions are maintained for backwards compatability.
 Initializing your Ring object
 +++++++++++++++++++++++++++++
 
-This code example is in the `test.py <test.py>`_ file.
-For the deprecated sync example see `test_sync.py <test_sync.py>`_.
+This code example is in the `test.py <https://github.com/python-ring-doorbell/python-ring-doorbell/blob/master/test.py>`_ file.
+For the deprecated sync example see `test_sync.py <https://github.com/python-ring-doorbell/python-ring-doorbell/blob/master/test_sync.py>`_.
 
 .. code-block:: python
 
@@ -285,7 +285,7 @@ Controlling a Light Group
 
 How to contribute
 -----------------
-See our `Contributing Page <https://python-ring-doorbell.readthedocs.io/contributing.html>`_.
+See our `Contributing Page <https://python-ring-doorbell.readthedocs.io/latest/contributing.html>`_.
 
 
 Credits && Thanks
