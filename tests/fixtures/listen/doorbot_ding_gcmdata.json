@@ -9,7 +9,7 @@
         "doorbot_id": 12345678,
         "e2ee_enabled": false,
         "streaming_data_hash": "sh-v1|1228_characters_urlsafe_b64",
-        "device_kind": "floodlight_v2",
+        "device_kind": "lpd_v1",
         "id": 12345678901234,
         "request_id": "abcd1234-cd12-f321-123a-abcdef123456",
         "properties": {

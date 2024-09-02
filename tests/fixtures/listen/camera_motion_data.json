@@ -1,0 +1,31 @@
+{
+    "device": {
+        "e2ee_enabled": false,
+        "id": 123456789,
+        "kind": "floodlight_v2",
+        "name": "Garden Floodcam"
+    },
+    "event": {
+        "ding": {
+            "id": "1234567890123456789",
+            "created_at": "2024-08-29T15:33:41Z",
+            "subtype": "motion",
+            "detection_type": "motion"
+        },
+        "eventito": {
+            "type": "motion",
+            "timestamp": 1724945621824
+        },
+        "riid": "0123456789abcdef0123456789abcdef",
+        "is_sidewalk": false,
+        "live_session": {
+            "streaming_data_hash": "sh-v1|1228_characters_urlsafe_b64",
+            "active_streaming_profile": "rms",
+            "default_audio_route": "loud_speaker",
+            "max_duration": 600
+        }
+    },
+    "location": {
+        "id": "zyxw12-4wxyz-0"
+    }
+}

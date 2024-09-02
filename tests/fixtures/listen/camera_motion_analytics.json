@@ -1,0 +1,9 @@
+{
+    "server_correlation_id": "1234abcd-12ab-12ab-ab12-1234567abcde",
+    "server_id": "com.ring.pns",
+    "subcategory": "motion",
+    "triggered_at": 1724945621824,
+    "sent_at": 1724945622331,
+    "referring_item_type": "device_id",
+    "referring_item_id": "123456789"
+}

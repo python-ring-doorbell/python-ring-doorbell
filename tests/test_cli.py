@@ -24,7 +24,11 @@ from ring_doorbell.cli import (
 from ring_doorbell.const import GCM_TOKEN_FILE
 from ring_doorbell.listen import can_listen
 
-from tests.conftest import load_fixture, load_fixture_as_dict
+from tests.conftest import (
+    load_alert_v1,
+    load_fixture,
+    load_fixture_as_dict,
+)
 
 
 async def test_cli_default(ring):
@@ -252,9 +256,9 @@ async def test_listen_event_handler(mocker, auth):
     await listener.start()
     listener.add_notification_callback(_event_handler(ring).on_event)
 
-    msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
-    gcmdata = load_fixture("ring_listen_motion.json")
-    msg["data"]["gcmData"] = gcmdata
+    msg = load_alert_v1(
+        "camera_motion", 12345678, created_at="2023-10-24T09:42:18.789709Z"
+    )
     echomock = mocker.patch("ring_doorbell.cli.echo")
     mocker.patch(
         "ring_doorbell.cli.get_now_str", return_value="2023-10-24 09:42:18.789709"
@@ -263,7 +267,7 @@ async def test_listen_event_handler(mocker, auth):
     exp = (
         "2023-10-24 09:42:18.789709: RingEvent(id=12345678901234, "
         "doorbot_id=12345678, device_name='Front Floodcam'"
-        ", device_kind='floodlight_v2', now=1698137483.395,"
+        ", device_kind='floodlight_v2', now=1698140538.789709,"
         " expires_in=180, kind='motion', state='human') : "
         "Currently active count = 1"
     )
