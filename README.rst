@@ -23,8 +23,7 @@ Python Ring Door Bell
     :target: https://pypi.python.org/pypi/ring-doorbell
 
 
-Python Ring Door Bell is a library written for Python 3.8+
-that exposes the Ring.com devices as Python objects.
+Python Ring Door Bell is a library written for Python that exposes the Ring.com devices as Python objects.
 
 There is also a command line interface that is work in progress. `Contributors welcome <https://python-ring-doorbell.readthedocs.io/contributing.html>`_.
 
