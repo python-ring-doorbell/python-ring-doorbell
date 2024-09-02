@@ -289,3 +289,15 @@ def test_sync_queries_with_no_event_loop():
 
     with pytest.deprecated_call():
         auth.close()
+
+
+async def test_async_set_existing_doorbell_type_enabled(ring):
+    data = ring.devices()
+    dev = data["doorbots"][0]
+    assert dev.existing_doorbell_type == "Mechanical"
+
+    # Attempting to torn off the in-home chime
+    await dev.async_set_existing_doorbell_type_enabled(value=False)
+
+    # Attempting to torn on the in-home chime
+    await dev.async_set_existing_doorbell_type_enabled(value=True)
