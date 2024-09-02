@@ -1,0 +1,13 @@
+{
+    "data": {
+        "version": "2.0.0",
+        "data": "${data}",
+        "analytics": "${analytics}",
+        "android_config": "${android_config}",
+        "img": "${img}",
+        "video": {}
+    },
+    "from": "123456789012",
+    "priority": "normal",
+    "fcmMessageId": "1234fdeb-1234-bc78-cd12-abcdef123456"
+}

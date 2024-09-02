@@ -1,0 +1,25 @@
+{
+    "device": {
+        "e2ee_enabled": false,
+        "id": 298361211,
+        "kind": "intercom_handset_audio",
+        "name": "Entrance"
+    },
+    "event": {
+        "ding": {
+            "id": "7394367000199864699",
+            "created_at": "2024-07-22T08:00:28.182Z",
+            "subtype": "ding"
+        },
+        "is_sidewalk": false,
+        "live_session": {
+            "streaming_data_hash": "sh-v1|wVrxK3siWHM-rDBmVyqHvnthjtKk6NzDBahF23xoEPqN9UQ7Oyn_4dg5XgUDGPZsgB1hrMe3e8yU4R-iiQJLArIrb9rKGmhT3OlzVT8WnX8kopIFZKHRm9lHqzsBQ-Xj0t_BIuK5RBAoFLHYOyF4d9zp19MkDu9dGUQWWkMoW-zTbbSCimOCxTeOxo8jsLf3yfOG5UadzYGLBN-91tQ_6zIbU0r5RXdh4z1IXmnpNJSl-61iupCVYdhMWdGtmelMhR2tDO32pk0647I286tyCl0pM2MMsqMl_XdEZxA4vMI2fIA47FZkP7Xvuj21Mbaj9--bMOOT9HXfH3NnpuMTIs_QkKnWCrc0VGn_YUNywuSySC_qv4tCjco7Uto7xFLVYwjAJmKFCMsG3cqz00OSR8j9MbLnZLH9-MDyDUewD28pxGq7bM1nHsUqKN0kTdqeEd_gyLmsAAvnEo-ZQEumXID8hcvZxKFdVVKAFdnk4cD8wrL6t2w5KUXQCW54-olZGTK32e9pY6MbdOHeWTe1VnXM4TSG7P0Sv0MgfUR8ZrsH8-4ov-xaiWL6DBeO0lvwIejKyr56IworUhVzNSZhGOTBPgEB5-T-rxUiGRBedv35x_3xETpRPurEKJ3rRPA06VtD6vyY5-NXcMrEErZHZI_ob60JYT8-BqiY2SxYchqlKTm8zb00dPO6fZXl12U0j6OS7BIIYo2wSGWK8enlDjrTgLFtd0RIqtYIYaZrcxa2GJVaK_u7_UD_l5TnNh1jHrwLXNnSQJV_ife4beNbMOaaWzCuVwmbsOx1Mk84xz9jagMslCYPn1gi3AfKSlewwVTr7TIwSxVjOnVxpBIDydzVIhJliyh95q8Uy7XFm3CrwQbCLXSaEKmARiIFtq773zhuwBv2sH6N1NaVyxtLd1U0FQxipwz8f0SgEaoInUfxeWPRxKNHLkzGR2OK9PLLJN-pWJPurrhjbHZ5tlL-0xuI1IFXTlpU9J2mmobdjy1pcy8EZndZKMTCaR1puRIBsn0hZhErpzBZvdceLZ-Jh5iIO9tQr4mG1pRL_A7wjaTfqhja6oKobjQkdFZEALKzsyp5PsMN7EzRBU9Ckt6V0fZ-b1oJfOyN0ldmtP7Cyqmb5oplr5Ukn07ROmBs78JIH5XetaikmKT4Ib0IzEC_Mf8LpYRx3K-hhYIpTWEhQLwzyQpBsToLhdcC8t352Ge6ON-RwDDpQlQe8tp5rMVSMHryciOfSyVIh3K5GIKJJ5YSBlImoC8exECYcnu-4YW7iRp2",
+            "active_streaming_profile": "rms",
+            "default_audio_route": "quiet_speaker",
+            "max_duration": 600
+        }
+    },
+    "location": {
+        "id": "99b3e09a-948d-44b4-bab5-0cc40eee9b36"
+    }
+}

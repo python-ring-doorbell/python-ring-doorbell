@@ -1,5 +1,8 @@
 """Test configuration for the Ring platform."""
 
+from __future__ import annotations
+
+import datetime
 import json
 import re
 from pathlib import Path
@@ -80,6 +83,49 @@ def load_fixture(filename):
 def load_fixture_as_dict(filename):
     """Load a fixture."""
     return json.loads(load_fixture(filename))
+
+
+def load_alert_v1(
+    alert_type: str, device_id, *, ding_id_inc: int = 0, created_at: str | None = None
+) -> dict:
+    msg = json.loads(load_fixture(Path().joinpath("listen", "fcmdata_v1.json")))
+    gcmdata = json.loads(
+        load_fixture(Path().joinpath("listen", f"{alert_type}_gcmdata.json"))
+    )
+    if created_at is None:
+        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"  # noqa: DTZ003
+    if "ding" in gcmdata:
+        gcmdata["ding"]["doorbot_id"] = device_id
+        gcmdata["ding"]["created_at"] = created_at
+        gcmdata["ding"]["id"] = gcmdata["ding"]["id"] + ding_id_inc
+    else:
+        gcmdata["alarm_meta"]["device_zid"] = device_id
+    msg["data"]["gcmData"] = json.dumps(gcmdata)
+    return msg
+
+
+def load_alert_v2(
+    alert_type: str, device_id, *, ding_id_inc: int = 0, created_at: str | None = None
+) -> dict:
+    msg = json.loads(load_fixture(Path().joinpath("listen", "fcmdata_v2.json")))
+    data = json.loads(
+        load_fixture(Path().joinpath("listen", f"{alert_type}_data.json"))
+    )
+    android_config = json.loads(
+        load_fixture(Path().joinpath("listen", f"{alert_type}_android_config.json"))
+    )
+    analytics = json.loads(
+        load_fixture(Path().joinpath("listen", f"{alert_type}_analytics.json"))
+    )
+    if created_at is None:
+        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"  # noqa: DTZ003
+    data["device"]["id"] = device_id
+    data["event"]["ding"]["created_at"] = created_at
+    data["event"]["ding"]["id"] = str(int(data["event"]["ding"]["id"]) + ding_id_inc)
+    msg["data"]["data"] = json.dumps(data)
+    msg["data"]["android_config"] = json.dumps(android_config)
+    msg["data"]["analytics"] = json.dumps(analytics)
+    return msg
 
 
 @pytest.fixture(autouse=True)

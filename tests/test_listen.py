@@ -4,11 +4,12 @@ import datetime
 import json
 
 import pytest
+from freezegun.api import FrozenDateTimeFactory
 from ring_doorbell import Ring
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.listen import can_listen
 
-from tests.conftest import load_fixture
+from tests.conftest import load_alert_v1, load_alert_v2, load_fixture
 
 # test_module.py
 pytestmark = pytest.mark.skipif(
@@ -59,55 +60,58 @@ async def test_active_dings(auth, mocker):
     assert num_active == 0
     alertstoadd = 2
     for i in range(alertstoadd):
-        msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
-        gcmdata_dict = json.loads(load_fixture("ring_listen_ding.json"))
-        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"  # noqa: DTZ003
-        gcmdata_dict["ding"]["created_at"] = created_at
-        gcmdata_dict["ding"]["id"] = gcmdata_dict["ding"]["id"] + i
-        msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
+        msg = load_alert_v1("doorbot_ding", 123456781, ding_id_inc=i)
+        listener._on_notification(msg, "1234567" + str(i))
+        msg = load_alert_v2("camera_motion", 123456782, ding_id_inc=i)
+        listener._on_notification(msg, "1234567" + str(i))
+        msg = load_alert_v1("intercom_unlock", 185036587, ding_id_inc=i)
         listener._on_notification(msg, "1234567" + str(i))
 
     dings = ring.active_alerts()
-    assert len(dings) == num_active + alertstoadd
+    assert len(dings) == num_active + alertstoadd * 3
     # Test with the same id which should overwrite
     # previous and keep the overall count the same
     for i in range(alertstoadd):
-        msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
-        gcmdata_dict = json.loads(load_fixture("ring_listen_ding.json"))
-        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"  # noqa: DTZ003
-        gcmdata_dict["ding"]["created_at"] = created_at
-        gcmdata_dict["ding"]["id"] = gcmdata_dict["ding"]["id"] + 1
-        msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
+        msg = load_alert_v1("doorbot_ding", 123456781, ding_id_inc=i)
+        listener._on_notification(msg, "1234567" + str(i))
+        msg = load_alert_v2("camera_motion", 123456782, ding_id_inc=i)
         listener._on_notification(msg, "1234567" + str(i))
 
     dings = ring.active_alerts()
-    assert len(dings) == num_active + alertstoadd
+    assert len(dings) == num_active + alertstoadd * 3
     await listener.stop()
 
 
-async def test_intercom_unlock(auth, mocker):
-    import firebase_messaging
-
+async def test_ding_expirey(auth, mocker, freezer: FrozenDateTimeFactory):
     ring = Ring(auth)
     listener = RingEventListener(ring)
     await listener.start()
-    assert firebase_messaging.FcmPushClient.checkin_or_register.call_count == 1
-    assert firebase_messaging.FcmPushClient.start.call_count == 1
+
     assert listener.subscribed is True
     assert listener.started is True
-    num_active = len(ring.active_alerts())
-    assert num_active == 0
+
+    assert len(ring.push_dings_data) == 0
+    assert len(ring.active_alerts()) == 0
+
     alertstoadd = 2
     for i in range(alertstoadd):
-        msg = json.loads(load_fixture("ring_listen_fcmdata.json"))
-        gcmdata_dict = json.loads(load_fixture("ring_listen_intercom_unlock.json"))
-        msg["data"]["gcmData"] = json.dumps(gcmdata_dict)
+        msg = load_alert_v1("doorbot_ding", 123456781, ding_id_inc=i)
+        listener._on_notification(msg, "1234567" + str(i))
+        msg = load_alert_v2("camera_motion", 123456782, ding_id_inc=i)
+        listener._on_notification(msg, "1234567" + str(i))
+        msg = load_alert_v1("intercom_unlock", 185036587, ding_id_inc=i)
         listener._on_notification(msg, "1234567" + str(i))
 
-    dings = ring.active_alerts()
-    assert len(dings) == num_active + alertstoadd
+    assert len(ring.push_dings_data) == 6
+    assert len(ring.active_alerts()) == 6
 
-    await listener.stop()
+    freezer.tick(datetime.timedelta(minutes=5))
+
+    msg = load_alert_v1("doorbot_ding", 123456781, ding_id_inc=alertstoadd + 1)
+    listener._on_notification(msg, "123456781" + str(alertstoadd + 1))
+
+    assert len(ring.push_dings_data) == 1
+    assert len(ring.active_alerts()) == 1
 
 
 @pytest.mark.nolistenmock

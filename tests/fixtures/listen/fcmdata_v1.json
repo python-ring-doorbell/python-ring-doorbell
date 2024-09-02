@@ -1,6 +1,6 @@
 {
     "data": {
-        "gcmData": "ring_listen_gcmdata.json"
+        "gcmData": "${gcm_data}"
     },
     "from": "123456789012",
     "priority": "high",

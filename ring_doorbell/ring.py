@@ -68,7 +68,7 @@ class Ring:
 
     def _add_event_to_dings_data(self, ring_event: RingEvent) -> None:
         # Purge expired push_dings
-        now = time.monotonic()
+        now = time.time()
         self.push_dings_data = [
             re for re in self.push_dings_data if now < re.now + re.expires_in
         ]
