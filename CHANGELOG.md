@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.9.3](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.3) (2024-09-02)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.2...0.9.3)
+
+**Release highlights:**
+
+- The python-ring-doorbell code repository has moved to https://github.com/python-ring-doorbell/python-ring-doorbell
+- Fix for enabling in-home chimes - Many thanks @briangoldstein!
+
+**Fixed bugs:**
+
+- Fix active listen alert counter [\#423](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/423) (@sdb9696)
+- Fix method to enable in-home doorbell chime [\#419](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/419) (@briangoldstein)
+
+**Documentation updates:**
+
+- Update supported python version in readme [\#422](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/422) (@sdb9696)
+
+**Project maintenance:**
+
+- Migrate repo to python-ring-doorbell github organisation [\#421](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/421) (@sdb9696)
+- Remove anyio from dependencies [\#420](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/420) (@dotlambda)
+
 ## [0.9.2](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.2) (2024-08-29)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.1...0.9.2)
