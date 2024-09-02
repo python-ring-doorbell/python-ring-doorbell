@@ -115,8 +115,8 @@ versions are maintained for backwards compatability.
 Initializing your Ring object
 +++++++++++++++++++++++++++++
 
-This code example is in the `test.py <test.py>`_ file.
-For the deprecated sync example see `test_sync.py <test_sync.py>`_.
+This code example is in the `test.py <https://github.com/python-ring-doorbell/python-ring-doorbell/blob/master/test.py>`_ file.
+For the deprecated sync example see `test_sync.py <https://github.com/python-ring-doorbell/python-ring-doorbell/blob/master/test_sync.py>`_.
 
 .. code-block:: python
 
