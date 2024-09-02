@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import pytest
 from freezegun.api import FrozenDateTimeFactory
 from ring_doorbell import Auth, Ring, RingError
-from ring_doorbell.const import USER_AGENT
+from ring_doorbell.const import MSG_EXISTING_TYPE, USER_AGENT
 from ring_doorbell.util import parse_datetime
 
 from .conftest import json_request_kwargs, load_fixture_as_dict, nojson_request_kwargs
@@ -289,3 +289,62 @@ def test_sync_queries_with_no_event_loop():
 
     with pytest.deprecated_call():
         auth.close()
+
+
+async def test_set_existing_doorbell_type(ring, aioresponses_mock):
+    data = ring.devices()
+    dev = data["doorbots"][0]
+    assert dev.existing_doorbell_type == "Mechanical"
+
+    kwargs = nojson_request_kwargs()
+
+    aioresponses_mock.requests.clear()
+    # Attempting to turn off the in-home chime
+    await dev.async_set_existing_doorbell_type_enabled(value=False)
+    kwargs["params"] = {
+        "doorbot[description]": dev.name,
+        "doorbot[settings][chime_settings][enable]": 0,
+    }
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652",
+        method="PUT",
+        **kwargs,
+    )
+
+    aioresponses_mock.requests.clear()
+    # Attempting to turn on the in-home chime
+    await dev.async_set_existing_doorbell_type_enabled(value=True)
+    kwargs["params"] = {
+        "doorbot[description]": dev.name,
+        "doorbot[settings][chime_settings][enable]": 1,
+    }
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652",
+        method="PUT",
+        **kwargs,
+    )
+
+    aioresponses_mock.requests.clear()
+    # Attempting to set the doorbell type
+    await dev.async_set_existing_doorbell_type(2)
+    kwargs["params"] = {
+        "doorbot[description]": dev.name,
+        "doorbot[settings][chime_settings][type]": 2,
+    }
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652",
+        method="PUT",
+        **kwargs,
+    )
+
+    # Attempting to enable when no chime present
+    settings = dev._attrs["settings"]["chime_settings"]
+    settings["type"] = 2
+    assert dev.existing_doorbell_type == "Not Present"
+
+    with pytest.raises(RingError, match="In-Home chime is not present."):
+        await dev.async_set_existing_doorbell_type_enabled(value=True)
+
+    # Attempting to set the doorbell type to an invalid value
+    with pytest.raises(RingError, match=f"value must be in {MSG_EXISTING_TYPE}"):
+        await dev.async_set_existing_doorbell_type(4)
