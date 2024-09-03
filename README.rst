@@ -103,6 +103,7 @@ The CLI is work in progress and currently has the following commands:
     $ ring-doorbell in-home-chime --device-name "Front Door" --type Mechanical
     $ ring-doorbell in-home-chime --device-name "Front Door" --enabled True
     $ ring-doorbell in-home-chime --device-name "Front Door" --type Mechanical --enabled True
+    $ ring-doorbell in-home-chime --device-name "Front Door" --type Digital --enabled True --duration 5
 
 #.  Query a ring api url directly::
 
