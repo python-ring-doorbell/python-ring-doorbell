@@ -15,6 +15,7 @@ from ring_doorbell.cli import (
     _event_handler,
     cli,
     devices_command,
+    in_home_chime,
     list_command,
     listen,
     motion_detection,
@@ -272,3 +273,99 @@ async def test_listen_event_handler(mocker, auth):
         "Currently active count = 1"
     )
     echomock.assert_called_with(exp)
+
+
+async def test_in_home_chime(ring, aioresponses_mock, devices_fixture):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Gets in-home chime details for a doorbell
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front Door"],
+            obj=ring,
+        )
+        expected = (
+            "Name:       Front Door\n"
+            "ID:         987652\n"
+            "Type:       Mechanical\n"
+            "Enabled:    True\n"
+            "Duration:   None\n"
+        )
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Turns off the in-home chime
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front Door", "--enabled", "False"],
+            obj=ring,
+        )
+        expected = "Front Door's in-home chime has been disabled"
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Turns on the in-home chime and sets type to Mechanical
+        res = await runner.invoke(
+            in_home_chime,
+            [
+                "--device-name",
+                "Front Door",
+                "--enabled",
+                "True",
+                "--type",
+                "Mechanical",
+            ],
+            obj=ring,
+        )
+        expected = (
+            "Front Door's in-home chime type has been set to Mechanical\n"
+            "Front Door's in-home chime has been enabled\n"
+        )
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Sets type to Digital and changes the duration
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front Door", "--type", "Digital", "--duration", "5"],
+            obj=ring,
+        )
+        expected = (
+            "Front Door's in-home chime type has been set to Digital\n"
+            "Front Door's in-home chime duration has been set to 5 seconds\n"
+        )
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Turns on the in-home chime, sets type to Digital, and changes the duration
+        res = await runner.invoke(
+            in_home_chime,
+            [
+                "--device-name",
+                "Front Door",
+                "--enabled",
+                "True",
+                "--type",
+                "Digital",
+                "--duration",
+                "5",
+            ],
+            obj=ring,
+        )
+        expected = (
+            "Front Door's in-home chime type has been set to Digital\n"
+            "Front Door's in-home chime has been enabled\n"
+            "Front Door's in-home chime duration has been set to 5 seconds\n"
+        )
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Runs in-home-chime against a device that doesn't have an in-home chime
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front"],
+            obj=ring,
+        )
+        expected = "Front is not a doorbell, no in-home chime settings available"
+        assert res.exit_code == 0
+        assert expected in res.output
