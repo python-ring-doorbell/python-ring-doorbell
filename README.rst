@@ -97,11 +97,18 @@ The CLI is work in progress and currently has the following commands:
 
     $ ring-doorbell dings
 
+#.  See or manage your doorbell in-home chine settings::
+
+    $ ring-doorbell in-home-chime --device-name "Front Door"
+    $ ring-doorbell in-home-chime --device-name "Front Door" --type Mechanical
+    $ ring-doorbell in-home-chime --device-name "Front Door" --enabled True
+    $ ring-doorbell in-home-chime --device-name "Front Door" --type Mechanical --enabled True
+
 #.  Query a ring api url directly::
 
     $ ring-doorbell raw-query --url /clients_api/dings/active
 
-#.  Run ``ring-doorbell --help`` or ``ring-doorbell videos --help`` for full options
+#.  Run ``ring-doorbell --help`` or ``ring-doorbell <command> --help`` for full options
 
 Using the API
 -------------
