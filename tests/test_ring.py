@@ -337,6 +337,22 @@ async def test_set_existing_doorbell_type(ring, aioresponses_mock):
         **kwargs,
     )
 
+    aioresponses_mock.requests.clear()
+    # Attempting to set the duration of the in-home chime
+    settings = dev._attrs["settings"]["chime_settings"]
+    settings["type"] = 1
+    assert dev.existing_doorbell_type == "Digital"
+    await dev.async_set_existing_doorbell_type_duration(5)
+    kwargs["params"] = {
+        "doorbot[description]": dev.name,
+        "doorbot[settings][chime_settings][duration]": 5,
+    }
+    aioresponses_mock.assert_called_with(
+        url="https://api.ring.com/clients_api/doorbots/987652",
+        method="PUT",
+        **kwargs,
+    )
+
     # Attempting to enable when no chime present
     settings = dev._attrs["settings"]["chime_settings"]
     settings["type"] = 2
@@ -348,3 +364,7 @@ async def test_set_existing_doorbell_type(ring, aioresponses_mock):
     # Attempting to set the doorbell type to an invalid value
     with pytest.raises(RingError, match=f"value must be in {MSG_EXISTING_TYPE}"):
         await dev.async_set_existing_doorbell_type(4)
+
+    # Attempting to set the doorbell duration to an invalid value
+    with pytest.raises(RingError, match=f"Must be within the {0}-{1}."):
+        await dev.async_set_existing_doorbell_type_duration(11)
