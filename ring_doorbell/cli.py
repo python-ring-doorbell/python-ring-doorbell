@@ -653,6 +653,84 @@ async def videos(
     return None
 
 
+@cli.command()
+@pass_ring
+@click.pass_context
+@click.option(
+    "--device-name",
+    "-dn",
+    required=True,
+    default=None,
+    help="Name of the ring device",
+)
+@click.option(
+    "--type",
+    "-t",
+    default=None,
+    required=False,
+    type=click.Choice(["Mechanical", "Digital", "Not Present"], case_sensitive=False),
+    help="Set the in-home chime type.",
+)
+@click.option(
+    "--enabled",
+    "-e",
+    default=None,
+    required=False,
+    type=click.Choice(["True", "False"], case_sensitive=False),
+    help="Enable or disable the in-home chime.",
+)
+@click.option(
+    "--duration",
+    "-d",
+    default=None,
+    required=False,
+    type=click.Choice([str(i) for i in range(11)]),
+    help="Set the in-home chime duration, in seconds.",
+)
+async def in_home_chime(ctx, ring: Ring, type, enabled, duration, device_name):
+    """View and manage the Doorbell in-home chime. To see the current in-home chime status of a device, only pass the device name."""
+    device = ring.get_device_by_name(device_name)
+
+    if not device:
+        echo(
+            f"No device with name {device_name} found."
+            + " List of found device names (kind) is:"
+        )
+        return await ctx.invoke(list_command)
+    if device.family != "doorbots":
+        echo(f"{device_name} is not a doorbell, no in-home chime settings available")
+        return None
+    if not type and not enabled and not duration:
+        echo("Name:       %s" % device.name)
+        echo("ID:         %s" % device.id)
+        echo("Type:       %s" % device.existing_doorbell_type)
+        echo("Enabled:    %s" % device.existing_doorbell_type_enabled)
+        echo("Duration:   %s" % device.existing_doorbell_type_duration)
+        return None
+    if type:
+        if type and type.lower() == "mechanical":
+            await device.async_set_existing_doorbell_type(0)
+            echo(f"{device_name}'s in-home chime type has been set to {type}")
+        elif type and type.lower() == "digital":
+            await device.async_set_existing_doorbell_type(1)
+            echo(f"{device_name}'s in-home chime type has been set to {type}")
+        elif type and type.lower() == "not present":
+            await device.async_set_existing_doorbell_type(2)
+            echo(f"{device_name}'s in-home chime type has been set to {type}")
+    if enabled:
+        if enabled and enabled.lower() == "true":
+            await device.async_set_existing_doorbell_type_enabled(True)
+            echo(f"{device_name}'s in-home chime has been enabled")
+        elif enabled and enabled.lower() == "false":
+            await device.async_set_existing_doorbell_type_enabled(False)
+            echo(f"{device_name}'s in-home chime has been disabled")
+    if duration:
+        await device.async_set_existing_doorbell_type_duration(int(duration))
+        echo(
+            f"{device_name}'s in-home chime duration has been set to {duration} seconds"
+        )
+
+
 async def ainput(string: str):
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, lambda s=string: sys.stdout.write(s + " "))  # type: ignore[misc]
