@@ -295,7 +295,7 @@ async def list_command(ring: Ring) -> None:
     help="Name of the ring device",
 )
 async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
-    """Display ring devices."""
+    """Get and change the motion detecton status of a device."""
     device = ring.get_device_by_name(device_name)
 
     if not device:
