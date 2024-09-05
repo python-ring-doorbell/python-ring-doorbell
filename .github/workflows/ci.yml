@@ -7,7 +7,7 @@ on:
     branches: ["master"]
 
 env:
-  POETRY_VERSION: 1.8.3
+  UV_VERSION: 0.4.5
 
 jobs:
   linting:
@@ -22,12 +22,12 @@ jobs:
         uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          poetry-version: ${{ env.POETRY_VERSION }}
-          poetry-install-options: "--extras listen"
+          uv-version: ${{ env.UV_VERSION }}
+          uv-install-options: "--all-extras"
           cache-pre-commit: true
       - name: "Run pre-commit checks"
         run: |
-          poetry run pre-commit run --all-files
+          uv run pre-commit run --all-files --verbose
 
   docs:
     name: "Build docs"
@@ -42,11 +42,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          poetry-version: ${{ env.POETRY_VERSION }}
-          poetry-install-options: "--extras docs --without dev"
-      - name: Make docs poetry
+          uv-version: ${{ env.UV_VERSION }}
+          uv-install-options: "--extra docs --without dev"
+      - name: Make docs uv
         run: |
-          poetry run make -C docs html
+          uv run make -C docs html
 
   tests:
     name: Tests - Python ${{ matrix.python-version}} on ${{ matrix.os }}${{ fromJSON('[" (listen)", ""]')[matrix.extras == ''] }}
@@ -81,11 +81,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          poetry-version: ${{ env.POETRY_VERSION }}
-          poetry-install-options: ${{ matrix.extras == true && '--extras listen' || '' }}
+          uv-version: ${{ env.UV_VERSION }}
+          uv-install-options: ${{ matrix.extras == true && '--extra listen' || '' }}
       - name: Run tests
         run: >
-          poetry run pytest tests/
+          uv run pytest tests/
           --cov=ring_doorbell --cov-report=xml
           --cov-report=term-missing --import-mode importlib
       - name: Coveralls GitHub Action
