@@ -48,6 +48,7 @@ myst-parser = { version = "*", optional = true }
 firebase-messaging = {version = "^0.4.0", optional = true}
 typing-extensions = ">=4.12.2,<5.0"
 async-timeout = ">=3.0.0"
+websockets = ">=11.0.1"
 
 [tool.poetry.group.dev.dependencies]
 mock = "*"
@@ -87,6 +88,7 @@ filterwarnings = [
 [tool.coverage.run]
 source = ["ring_doorbell"]
 branch = true
+omit = ["ring_doorbell/rtcstream.py*"]
 
 [tool.ruff]
 target-version = "py39"
