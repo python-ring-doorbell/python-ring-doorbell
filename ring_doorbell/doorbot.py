@@ -19,6 +19,8 @@ from ring_doorbell.const import (
     DOORBELL_3_PLUS_KINDS,
     DOORBELL_4_KINDS,
     DOORBELL_ELITE_KINDS,
+    DOORBELL_EXISTING_DURATION_MAX,
+    DOORBELL_EXISTING_DURATION_MIN,
     DOORBELL_EXISTING_TYPE,
     DOORBELL_GEN2_KINDS,
     DOORBELL_KINDS,
@@ -252,10 +254,16 @@ class RingDoorBell(RingGeneric):
         if self.existing_doorbell_type:
             if not (
                 (isinstance(value, int))
-                and (DOORBELL_VOL_MIN <= value <= DOORBELL_VOL_MAX)
+                and (
+                    DOORBELL_EXISTING_DURATION_MIN
+                    <= value
+                    <= DOORBELL_EXISTING_DURATION_MAX
+                )
             ):
                 raise RingError(
-                    MSG_VOL_OUTBOUND.format(DOORBELL_VOL_MIN, DOORBELL_VOL_MAX)
+                    MSG_VOL_OUTBOUND.format(
+                        DOORBELL_EXISTING_DURATION_MIN, DOORBELL_EXISTING_DURATION_MAX
+                    )
                 )
 
             if self.existing_doorbell_type == DOORBELL_EXISTING_TYPE[1]:

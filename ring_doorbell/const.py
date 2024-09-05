@@ -150,6 +150,9 @@ DOORBELL_EXISTING_TYPE = {0: "Mechanical", 1: "Digital", 2: "Not Present"}
 SIREN_DURATION_MIN = 0
 SIREN_DURATION_MAX = 120
 
+DOORBELL_EXISTING_DURATION_MIN = 0
+DOORBELL_EXISTING_DURATION_MAX = 10
+
 # device model kinds
 CHIME_KINDS = ["chime", "chime_v2"]
 CHIME_PRO_KINDS = ["chime_pro", "chime_pro_v2"]
