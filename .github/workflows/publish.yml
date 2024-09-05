@@ -82,16 +82,10 @@ jobs:
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
-      run: >-
+      run: |
         gh repo clone '${{ github.repository }}' .
         git fetch origin
-        gh release create
-        '${{ github.ref_name }}'
-        --draft
-        --verify-tag
-        --notes-from-tag
-        --title '${{ github.ref_name }}'
-        ${{ contains(github.ref_name, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
+        gh release create '${{ github.ref_name }}' --draft --verify-tag --notes-from-tag --title '${{ github.ref_name }}' ${{ contains(github.ref_name, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
