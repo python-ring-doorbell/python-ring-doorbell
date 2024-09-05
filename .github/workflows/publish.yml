@@ -51,8 +51,8 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    - name: Publish distribution 📦 to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+    #- name: Publish distribution 📦 to PyPI
+    #  uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
     name: >-
@@ -88,6 +88,8 @@ jobs:
         --verify-tag
         --notes-from-tag
         --title '${{ github.ref_name }}'
+        ${{ contains(github.ref_name, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
+        --draft
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}

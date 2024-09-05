@@ -43,7 +43,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           uv-version: ${{ env.UV_VERSION }}
-          uv-install-options: "--extra docs --without dev"
+          uv-install-options: "--extra docs --no-dev"
       - name: Make docs uv
         run: |
           uv run make -C docs html
