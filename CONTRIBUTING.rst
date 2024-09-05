@@ -54,17 +54,17 @@ Ready to contribute? Here's how to set up `python-ring-doorbell` for local devel
     $ cd YOURDIRECTORYFORTHECODE
     $ git clone git@github.com:YOUR_GITHUB_USERNAME/python-ring-doorbell.git
 
-#.  We are using `poetry <https://python-poetry.org/>`_ for dependency management.
+#.  We are using `uv <https://docs.astral.sh/uv/>`_ for dependency management.
 
-    If you dont have poetry installed you can install it with::
+    If you dont have uv installed you can install it with::
 
-    $ curl -sSL https://install.python-poetry.org | python3 -
+    $ pipx install uv
 
-    This installs Poetry in a virtual environment to isolate it from the rest of your system.  Then to install `python-ring-doorbell`::
+    This installs uv in a virtual environment to isolate it from the rest of your system.  Then to install `python-ring-doorbell`::
 
-    $ poetry install --all-extras
+    $ uv sync --all-extras
 
-    Poetry will create a virtual environment for you and install all the requirements
+    uv will create a virtual environment for you and install all the requirements
 
 #.  Create a branch for local development::
 
@@ -79,11 +79,11 @@ Ready to contribute? Here's how to set up `python-ring-doorbell` for local devel
     You can check your changes prior to commit with::
 
     $ pre-commit run  # Runs against files added to staging
-    $ pre-commit run --all-file # Runs against files not yet added to staging
+    $ pre-commit run --all-files # Runs against files not yet added to staging
 
 #.  To test your changes::
 
-    $ poetry run pytest
+    $ uv run pytest
 
 #.  Commit your changes and push your branch to GitHub::
 
@@ -98,65 +98,50 @@ Thank you!!
 Additional Notes
 ----------------
 
-Poetry
+UV
 ~~~~~~
 
 Dependencies
 ^^^^^^^^^^^^
 
-Poetry is very useful at managing virtual environments and ensuring that dependencies all match up for you.
-It manages this with the use of the `poetry.lock` file which contains all the exact versions to be installed.
+uv is very useful at managing virtual environments and ensuring that dependencies all match up for you.
+It manages this with the use of the `uv.lock` file which contains all the exact versions to be installed.
 This means that if you add any dependecies you should do it via::
 
-    $ poetry add pypi_project_name
+    $ uv add pypi_project_name
 
-rather than pip.  This will update `pyproject.toml` and `poetry.lock` accordingly.
-If you install something in the virtual environment directly via pip you will need to run::
+rather than pip.  This will update `pyproject.toml` and `uv.lock` accordingly.
 
-    $ poetry lock --no-update
-
-to resync the lock file but without updating all the other requirements to latest versions.
 To uninstall a dependency::
 
-    $ poetry remove pypi_project_name
+    $ uv remove pypi_project_name
 
 finally if you want to add a dependency for development only::
 
-    $ poetry add --group dev pypi_project_name
+    $ uv add --dev pypi_project_name
 
 Environments
 ^^^^^^^^^^^^
 
-Poetry creates a virtual environment for the project and you can activate the virtual environment with::
+uv creates a virtual environment for the project in the .venv directory.
+You can activate the virtual environment with::
 
-    $ poetry shell
+    $ source .venv/bin/activate
 
-To exit the shell type ``exit`` rather than deactivate.
+To exit the shell type ``deactivate``.
 However you don't **need** to activate the virtual environment and you can run any command without activating it by::
 
-    $ poetry run SOME_COMMAND
+    $ uv run SOME_COMMAND
 
-It is possible to manage all this from within a virtual environment you create yourself but that requires installing poetry
-into the same virtual environment and this can potentially cause poetry to uninstall some of its own dependencies
-in certain situations.  Hence the recommendation to install poetry into a seperate virtual environment of its via
-the install script above or pipx.
-
-See `poetry documentation <https://python-poetry.org/>`_ for more info
+See `uv <https://docs.astral.sh/uv/>`_ for more info
 
 Documentation
 ^^^^^^^^^^^^^
 
 To build the docs install with the docs extra::
 
-    $ poetry install --extras docs
-
-Then generate a `Github access token <https://github.com/settings/tokens/new?description=GitHub%20Changelog%20Generator%20token>`_
-(no permissions are needed) and export it as follows::
-
-    $ export CHANGELOG_GITHUB_TOKEN="«your-40-digit-github-token»"
+    $ uv sync --extra docs
 
 Then build::
 
-    $ make -C html
-
-You can add the token to your shell profile to avoid having to export it each time. (e.g., .env, ~/.bash_profile, ~/.bashrc, ~/.zshrc, etc)
+    $ uv run make -C html
