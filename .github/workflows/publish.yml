@@ -3,7 +3,8 @@ name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 on:
   push:
     branches: ["master", "janitor/uv"]
-
+    tags:
+      - '*'
 env:
   UV_VERSION: 0.4.5
 
@@ -84,12 +85,12 @@ jobs:
       run: >-
         gh release create
         '${{ github.ref_name }}'
+        --draft
         --repo '${{ github.repository }}'
         --verify-tag
         --notes-from-tag
         --title '${{ github.ref_name }}'
         ${{ contains(github.ref_name, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
-        --draft
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
