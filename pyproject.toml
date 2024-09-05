@@ -88,6 +88,9 @@ filterwarnings = [
 [tool.coverage.run]
 source = ["ring_doorbell"]
 branch = true
+omit = [
+    "ring_doorbell/rtcstream.py"
+]
 
 [tool.ruff]
 target-version = "py39"
