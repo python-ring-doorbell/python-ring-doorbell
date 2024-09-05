@@ -28,7 +28,7 @@ jobs:
     - name: Build with uv
       run: uv build
     - name: Store the distribution packages
-      uses: actions/upload-artifact@v4.4
+      uses: actions/upload-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -48,7 +48,7 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v4.4
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -68,7 +68,7 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v4.4
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -113,7 +113,7 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v4.4
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
