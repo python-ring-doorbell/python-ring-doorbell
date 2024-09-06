@@ -7,6 +7,10 @@ on:
       - '*'
 env:
   UV_VERSION: 0.4.5
+  PYPI_PROJECT: ring-doorbell
+
+# GITHUB_TOKEN must have write access
+# https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/signing-the-distribution-packages
 
 jobs:
   build:
@@ -20,11 +24,8 @@ jobs:
       with:
         python-version: "3.x"
     - name: Install uv
-      run: |
-        python -m pip install --upgrade pip
-        python3 -m pip install --user pipx
-        python3 -m pipx ensurepath
-        pipx install uv==${{ env.UV_VERSION }}
+      run: |-
+        pipx install uv==${{ env.UV_VERSION }} --python "${{ steps.setup-python.outputs.python-path }}"
     - name: Build with uv
       run: uv build
     - name: Store the distribution packages
@@ -42,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/ring-doorbell
+      url: https://pypi.org/p/${{ env.PYPI_PROJECT }}
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
@@ -84,7 +85,7 @@ jobs:
       # Repo clone is required for --notes-from-tag to work
       run: |
         gh repo clone '${{ github.repository }}'
-        cd python-ring-doorbell
+        cd ${{ github.event.repository.name }}
         gh release create '${{ github.ref_name }}' --verify-tag --notes-from-tag --title '${{ github.ref_name }}' ${{ contains(github.ref_name, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
         cd ..
     - name: Upload artifact signatures to GitHub Release
@@ -106,7 +107,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/ring-doorbell
+      url: https://test.pypi.org/p/${{ env.PYPI_PROJECT }}
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
