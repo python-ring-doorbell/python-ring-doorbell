@@ -8,6 +8,7 @@ on:
 
 env:
   UV_VERSION: 0.4.5
+  PACKAGE_NAME: ring_doorbell
 
 jobs:
   linting:
@@ -86,7 +87,7 @@ jobs:
       - name: Run tests
         run: >
           uv run pytest tests/
-          --cov=ring_doorbell --cov-report=xml
+          --cov=${{ env.PACKAGE_NAME }} --cov-report=xml
           --cov-report=term-missing --import-mode importlib
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
