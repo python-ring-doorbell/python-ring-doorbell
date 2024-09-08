@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.9.4](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.4) (2024-09-05)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.3...0.9.4)
+
+**Release highlights:**
+
+- Migrate from poetry to uv for package management
+- Bugfixes for in-home-chime
+
+**Implemented enhancements:**
+
+- Add WebRTC live streaming session generation [\#348](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/348) (@sdb9696)
+
+**Fixed bugs:**
+
+- Fix in-home chime duration setter [\#428](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/428) (@briangoldstein)
+
+**Documentation updates:**
+
+- Fix broken links in readme [\#426](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/426) (@briangoldstein)
+
+**Project maintenance:**
+
+- Migrate to uv and add testpypi publishing [\#430](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/430) (@sdb9696)
+
 ## [0.9.3](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.3) (2024-09-02)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.2...0.9.3)

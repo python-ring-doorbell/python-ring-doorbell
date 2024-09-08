@@ -66,6 +66,7 @@ DEFAULT_VIDEO_DOWNLOAD_TIMEOUT = 120
 # API endpoints
 API_VERSION = "11"
 API_URI = "https://api.ring.com"
+APP_API_URI = "https://prd-api-us.prd.rings.solutions"
 USER_AGENT = "android:com.ringapp"
 
 # random uuid, used to make a hardware id that doesn't change or clash
@@ -113,6 +114,10 @@ INTERCOM_INVITATIONS_ENDPOINT = LOCATIONS_ENDPOINT + "/invitations"
 INTERCOM_INVITATIONS_DELETE_ENDPOINT = LOCATIONS_ENDPOINT + "/invitations/{1}"
 INTERCOM_ALLOWED_USERS = LOCATIONS_ENDPOINT + "/users"
 
+# New API endpoints for web rtc streaming
+RTC_STREAMING_TICKET_ENDPOINT = "/api/v1/clap/ticket/request/signalsocket"
+RTC_STREAMING_WEB_SOCKET_ENDPOINT = "wss://api.prod.signalling.ring.devices.a2z.com:443/ws?api_version=4.0&auth_type=ring_solutions&client_id=ring_site-{0}&token={1}"
+
 KIND_DING = "ding"
 KIND_MOTION = "motion"
 KIND_INTERCOM_UNLOCK = "intercom_unlock"
@@ -144,6 +149,9 @@ DOORBELL_EXISTING_TYPE = {0: "Mechanical", 1: "Digital", 2: "Not Present"}
 
 SIREN_DURATION_MIN = 0
 SIREN_DURATION_MAX = 120
+
+DOORBELL_EXISTING_DURATION_MIN = 0
+DOORBELL_EXISTING_DURATION_MAX = 10
 
 # device model kinds
 CHIME_KINDS = ["chime", "chime_v2"]
@@ -237,3 +245,14 @@ PERSIST_TOKEN_DATA = {
     "device[metadata][architecture]": "x86",
     "device[metadata][language]": "en",
 }
+
+ICE_SERVERS = [
+    "stun:stun.kinesisvideo.us-east-1.amazonaws.com:443",
+    "stun:stun.kinesisvideo.us-east-2.amazonaws.com:443",
+    "stun:stun.kinesisvideo.us-west-2.amazonaws.com:443",
+    "stun:stun.l.google.com:19302",
+    "stun:stun1.l.google.com:19302",
+    "stun:stun2.l.google.com:19302",
+    "stun:stun3.l.google.com:19302",
+    "stun:stun4.l.google.com:19302",
+]
