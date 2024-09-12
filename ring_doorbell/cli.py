@@ -27,7 +27,13 @@ from ring_doorbell import (
     RingEvent,
     RingGeneric,
 )
-from ring_doorbell.const import CLI_TOKEN_FILE, GCM_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
+from ring_doorbell.const import (
+    CLI_TOKEN_FILE,
+    GCM_TOKEN_FILE,
+    PACKAGE_NAME,
+    USER_AGENT,
+    DOORBELL_EXISTING_TYPE,
+)
 from ring_doorbell.listen import can_listen
 
 
@@ -40,9 +46,16 @@ def _bar() -> None:
     echo("---------------------------------")
 
 
+def error(msg: str):
+    """Print an error and exit."""
+    echo(msg)
+    sys.exit(1)
+
+
 click.anyio_backend = "asyncio"  # type: ignore[attr-defined]
 
 pass_ring = click.make_pass_decorator(Ring)
+pass_doorbell = click.make_pass_decorator(RingDoorBell)
 
 cache_file = Path(CLI_TOKEN_FILE)
 gcm_cache_file = Path(GCM_TOKEN_FILE)
@@ -58,6 +71,9 @@ def CatchAllExceptions(cls):
     def _handle_exception(debug, exc):
         if isinstance(exc, click.ClickException):
             raise
+        # Handle exit request from click.
+        if isinstance(exc, click.exceptions.Exit):
+            sys.exit(exc.exit_code)
         echo(f"Raised error: {exc}")
         if debug:
             raise
@@ -219,6 +235,11 @@ async def _get_ring(username, password, do_update_data, user_agent=USER_AGENT):
 @click.pass_context
 async def cli(ctx, username, password, debug, user_agent):
     """Command line function."""
+    # no need to perform any checks if we are just displaying the help
+    if "--help" in sys.argv:
+        # Context object is required to avoid crashing on sub-groups
+        ctx.obj = Ring(None)
+        return
     _header()
 
     logging.basicConfig()
@@ -653,82 +674,120 @@ async def videos(
     return None
 
 
-@cli.command()
+@cli.group(invoke_without_command=True)
 @pass_ring
 @click.pass_context
 @click.option(
     "--device-name",
     "-dn",
-    required=True,
+    required=False,
     default=None,
     help="Name of the ring device",
 )
-@click.option(
-    "--type",
-    "-t",
-    default=None,
-    required=False,
-    type=click.Choice(["Mechanical", "Digital", "Not Present"], case_sensitive=False),
-    help="Set the in-home chime type.",
-)
-@click.option(
-    "--enabled",
-    "-e",
-    default=None,
-    required=False,
-    type=click.Choice(["True", "False"], case_sensitive=False),
-    help="Enable or disable the in-home chime.",
-)
-@click.option(
-    "--duration",
-    "-d",
-    default=None,
-    required=False,
-    type=click.Choice([str(i) for i in range(11)]),
-    help="Set the in-home chime duration, in seconds.",
-)
-async def in_home_chime(ctx, ring: Ring, type, enabled, duration, device_name):
+async def in_home_chime(ctx, ring: Ring, device_name):
     """View and manage the Doorbell in-home chime. To see the current in-home chime status of a device, only pass the device name."""
-    device = ring.get_device_by_name(device_name)
+    if "--help" in sys.argv:
+        return
+    if not device_name:
+        found = len(ring.devices().doorbells)
+        if found == 1:
+            device = ring.devices().doorbells[0]
+        elif found == 0:
+            error("No doorbells found")
+        else:
+            error(
+                f"There are {found} doorbells, you need to pass the --device-name option."
+            )
+    elif dev := ring.get_device_by_name(device_name):
+        if dev.family in {"doorbots", "authorized_doorbots"} and isinstance(
+            dev, RingDoorBell
+        ):
+            device = dev
+        else:
+            error(
+                f"{device_name} is not a doorbell, no in-home chime settings available"
+            )
+    else:
+        error(f"Cannot find a doorbell with name {device_name}")
 
-    if not device:
-        echo(
-            f"No device with name {device_name} found."
-            + " List of found device names (kind) is:"
-        )
-        return await ctx.invoke(list_command)
-    if device.family != "doorbots":
-        echo(f"{device_name} is not a doorbell, no in-home chime settings available")
-        return None
-    if not type and not enabled and not duration:
+    if ctx.invoked_subcommand is None:
         echo("Name:       %s" % device.name)
         echo("ID:         %s" % device.id)
         echo("Type:       %s" % device.existing_doorbell_type)
         echo("Enabled:    %s" % device.existing_doorbell_type_enabled)
         echo("Duration:   %s" % device.existing_doorbell_type_duration)
         return None
-    if type:
-        if type and type.lower() == "mechanical":
-            await device.async_set_existing_doorbell_type(0)
-            echo(f"{device_name}'s in-home chime type has been set to {type}")
-        elif type and type.lower() == "digital":
-            await device.async_set_existing_doorbell_type(1)
-            echo(f"{device_name}'s in-home chime type has been set to {type}")
-        elif type and type.lower() == "not present":
-            await device.async_set_existing_doorbell_type(2)
-            echo(f"{device_name}'s in-home chime type has been set to {type}")
-    if enabled:
-        if enabled and enabled.lower() == "true":
-            await device.async_set_existing_doorbell_type_enabled(True)
-            echo(f"{device_name}'s in-home chime has been enabled")
-        elif enabled and enabled.lower() == "false":
-            await device.async_set_existing_doorbell_type_enabled(False)
-            echo(f"{device_name}'s in-home chime has been disabled")
-    if duration:
-        await device.async_set_existing_doorbell_type_duration(int(duration))
-        echo(
-            f"{device_name}'s in-home chime duration has been set to {duration} seconds"
+
+    ctx.obj = device
+
+
+@in_home_chime.command()
+@pass_doorbell
+@click.pass_context
+@click.argument(
+    "new_type",
+    type=click.Choice(list(DOORBELL_EXISTING_TYPE.values()), case_sensitive=False),
+    default=None,
+    required=False,
+)
+async def type(ctx, device: RingDoorBell, new_type):
+    """Get/set the type of In-home chime."""
+    if new_type is None:
+        echo(device.existing_doorbell_type)
+        return
+
+    if device.family == "authorized_doorbots":
+        exit(
+            f"{device.name} is a shared device and you do not have permission to update this value"
         )
+    new_type_int = next(k for k, v in DOORBELL_EXISTING_TYPE.items() if v == new_type)
+
+    await device.async_set_existing_doorbell_type(new_type_int)
+    echo(f"{device.name}'s in-home chime type has been set to {new_type}")
+
+
+@in_home_chime.command()
+@pass_doorbell
+@click.pass_context
+@click.argument("enable", type=click.BOOL, default=None, required=False)
+async def enabled(ctx, device: RingDoorBell, enable: bool | None):
+    """Gets/sets the in-home chime enabled status.
+
+    ENABLE: 1/0, true/false, t/f, yes/no, y/n, and on/off
+    """
+    if enable is None:
+        echo(device.existing_doorbell_type_enabled)
+        return
+
+    if device.family == "authorized_doorbots":
+        exit(
+            f"{device.name} is a shared device and you do not have permission to update this value"
+        )
+    await device.async_set_existing_doorbell_type_enabled(enable)
+    echo(
+        f"{device.name}'s in-home chime has been {'enabled' if enable else 'disabled'}"
+    )
+
+
+@in_home_chime.command()
+@pass_doorbell
+@click.pass_context
+@click.argument("duration", type=click.IntRange(0, 100), default=None, required=False)
+async def duration(ctx, device: RingDoorBell, duration: int | None):
+    """Gets/sets the in-home chime duration.
+
+    DURATION: Value between 0 and 100
+    """
+    if duration is None:
+        echo(device.existing_doorbell_type_duration)
+        return
+
+    if device.family == "authorized_doorbots":
+        exit(
+            f"{device.name} is a shared device and you do not have permission to update this value"
+        )
+    await device.async_set_existing_doorbell_type_duration(int(duration))
+    echo(f"{device.name}'s in-home chime duration has been set to {duration} seconds")
 
 
 async def ainput(string: str):
