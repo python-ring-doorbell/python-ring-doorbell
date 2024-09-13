@@ -657,23 +657,7 @@ async def ainput(string: str):
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, lambda s=string: sys.stdout.write(s + " "))  # type: ignore[misc]
 
-    def read_with_timeout(timeout):
-        if select.select(
-            [
-                sys.stdin,
-            ],
-            [],
-            [],
-            timeout,
-        )[0]:
-            # line = sys.stdin.next()
-            return sys.stdin.readline()
-        return None
-
-    line = None
-    while loop.is_running() and not line:
-        line = await loop.run_in_executor(None, functools.partial(read_with_timeout, 1))
-    return line
+    return await loop.run_in_executor(None, sys.stdin.readline)
 
 
 def get_now_str():
