@@ -64,7 +64,7 @@ class RingDoorBell(RingGeneric):
         """Initialise the doorbell."""
         super().__init__(ring, device_api_id)
         self.shared = shared
-        self._rtc_stream: RingWebRtcStream | None = None
+        self._rtc_streams: dict[str, RingWebRtcStream] = {}
 
     @property
     def family(self) -> str:
@@ -454,15 +454,19 @@ class RingDoorBell(RingGeneric):
 
     async def generate_rtc_stream(self, sdp_offer: str) -> str:
         """Generate the rtc stream."""
-        self._rtc_stream = RingWebRtcStream(self._ring, self.device_api_id)
-        return await self._rtc_stream.generate(sdp_offer)
+        if session_id := RingWebRtcStream.get_sdp_session_id(sdp_offer):
+            stream = RingWebRtcStream(self._ring, self.device_api_id)
+            sdp_answer = await stream.generate(sdp_offer)
+            self._rtc_streams[session_id] = stream
+            return sdp_answer
+        msg = "Unable to generate the stream"
+        raise RingError(msg)
 
-    async def close_rtc_stream(self) -> None:
+    async def close_rtc_stream(self, sdp_session_id: str) -> None:
         """Close the rtc stream."""
-        rtc_stream = self._rtc_stream
-        self._rtc_stream = None
-        if rtc_stream:
-            await rtc_stream.close()
+        stream = self._rtc_streams.pop(sdp_session_id, None)
+        if stream:
+            await stream.close()
 
     def get_ice_servers(self) -> list[str]:
         """Return the ICE servers."""
