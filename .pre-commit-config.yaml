@@ -36,7 +36,7 @@ repos:
   # for more accurate checking than using the pre-commit mypy mirror
   - id: mypy
     name: mypy
-    entry: uv run mypy --verbose
+    entry: uv run mypy
     language: system
     types_or: [python, pyi]
     require_serial: true

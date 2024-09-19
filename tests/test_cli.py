@@ -18,6 +18,7 @@ from ring_doorbell.cli import (
     list_command,
     listen,
     motion_detection,
+    open_door,
     show,
     videos,
 )
@@ -272,3 +273,55 @@ async def test_listen_event_handler(mocker, auth):
         "Currently active count = 1"
     )
     echomock.assert_called_with(exp)
+
+
+async def test_open_door(ring, aioresponses_mock, devices_fixture):
+    runner = CliRunner()
+
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Ingress"],
+        obj=ring,
+    )
+    assert res.exit_code == 0
+    assert res.output == "Ingress opened\n"
+
+
+async def test_get_device(ring, aioresponses_mock, devices_fixture):
+    runner = CliRunner()
+
+    # Get device by name
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Ingress"],
+        obj=ring,
+    )
+    assert res.exit_code == 0
+    assert res.output == "Ingress opened\n"
+
+    # Get device by single type
+    res = await runner.invoke(
+        open_door,
+        [],
+        obj=ring,
+    )
+    assert res.exit_code == 0
+    assert res.output == "Ingress opened\n"
+
+    # Get wrong device type
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Front"],
+        obj=ring,
+    )
+    assert res.exit_code == 1
+    assert "Front is not a intercoms" in res.output
+
+    # Wrong name
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Frontx"],
+        obj=ring,
+    )
+    assert res.exit_code == 1
+    assert "Cannot find intercoms or other with name Frontx" in res.output

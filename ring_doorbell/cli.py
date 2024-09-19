@@ -209,10 +209,13 @@ def _get_device(
     device_name: str | None = None,
 ) -> _T:
     if not device_name:
-        devs: list[RingGeneric] = []
+        dev_dict: dict[int, RingGeneric] = {}
+        devices = ring.devices()
         for device_family in device_families:
-            devs.extend(ring.devices()[device_family])
-        found = len(devs)
+            for dev in devices[device_family]:
+                dev_dict[dev.device_api_id] = dev
+        devs = list(dev_dict.values())
+        found = len(dev_dict)
         if found == 1:
             return cast(_T, devs[0])
         elif found == 0:
@@ -221,9 +224,9 @@ def _get_device(
             error(
                 f"There are {found} {' or '.join(device_families)}, you need to pass the --device-name option."
             )
-    elif dev := ring.get_device_by_name(device_name):
-        if dev.family in device_families and isinstance(dev, device_type):
-            return dev
+    elif device := ring.get_device_by_name(device_name):
+        if device.family in device_families and isinstance(device, device_type):
+            return device
         else:
             error(f"{device_name} is not a {' or '.join(device_families)}")
     else:
@@ -595,7 +598,7 @@ async def history_command(ctx, ring: Ring, device_name, kind, limit, json_flag):
     "-dn",
     default=None,
     required=False,
-    help="Name of the ring device, if ommited uses the first device returned",
+    help="Name of the ring device, if omitted uses the first device returned",
 )
 @pass_ring
 @click.pass_context
@@ -800,8 +803,9 @@ async def listen(
 @click.pass_context
 async def open_door(ctx, ring: Ring, device_name: str | None) -> None:
     """Open the door of a intercom device."""
-    device = _get_device(ring, ["intercoms"], RingOther, device_name)
+    device = _get_device(ring, ["intercoms", "other"], RingOther, device_name)
     await device.async_open_door()
+    echo(f"{device.name} opened")
 
 
 if __name__ == "__main__":
