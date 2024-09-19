@@ -15,6 +15,7 @@ from ring_doorbell.cli import (
     _event_handler,
     cli,
     devices_command,
+    in_home_chime,
     list_command,
     listen,
     motion_detection,
@@ -275,6 +276,82 @@ async def test_listen_event_handler(mocker, auth):
     echomock.assert_called_with(exp)
 
 
+async def test_in_home_chime(ring, aioresponses_mock, devices_fixture):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Gets in-home chime details for a doorbell
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front Door"],
+            obj=ring,
+        )
+        expected_show = (
+            "Name:       Front Door\n"
+            "ID:         987652\n"
+            "Type:       Mechanical\n"
+            "Enabled:    True\n"
+            "Duration:   None\n"
+        )
+        expected = expected_show
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Turns off the in-home chime
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front Door", "enabled", "False"],
+            obj=ring,
+        )
+        expected = "Front Door's in-home chime has been disabled"
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Turns on the in-home chime and sets type to Mechanical
+        res = await runner.invoke(
+            in_home_chime,
+            [
+                "--device-name",
+                "Front Door",
+                "type",
+                "mechanical",
+            ],
+            obj=ring,
+        )
+        expected = "Front Door's in-home chime type has been set to Mechanical\n"
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Sets type to Digital and changes the duration
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front Door", "duration", "5"],
+            obj=ring,
+        )
+        expected = "Front Door's in-home chime duration has been set to 5 seconds\n"
+        assert res.exit_code == 0
+        assert expected in res.output
+
+        # Runs in-home-chime against a device that doesn't have an in-home chime
+        res = await runner.invoke(
+            in_home_chime,
+            ["--device-name", "Front"],
+            obj=ring,
+        )
+        expected = "Front is not a doorbell"
+        assert res.exit_code == 1
+        assert expected in res.output
+
+        # Runs in-home-chime with no parameters and error as more than one doorbot.
+        res = await runner.invoke(
+            in_home_chime,
+            [],
+            obj=ring,
+        )
+        expected = "There are 2 doorbells, you need to pass the --device-name option"
+        assert res.exit_code == 1
+        assert expected in res.output
+
+
 async def test_open_door(ring, aioresponses_mock, devices_fixture):
     runner = CliRunner()
 
@@ -315,7 +392,7 @@ async def test_get_device(ring, aioresponses_mock, devices_fixture):
         obj=ring,
     )
     assert res.exit_code == 1
-    assert "Front is not a intercoms" in res.output
+    assert "Front is not a intercom" in res.output
 
     # Wrong name
     res = await runner.invoke(
@@ -324,4 +401,4 @@ async def test_get_device(ring, aioresponses_mock, devices_fixture):
         obj=ring,
     )
     assert res.exit_code == 1
-    assert "Cannot find intercoms or other with name Frontx" in res.output
+    assert "Cannot find intercom with name Frontx" in res.output
