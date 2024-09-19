@@ -14,7 +14,7 @@ import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path, PurePath
-from typing import Sequence, cast
+from typing import Sequence, cast, TypeVar, NoReturn
 
 import asyncclick as click
 
@@ -26,6 +26,7 @@ from ring_doorbell import (
     RingDoorBell,
     RingEvent,
     RingGeneric,
+    RingOther,
 )
 from ring_doorbell.const import CLI_TOKEN_FILE, GCM_TOKEN_FILE, PACKAGE_NAME, USER_AGENT
 from ring_doorbell.listen import can_listen
@@ -58,6 +59,9 @@ def CatchAllExceptions(cls):
     def _handle_exception(debug, exc):
         if isinstance(exc, click.ClickException):
             raise
+        # Handle exit request from click.
+        if isinstance(exc, click.exceptions.Exit):
+            sys.exit(exc.exit_code)
         echo(f"Raised error: {exc}")
         if debug:
             raise
@@ -117,6 +121,12 @@ class MutuallyExclusiveOption(click.Option):
 
 
 echo = click.echo
+
+
+def error(msg: str) -> NoReturn:
+    """Print an error and exit."""
+    echo(msg)
+    sys.exit(1)
 
 
 def token_updated(token) -> None:
@@ -187,6 +197,40 @@ async def _get_ring(username, password, do_update_data, user_agent=USER_AGENT):
         await do_method()
 
     return ring
+
+
+_T = TypeVar("_T")
+
+
+def _get_device(
+    ring: Ring,
+    device_families: list[str],
+    device_type: type[_T],
+    device_name: str | None = None,
+) -> _T:
+    if not device_name:
+        dev_dict: dict[int, RingGeneric] = {}
+        devices = ring.devices()
+        for device_family in device_families:
+            for dev in devices[device_family]:
+                dev_dict[dev.device_api_id] = dev
+        devs = list(dev_dict.values())
+        found = len(dev_dict)
+        if found == 1:
+            return cast(_T, devs[0])
+        elif found == 0:
+            error(f"No {' or '.join(device_families)} found")
+        else:
+            error(
+                f"There are {found} {' or '.join(device_families)}, you need to pass the --device-name option."
+            )
+    elif device := ring.get_device_by_name(device_name):
+        if device.family in device_families and isinstance(device, device_type):
+            return device
+        else:
+            error(f"{device_name} is not a {' or '.join(device_families)}")
+    else:
+        error(f"Cannot find {' or '.join(device_families)} with name {device_name}")
 
 
 @click.group(
@@ -554,7 +598,7 @@ async def history_command(ctx, ring: Ring, device_name, kind, limit, json_flag):
     "-dn",
     default=None,
     required=False,
-    help="Name of the ring device, if ommited uses the first device returned",
+    help="Name of the ring device, if omitted uses the first device returned",
 )
 @pass_ring
 @click.pass_context
@@ -746,6 +790,22 @@ async def listen(
     await ainput("Listening, press enter to cancel\n")
 
     await event_listener.stop()
+
+
+@cli.command
+@click.option(
+    "--device-name",
+    required=False,
+    default=None,
+    help=("Name of the intercom if there are more than one."),
+)
+@pass_ring
+@click.pass_context
+async def open_door(ctx, ring: Ring, device_name: str | None) -> None:
+    """Open the door of a intercom device."""
+    device = _get_device(ring, ["intercoms", "other"], RingOther, device_name)
+    await device.async_open_door()
+    echo(f"{device.name} opened")
 
 
 if __name__ == "__main__":
