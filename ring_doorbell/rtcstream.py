@@ -15,6 +15,7 @@ from json import dumps as json_dumps
 from json import loads as json_loads
 from typing import TYPE_CHECKING, Any
 
+from async_timeout import timeout as asyncio_timeout
 from websockets.client import connect
 
 from ring_doorbell.const import (
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-ICE_CANDIDATE_COLLECTION_SECONDS = 1
+SDP_ANSWER_TIMEOUT = 1
 
 
 class RingWebRtcStream:
@@ -43,18 +44,30 @@ class RingWebRtcStream:
         self.device_api_id = device_api_id
         self.sdp: str | None = None
         self.websocket: WebSocketClientProtocol | None = None
-        self.do_ping = False
+        self.do_ping = True
         self.ping_task: asyncio.Task | None = None
         self.read_task: asyncio.Task | None = None
         self.ice_candidates: dict[int, list[str]] = {0: [], 1: [], 2: [], 3: []}
         self.collect_ice_candidates = False
         self.ssl_context: ssl.SSLContext | None = None
+        self._sdp_answer_event = asyncio.Event()
+
+    @staticmethod
+    def get_sdp_session_id(sdp_offer: str) -> str | None:
+        """Return the sdp session id from the offer."""
+        try:
+            lines = sdp_offer.split("\n")
+            for line in lines:
+                if line[0] == "o":
+                    origin = line.split("=")[1]
+                    break
+            return origin.split(" ")[1]
+        except Exception:
+            _LOGGER.exception("Error getting session id from offer: %s", sdp_offer)
+            return None
 
     async def generate(self, sdp_offer: str) -> str:
         """Generate the RTC stream."""
-        self.collect_ice_candidates = True
-        self.do_ping = True
-
         try:
             _LOGGER.debug("Generating stream with sdp offer: %s", sdp_offer)
             req = await self._ring.async_query(
@@ -65,7 +78,8 @@ class RingWebRtcStream:
             ticket = req.json()["ticket"]
 
             _LOGGER.debug(
-                "Received RTC streaming ticket from endpoint, creating websocket"
+                "Received RTC streaming ticket %s from endpoint, creating websocket",
+                ticket,
             )
             ws_uri = RTC_STREAMING_WEB_SOCKET_ENDPOINT.format(uuid.uuid4(), ticket)
             loop = asyncio.get_running_loop()
@@ -125,18 +139,23 @@ class RingWebRtcStream:
             self.ping_task = asyncio.create_task(self.pinger())
             self.read_task = asyncio.create_task(self.reader())
 
-            _LOGGER.debug(
-                "Waiting %s seconds for ice candidates",
-                ICE_CANDIDATE_COLLECTION_SECONDS,
-            )
-            await asyncio.sleep(ICE_CANDIDATE_COLLECTION_SECONDS)
-            self.insert_ice_candidates()
+            if self.collect_ice_candidates:
+                _LOGGER.debug(
+                    "Waiting %s seconds for ice candidates",
+                    SDP_ANSWER_TIMEOUT,
+                )
+                await asyncio.sleep(SDP_ANSWER_TIMEOUT)
+                self.insert_ice_candidates()
+            else:
+                async with asyncio_timeout(SDP_ANSWER_TIMEOUT):
+                    await self._sdp_answer_event.wait()
         except Exception as ex:
             exmsg = "Error generating RTC stream"
             raise RingError(exmsg, ex) from ex
 
         if not self.sdp:
             exmsg = "Unable to generate RTC stream in time"
+            await self.close()
             raise RingError(exmsg)
         _LOGGER.debug("Returning SDP answer: %s", self.sdp)
         return self.sdp
@@ -232,6 +251,7 @@ class RingWebRtcStream:
             sdp = message["body"]["sdp"]
             self.sdp = sdp
             _LOGGER.debug("SDP answer received: %s", sdp)
+            self._sdp_answer_event.set()
         elif method == "notification":
             text = message["body"]["text"]
             _LOGGER.debug("Notification received: %s", text)
@@ -241,6 +261,8 @@ class RingWebRtcStream:
                 )
                 _LOGGER.debug("Sending camera options: %s", camera_options)
                 await self.websocket.send(json_dumps(camera_options))
+            else:
+                _LOGGER.debug("Received notification: %s", message)
         elif method == "session_created":
             self.session_id = message["body"]["session_id"]
             _LOGGER.debug(

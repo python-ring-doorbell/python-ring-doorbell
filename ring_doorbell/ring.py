@@ -44,6 +44,7 @@ class Ring:
         self.session = None
         self.subscription = None
         self.devices_data: dict[str, dict[int, dict[str, Any]]] = {}
+        self._devices: RingDevices | None = None
         self.chime_health_data = None
         self.doorbell_health_data = None
         self.dings_data: dict[Any, Any] = {}
@@ -183,7 +184,9 @@ class Ring:
 
     def devices(self) -> RingDevices:
         """Get all devices."""
-        return RingDevices(self, self.devices_data)
+        if not self._devices:
+            self._devices = RingDevices(self, self.devices_data)
+        return self._devices
 
     def get_device_list(self) -> Sequence[RingGeneric]:
         """Get a combined list of all devices."""
