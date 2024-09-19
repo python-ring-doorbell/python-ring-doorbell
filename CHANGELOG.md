@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.9.5](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.5) (2024-09-19)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.4...0.9.5)
+
+**Release highlights:**
+
+- New CLI commands
+- Enhancement to the experimental WebRTC stream feature
+
+**Implemented enhancements:**
+
+- Enable multiple webrtc sessions per device [\#440](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/440) (@sdb9696)
+- Add cli command to open door on intercom [\#438](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/438) (@sdb9696)
+- Add in-home chime support to CLI [\#427](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/427) (@briangoldstein)
+
+**Fixed bugs:**
+
+- Fix max. volume of Ring Chime device. [\#439](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/439) (@daniel-k)
+- Fix cli listen command on windows [\#437](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/437) (@sdb9696)
+
+**Project maintenance:**
+
+- Fix testpypi publish workflow to skip duplicates [\#441](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/441) (@sdb9696)
+- Tweak the CI to use variables for project names [\#435](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/435) (@sdb9696)
+- Fix publish workflow action [\#434](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/434) (@sdb9696)
+- Upgrade artifact upload/download github actions [\#433](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/433) (@sdb9696)
+
+**Closed issues:**
+
+- pyproject include = \["LICENSE", "CONTRIBUTING.rst"...\] [\#324](https://github.com/python-ring-doorbell/python-ring-doorbell/issues/324)
+
 ## [0.9.4](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.4) (2024-09-05)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.3...0.9.4)
