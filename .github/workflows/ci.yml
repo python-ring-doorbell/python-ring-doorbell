@@ -95,7 +95,7 @@ jobs:
           file: coverage.xml
           debug: true
           parallel: true
-        if: ${{ success() && matrix.python-version == '3.12' }}
+        if: ${{ success() && matrix.python-version == '3.12' && matrix.extras == true }}
 
   finish:
     name: Finish coverage build
