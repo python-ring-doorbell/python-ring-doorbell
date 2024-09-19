@@ -14,7 +14,7 @@ import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path, PurePath
-from typing import Sequence, cast
+from typing import Sequence, cast, TypeVar, NoReturn
 
 import asyncclick as click
 
@@ -26,6 +26,7 @@ from ring_doorbell import (
     RingDoorBell,
     RingEvent,
     RingGeneric,
+    RingOther,
 )
 from ring_doorbell.const import (
     CLI_TOKEN_FILE,
@@ -46,7 +47,7 @@ def _bar() -> None:
     echo("---------------------------------")
 
 
-def error(msg: str):
+def error(msg: str) -> NoReturn:
     """Print an error and exit."""
     echo(msg)
     sys.exit(1)
@@ -203,6 +204,45 @@ async def _get_ring(username, password, do_update_data, user_agent=USER_AGENT):
         await do_method()
 
     return ring
+
+
+_T = TypeVar("_T")
+
+
+def _get_device(
+    ring: Ring,
+    device_families: list[str],
+    device_type: type[_T],
+    device_name: str | None = None,
+    *,
+    device_description: str | None = None,
+) -> _T:
+    description = (
+        device_description if device_description else " or ".join(device_families)
+    )
+    if not device_name:
+        dev_dict: dict[int, RingGeneric] = {}
+        devices = ring.devices()
+        for device_family in device_families:
+            for dev in devices[device_family]:
+                dev_dict[dev.device_api_id] = dev
+        devs = list(dev_dict.values())
+        found = len(dev_dict)
+        if found == 1:
+            return cast(_T, devs[0])
+        elif found == 0:
+            error(f"No {description} found")
+        else:
+            error(
+                f"There are {found} {description}s, you need to pass the --device-name option."
+            )
+    elif device := ring.get_device_by_name(device_name):
+        if device.family in device_families and isinstance(device, device_type):
+            return device
+        else:
+            error(f"{device_name} is not a {description}")
+    else:
+        error(f"Cannot find {description} with name {device_name}")
 
 
 @click.group(
@@ -575,7 +615,7 @@ async def history_command(ctx, ring: Ring, device_name, kind, limit, json_flag):
     "-dn",
     default=None,
     required=False,
-    help="Name of the ring device, if ommited uses the first device returned",
+    help="Name of the ring device, if omitted uses the first device returned",
 )
 @pass_ring
 @click.pass_context
@@ -688,27 +728,13 @@ async def in_home_chime(ctx, ring: Ring, device_name):
     """View and manage the Doorbell in-home chime. To see the current in-home chime status of a device, only pass the device name."""
     if "--help" in sys.argv:
         return
-    if not device_name:
-        found = len(ring.devices().doorbells)
-        if found == 1:
-            device = ring.devices().doorbells[0]
-        elif found == 0:
-            error("No doorbells found")
-        else:
-            error(
-                f"There are {found} doorbells, you need to pass the --device-name option."
-            )
-    elif dev := ring.get_device_by_name(device_name):
-        if dev.family in {"doorbots", "authorized_doorbots"} and isinstance(
-            dev, RingDoorBell
-        ):
-            device = dev
-        else:
-            error(
-                f"{device_name} is not a doorbell, no in-home chime settings available"
-            )
-    else:
-        error(f"Cannot find a doorbell with name {device_name}")
+    device = _get_device(
+        ring,
+        ["authorized_doorbots", "doorbots"],
+        RingDoorBell,
+        device_name,
+        device_description="doorbell",
+    )
 
     if ctx.invoked_subcommand is None:
         echo("Name:       %s" % device.name)
@@ -721,7 +747,7 @@ async def in_home_chime(ctx, ring: Ring, device_name):
     ctx.obj = device
 
 
-@in_home_chime.command()
+@in_home_chime.command(name="type")
 @pass_doorbell
 @click.pass_context
 @click.argument(
@@ -730,7 +756,7 @@ async def in_home_chime(ctx, ring: Ring, device_name):
     default=None,
     required=False,
 )
-async def type(ctx, device: RingDoorBell, new_type):
+async def in_home_chime_type(ctx, device: RingDoorBell, new_type):
     """Get/set the type of In-home chime."""
     if new_type is None:
         echo(device.existing_doorbell_type)
@@ -794,23 +820,7 @@ async def ainput(string: str):
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, lambda s=string: sys.stdout.write(s + " "))  # type: ignore[misc]
 
-    def read_with_timeout(timeout):
-        if select.select(
-            [
-                sys.stdin,
-            ],
-            [],
-            [],
-            timeout,
-        )[0]:
-            # line = sys.stdin.next()
-            return sys.stdin.readline()
-        return None
-
-    line = None
-    while loop.is_running() and not line:
-        line = await loop.run_in_executor(None, functools.partial(read_with_timeout, 1))
-    return line
+    return await loop.run_in_executor(None, sys.stdin.readline)
 
 
 def get_now_str():
@@ -899,6 +909,28 @@ async def listen(
     await ainput("Listening, press enter to cancel\n")
 
     await event_listener.stop()
+
+
+@cli.command
+@click.option(
+    "--device-name",
+    required=False,
+    default=None,
+    help=("Name of the intercom if there are more than one."),
+)
+@pass_ring
+@click.pass_context
+async def open_door(ctx, ring: Ring, device_name: str | None) -> None:
+    """Open the door of a intercom device."""
+    device = _get_device(
+        ring,
+        ["intercoms", "other"],
+        RingOther,
+        device_name,
+        device_description="intercom",
+    )
+    await device.async_open_door()
+    echo(f"{device.name} opened")
 
 
 if __name__ == "__main__":

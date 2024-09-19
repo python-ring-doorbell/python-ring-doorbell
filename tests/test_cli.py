@@ -19,6 +19,7 @@ from ring_doorbell.cli import (
     list_command,
     listen,
     motion_detection,
+    open_door,
     show,
     videos,
 )
@@ -336,7 +337,7 @@ async def test_in_home_chime(ring, aioresponses_mock, devices_fixture):
             ["--device-name", "Front"],
             obj=ring,
         )
-        expected = "Front is not a doorbell, no in-home chime settings available"
+        expected = "Front is not a doorbell"
         assert res.exit_code == 1
         assert expected in res.output
 
@@ -349,3 +350,55 @@ async def test_in_home_chime(ring, aioresponses_mock, devices_fixture):
         expected = "There are 2 doorbells, you need to pass the --device-name option"
         assert res.exit_code == 1
         assert expected in res.output
+
+
+async def test_open_door(ring, aioresponses_mock, devices_fixture):
+    runner = CliRunner()
+
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Ingress"],
+        obj=ring,
+    )
+    assert res.exit_code == 0
+    assert res.output == "Ingress opened\n"
+
+
+async def test_get_device(ring, aioresponses_mock, devices_fixture):
+    runner = CliRunner()
+
+    # Get device by name
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Ingress"],
+        obj=ring,
+    )
+    assert res.exit_code == 0
+    assert res.output == "Ingress opened\n"
+
+    # Get device by single type
+    res = await runner.invoke(
+        open_door,
+        [],
+        obj=ring,
+    )
+    assert res.exit_code == 0
+    assert res.output == "Ingress opened\n"
+
+    # Get wrong device type
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Front"],
+        obj=ring,
+    )
+    assert res.exit_code == 1
+    assert "Front is not a intercom" in res.output
+
+    # Wrong name
+    res = await runner.invoke(
+        open_door,
+        ["--device-name", "Frontx"],
+        obj=ring,
+    )
+    assert res.exit_code == 1
+    assert "Cannot find intercom with name Frontx" in res.output

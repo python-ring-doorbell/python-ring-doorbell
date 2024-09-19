@@ -355,6 +355,8 @@ class RingDevices:
             return self._authorized_doorbots
         if device_type == "other":
             return self._other
+        if device_type == "intercoms":
+            return self._other
         msg = f"Invalid device_type {device_type}"
         raise RingError(msg)
 
