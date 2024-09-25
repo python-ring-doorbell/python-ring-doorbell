@@ -24,7 +24,6 @@ from ring_doorbell.cli import (
     videos,
 )
 from ring_doorbell.const import GCM_TOKEN_FILE
-from ring_doorbell.listen import can_listen
 
 from tests.conftest import (
     load_alert_v1,
@@ -207,9 +206,6 @@ async def test_motion_detection(ring, aioresponses_mock, devices_fixture):
         assert expected in res.output
 
 
-@pytest.mark.skipif(
-    can_listen is False, reason="requires the extra [listen] to be installed"
-)
 @pytest.mark.nolistenmock
 async def test_listen_store_credentials(mocker, auth):
     runner = CliRunner()
@@ -247,9 +243,6 @@ async def test_listen_store_credentials(mocker, auth):
         assert firebase_messaging.FcmPushClient.start.call_count == 2
 
 
-@pytest.mark.skipif(
-    can_listen is False, reason="requires the extra [listen] to be installed"
-)
 async def test_listen_event_handler(mocker, auth):
     from ring_doorbell.listen import RingEventListener
 

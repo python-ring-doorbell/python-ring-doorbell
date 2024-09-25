@@ -17,6 +17,7 @@ from ring_doorbell.exceptions import (
 )
 from ring_doorbell.generic import RingGeneric
 from ring_doorbell.group import RingLightGroup
+from ring_doorbell.listen import RingEventListener, RingEventListenerConfig
 from ring_doorbell.other import RingOther
 from ring_doorbell.ring import Ring, RingDevices
 from ring_doorbell.stickup_cam import RingStickUpCam
@@ -33,6 +34,8 @@ __all__ = [
     "RingDoorBell",
     "RingOther",
     "RingEvent",
+    "RingEventListener",
+    "RingEventListenerConfig",
     "RingError",
     "AuthenticationError",
     "Requires2FAError",

@@ -35,7 +35,6 @@ from ring_doorbell.const import (
     USER_AGENT,
     DOORBELL_EXISTING_TYPE,
 )
-from ring_doorbell.listen import can_listen
 
 
 def _header() -> None:
@@ -286,9 +285,9 @@ async def cli(ctx, username, password, debug, user_agent):
     log_level = logging.DEBUG if debug else logging.INFO
     logger = logging.getLogger(PACKAGE_NAME)
     logger.setLevel(log_level)
-    if can_listen:
-        logger = logging.getLogger("firebase_messaging")
-        logger.setLevel(log_level)
+
+    logger = logging.getLogger("firebase_messaging")
+    logger.setLevel(log_level)
 
     no_update_commands = ["listen"]
     no_update = ctx.invoked_subcommand in no_update_commands
@@ -873,10 +872,6 @@ async def listen(
     show_credentials,
 ) -> None:
     """Listen to push notification like the ones sent to your phone."""
-    if not can_listen:
-        echo("Ring is not configured for listening to notifications!")
-        echo("pip install ring_doorbell[listen]")
-        return
 
     from ring_doorbell.listen import (  # pylint:disable=import-outside-toplevel
         RingEventListener,

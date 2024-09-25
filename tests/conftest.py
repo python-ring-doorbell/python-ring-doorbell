@@ -12,7 +12,6 @@ import pytest
 from aioresponses import CallbackResult, aioresponses
 from ring_doorbell import Auth, Ring
 from ring_doorbell.const import USER_AGENT
-from ring_doorbell.listen import can_listen
 
 
 # The kwargs below are useful for request assertions
@@ -130,7 +129,7 @@ def load_alert_v2(
 
 @pytest.fixture(autouse=True)
 def _listen_mock(mocker, request) -> None:
-    if not can_listen or "nolistenmock" in request.keywords:
+    if "nolistenmock" in request.keywords:
         return
 
     mocker.patch(
