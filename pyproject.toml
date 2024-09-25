@@ -15,7 +15,7 @@ dependencies = [
     "typing-extensions>=4.12.2,<5.0",
     "async-timeout>=3.0.0",
     "websockets>=11.0.1",
-    "firebase-messaging>=0.4.2",
+    "firebase-messaging>=0.4.0",
 ]
 
 keywords = [
