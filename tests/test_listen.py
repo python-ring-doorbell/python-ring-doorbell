@@ -7,17 +7,9 @@ import pytest
 from freezegun.api import FrozenDateTimeFactory
 from ring_doorbell import Ring
 from ring_doorbell.exceptions import RingError
-from ring_doorbell.listen import can_listen
+from ring_doorbell.listen import RingEventListener
 
 from tests.conftest import load_alert_v1, load_alert_v2, load_fixture
-
-# test_module.py
-pytestmark = pytest.mark.skipif(
-    can_listen is False, reason=("requires the extra [listen] to be installed")
-)
-
-if can_listen:
-    from ring_doorbell.listen import RingEventListener
 
 
 async def test_listen(auth, mocker):

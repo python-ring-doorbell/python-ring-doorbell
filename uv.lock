@@ -513,7 +513,7 @@ wheels = [
 
 [[package]]
 name = "firebase-messaging"
-version = "0.4.1"
+version = "0.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -521,9 +521,9 @@ dependencies = [
     { name = "http-ece" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9c/2b/b823d8404261ac8f7fd8f93cacac30e747eaa45bfb1c605a7bc116dbe6bc/firebase_messaging-0.4.1.tar.gz", hash = "sha256:f8eff17e424a075540a5e91d3097642aba43d860398f1d09767b7ec8c479b274", size = 39049 }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/74/06cea58399a228d878744ad1006fe0b8c16c181a699adb25e8392acb2890/firebase_messaging-0.4.2.tar.gz", hash = "sha256:b094277054d1294ffa5aa290acd195adbe391c2a48809f6247d3aa9002ae3028", size = 35877 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/74/a1e94700348d6eaa78507eca2b881afe49cf1a72fb72a5ec69cde9bf55c6/firebase_messaging-0.4.1-py3-none-any.whl", hash = "sha256:4346a7b1b9cf2c67ce531c5225605777c9355ac19bd11f5f0b7d6008f4f74542", size = 40139 },
+    { url = "https://files.pythonhosted.org/packages/94/dd/33f527ff3a300313188ad25d1688e34f9638bbd46a878f8dee7b507281cf/firebase_messaging-0.4.2-py3-none-any.whl", hash = "sha256:785b44aa883402bd3dea4537cb9f0784732d89ec1a086a6e628f6114e9b1182b", size = 33875 },
 ]
 
 [[package]]
@@ -976,18 +976,18 @@ wheels = [
 
 [[package]]
 name = "protobuf"
-version = "4.25.5"
+version = "5.28.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/67/dd/48d5fdb68ec74d70fabcc252e434492e56f70944d9f17b6a15e3746d2295/protobuf-4.25.5.tar.gz", hash = "sha256:7f8249476b4a9473645db7f8ab42b02fe1488cbe5fb72fddd445e0665afd8584", size = 380315 }
+sdist = { url = "https://files.pythonhosted.org/packages/b1/a4/4579a61de526e19005ceeb93e478b61d77aa38c8a85ad958ff16a9906549/protobuf-5.28.2.tar.gz", hash = "sha256:59379674ff119717404f7454647913787034f03fe7049cbef1d74a97bb4593f0", size = 422494 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/00/35/1b3c5a5e6107859c4ca902f4fbb762e48599b78129a05d20684fef4a4d04/protobuf-4.25.5-cp310-abi3-win32.whl", hash = "sha256:5e61fd921603f58d2f5acb2806a929b4675f8874ff5f330b7d6f7e2e784bbcd8", size = 392457 },
-    { url = "https://files.pythonhosted.org/packages/a7/ad/bf3f358e90b7e70bf7fb520702cb15307ef268262292d3bdb16ad8ebc815/protobuf-4.25.5-cp310-abi3-win_amd64.whl", hash = "sha256:4be0571adcbe712b282a330c6e89eae24281344429ae95c6d85e79e84780f5ea", size = 413449 },
-    { url = "https://files.pythonhosted.org/packages/51/49/d110f0a43beb365758a252203c43eaaad169fe7749da918869a8c991f726/protobuf-4.25.5-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:b2fde3d805354df675ea4c7c6338c1aecd254dfc9925e88c6d31a2bcb97eb173", size = 394248 },
-    { url = "https://files.pythonhosted.org/packages/c6/ab/0f384ca0bc6054b1a7b6009000ab75d28a5506e4459378b81280ae7fd358/protobuf-4.25.5-cp37-abi3-manylinux2014_aarch64.whl", hash = "sha256:919ad92d9b0310070f8356c24b855c98df2b8bd207ebc1c0c6fcc9ab1e007f3d", size = 293717 },
-    { url = "https://files.pythonhosted.org/packages/05/a6/094a2640be576d760baa34c902dcb8199d89bce9ed7dd7a6af74dcbbd62d/protobuf-4.25.5-cp37-abi3-manylinux2014_x86_64.whl", hash = "sha256:fe14e16c22be926d3abfcb500e60cab068baf10b542b8c858fa27e098123e331", size = 294635 },
-    { url = "https://files.pythonhosted.org/packages/6a/1e/73a7f7a6c21dcca8ba0ca90d5404a5011c388dd87e2ea1a9f11ea6b61ec0/protobuf-4.25.5-cp39-cp39-win32.whl", hash = "sha256:abe32aad8561aa7cc94fc7ba4fdef646e576983edb94a73381b03c53728a626f", size = 392501 },
-    { url = "https://files.pythonhosted.org/packages/26/1b/a6c17bb22bdda781ebf058fb88c3727f69bed9f7913c0c5835caf6bc09f5/protobuf-4.25.5-cp39-cp39-win_amd64.whl", hash = "sha256:7a183f592dc80aa7c8da7ad9e55091c4ffc9497b3054452d629bb85fa27c2a45", size = 413396 },
-    { url = "https://files.pythonhosted.org/packages/33/90/f198a61df8381fb43ae0fe81b3d2718e8dcc51ae8502c7657ab9381fbc4f/protobuf-4.25.5-py3-none-any.whl", hash = "sha256:0aebecb809cae990f8129ada5ca273d9d670b76d9bfc9b1809f0a9c02b7dbf41", size = 156467 },
+    { url = "https://files.pythonhosted.org/packages/e9/30/231764750e0987755b7b8d66771f161e5f002e165d27b72154c776dbabf7/protobuf-5.28.2-cp310-abi3-win32.whl", hash = "sha256:eeea10f3dc0ac7e6b4933d32db20662902b4ab81bf28df12218aa389e9c2102d", size = 419662 },
+    { url = "https://files.pythonhosted.org/packages/7d/46/3fdf7462160135aee6a530f1ec66665b5b4132fa2e1002ab971bc6ec2589/protobuf-5.28.2-cp310-abi3-win_amd64.whl", hash = "sha256:2c69461a7fcc8e24be697624c09a839976d82ae75062b11a0972e41fd2cd9132", size = 431479 },
+    { url = "https://files.pythonhosted.org/packages/37/45/d2a760580f8f2ed2825ba44cb370e0a4011ddef85e728f46ea3dd565a8a5/protobuf-5.28.2-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:a8b9403fc70764b08d2f593ce44f1d2920c5077bf7d311fefec999f8c40f78b7", size = 414736 },
+    { url = "https://files.pythonhosted.org/packages/e6/23/ed718dc18e6a561445ece1e7a17d2dda0c634ad9cf663102b47f10005d8f/protobuf-5.28.2-cp38-abi3-manylinux2014_aarch64.whl", hash = "sha256:35cfcb15f213449af7ff6198d6eb5f739c37d7e4f1c09b5d0641babf2cc0c68f", size = 316518 },
+    { url = "https://files.pythonhosted.org/packages/23/08/a1ce0415a115c2b703bfa798f06f0e43ca91dbe29d6180bf86a9287b15e2/protobuf-5.28.2-cp38-abi3-manylinux2014_x86_64.whl", hash = "sha256:5e8a95246d581eef20471b5d5ba010d55f66740942b95ba9b872d918c459452f", size = 316605 },
+    { url = "https://files.pythonhosted.org/packages/2d/27/d10aaae326ffd446893d4d1ef18e22c4ece87eb4273ee560ce4e616f0959/protobuf-5.28.2-cp39-cp39-win32.whl", hash = "sha256:ca53faf29896c526863366a52a8f4d88e69cd04ec9571ed6082fa117fac3ab36", size = 419587 },
+    { url = "https://files.pythonhosted.org/packages/94/12/af94b0654fa6bde64272b2abab39b221544c32e9e911284745569f65e73a/protobuf-5.28.2-cp39-cp39-win_amd64.whl", hash = "sha256:8ddc60bf374785fb7cb12510b267f59067fa10087325b8e1855b898a0d81d276", size = 431552 },
+    { url = "https://files.pythonhosted.org/packages/9b/55/f24e3b801d2e108c48aa2b1b59bb791b5cffba89465cbbf66fc98de89270/protobuf-5.28.2-py3-none-any.whl", hash = "sha256:52235802093bd8a2811abbe8bf0ab9c5f54cca0a751fdd3f6ac2a21438bffece", size = 169566 },
 ]
 
 [[package]]
@@ -1197,6 +1197,7 @@ dependencies = [
     { name = "aiohttp" },
     { name = "async-timeout" },
     { name = "asyncclick" },
+    { name = "firebase-messaging" },
     { name = "oauthlib" },
     { name = "pytz" },
     { name = "typing-extensions" },
@@ -1208,9 +1209,6 @@ docs = [
     { name = "myst-parser" },
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
-]
-listen = [
-    { name = "firebase-messaging" },
 ]
 
 [package.dev-dependencies]
@@ -1238,7 +1236,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3" },
     { name = "async-timeout", specifier = ">=3.0.0" },
     { name = "asyncclick", specifier = ">=8.1.7.1" },
-    { name = "firebase-messaging", marker = "extra == 'listen'", specifier = "~=0.4" },
+    { name = "firebase-messaging", specifier = ">=0.4.2" },
     { name = "myst-parser", marker = "extra == 'docs'" },
     { name = "oauthlib", specifier = ">=3.0.0,<4" },
     { name = "pytz", specifier = ">=2022.0" },

@@ -44,16 +44,6 @@ Installation
     $ pip install \
         git+https://github.com/python-ring-doorbell/python-ring-doorbell@master
 
-Event Listener
-++++++++++++++
-
-If you want the ring api to listen for push events from ring.com for dings and motion you
-will need to install with the `listen` extra::
-
-    $ pip install ring_doorbell[listen]
-
-The api will then start listening for push events after you have first called `update_dings()`
-or `update_data()` but only if there is a running `asyncio <https://docs.python.org/3/library/asyncio.html>`_ event loop (which there will be if using the CLI)
 
 Using the CLI
 -------------
@@ -180,7 +170,14 @@ For the deprecated sync example see `test_sync.py <https://github.com/python-rin
     if __name__ == "__main__":
         asyncio.run(main())
 
+Event Listener
+++++++++++++++
 
+.. code-block:: python
+
+    event_listener = RingEventListener(ring, credentials, credentials_updated_callback)
+    event_listener.add_notification_callback(_event_handler(ring).on_event)
+    await event_listener.start()
 
 Listing devices linked to your account
 ++++++++++++++++++++++++++++++++++++++

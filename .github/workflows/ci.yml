@@ -50,7 +50,7 @@ jobs:
           uv run make -C docs html
 
   tests:
-    name: Tests - Python ${{ matrix.python-version}} on ${{ matrix.os }}${{ fromJSON('[" (listen)", ""]')[matrix.extras == ''] }}
+    name: Tests - Python ${{ matrix.python-version}} on ${{ matrix.os }}
     needs: linting
     runs-on: ubuntu-latest
     strategy:
@@ -83,7 +83,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           uv-version: ${{ env.UV_VERSION }}
-          uv-install-options: ${{ matrix.extras == true && '--extra listen' || '' }}
       - name: Run tests
         run: >
           uv run pytest tests/
