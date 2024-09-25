@@ -97,7 +97,7 @@ The CLI is work in progress and currently has the following commands:
 
     $ ring-doorbell dings
 
-#.  See or manage your doorbell in-home chine settings::
+#.  See or manage your doorbell in-home chime settings::
 
     $ ring-doorbell in-home-chime --device-name "Front Door"
     $ ring-doorbell in-home-chime --device-name "Front Door" type Mechanical
