@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.9.6](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.6) (2024-09-26)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.5...0.9.6)
+
+**Release highlights:**
+
+- Fix for a critical issue due to the ring authorisation api changing. All previous versions of this library will no longer work.
+
+**Implemented enhancements:**
+
+- Event listener capability enabled by default [\#445](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/445) (@sdb9696)
+
+**Fixed bugs:**
+
+- Send client\_id with oauth fetch tokens request [\#446](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/446) (@sdb9696)
+
 ## [0.9.5](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.5) (2024-09-19)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.4...0.9.5)
