@@ -92,7 +92,7 @@ class Auth:
 
         try:
             body = self._oauth_client.prepare_request_body(
-                username, password, scope=OAuth.SCOPE
+                username, password, scope=OAuth.SCOPE, include_client_id=True
             )
             data = dict(urldecode(body))
             resp = await self._session.request(
