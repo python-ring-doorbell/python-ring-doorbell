@@ -6,8 +6,9 @@ on:
     tags:
       - '*'
 env:
-  UV_VERSION: 0.4.5
+  UV_VERSION: 0.4.17
   PYPI_PROJECT: ring-doorbell
+  PYTHON_VERSION: 3.12
 
 # GITHUB_TOKEN must have write access
 # https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/signing-the-distribution-packages
@@ -18,16 +19,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout source files
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: ${{ env.UV_VERSION }}
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.x"
-    - name: Install uv
-      run: |-
-        pipx install uv==${{ env.UV_VERSION }} --python "${{ steps.setup-python.outputs.python-path }}"
+        python-version: ${{ env.PYTHON_VERSION }}
+
     - name: Build with uv
       run: uv build
+
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
       with:

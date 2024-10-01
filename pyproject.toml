@@ -86,8 +86,8 @@ testpaths = [
 ]
 norecursedirs = ".git"
 asyncio_mode = "auto"
-addopts = "--allow-hosts=127.0.0.1,::1"
-#addopts = "--force-enable-socket"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--disable-socket --allow-unix-socket"
 filterwarnings = [
     "ignore:.*google._upb._message.MessageMapContainer uses PyType_Spec.*:DeprecationWarning",
     "ignore:.*google._upb._message.ScalarMapContainer uses PyType_Spec.*:DeprecationWarning",
