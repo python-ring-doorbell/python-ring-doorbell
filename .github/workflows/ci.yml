@@ -7,7 +7,7 @@ on:
     branches: ["master"]
 
 env:
-  UV_VERSION: 0.4.5
+  UV_VERSION: 0.4.17
   PACKAGE_NAME: ring_doorbell
 
 jobs:
@@ -18,7 +18,8 @@ jobs:
       matrix:
         python-version: ["3.12"]
     steps:
-      - uses: "actions/checkout@v4"
+      - name: "Checkout source files"
+        uses: "actions/checkout@v4"
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
@@ -58,24 +59,13 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "pypy-3.9", "pypy-3.10"]
         os: [ubuntu-latest, macos-latest, windows-latest]
-        extras: [false, true]
         exclude:
-          - os: macos-latest
-            extras: true
+          # Exclude pypy on windows due to performance issues
           - os: windows-latest
-            extras: true
-          - os: ubuntu-latest
             python-version: "pypy-3.9"
-            extras: true
-          - os: ubuntu-latest
+          - os: windows-latest
             python-version: "pypy-3.10"
-            extras: true
-          - os: ubuntu-latest
-            python-version: "3.9"
-            extras: true
-          - os: ubuntu-latest
-            python-version: "3.10"
-            extras: true
+
     steps:
       - uses: "actions/checkout@v4"
       - name: Setup environment
@@ -94,7 +84,7 @@ jobs:
           file: coverage.xml
           debug: true
           parallel: true
-        if: ${{ success() && matrix.python-version == '3.12' && matrix.extras == true }}
+        if: ${{ success() && matrix.python-version == '3.12' }}
 
   finish:
     name: Finish coverage build
