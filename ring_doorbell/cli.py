@@ -649,8 +649,8 @@ async def videos(
         not count
         and not download
         and not download_all
-        and device.last_recording_id
-        and (url := await device.async_recording_url(device.last_recording_id))
+        and (last_recording_id := await device.async_get_last_recording_id())
+        and (url := await device.async_recording_url(last_recording_id))
     ):
         echo("Last recording url is: " + url)
         return None

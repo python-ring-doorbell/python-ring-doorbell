@@ -248,18 +248,20 @@ class RingGeneric:
     DEPRECATED_API_PROPERTY_GETTERS: ClassVar[set[str]] = set()
     DEPRECATED_API_PROPERTY_SETTERS: ClassVar[set[str]] = set()
 
-    def __getattr__(self, name: str) -> Any:
-        """Get a deprecated attribute or raise an error."""
-        if name in self.DEPRECATED_API_QUERIES:
-            return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
-        if name in self.DEPRECATED_API_PROPERTY_GETTERS:
-            return self._ring.auth._dep_handler.get_api_property(self, name)  # noqa: SLF001
-        msg = f"{self.__class__.__name__} has no attribute {name!r}"
-        raise AttributeError(msg)
+    if not TYPE_CHECKING:
 
-    def __setattr__(self, name: str, value: Any) -> None:
-        """Set a deprecated attribute or raise an error."""
-        if name in self.DEPRECATED_API_PROPERTY_SETTERS:
-            self._ring.auth._dep_handler.set_api_property(self, name, value)  # noqa: SLF001
-        else:
-            super().__setattr__(name, value)
+        def __getattr__(self, name: str) -> Any:
+            """Get a deprecated attribute or raise an error."""
+            if name in self.DEPRECATED_API_QUERIES:
+                return self._ring.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
+            if name in self.DEPRECATED_API_PROPERTY_GETTERS:
+                return self._ring.auth._dep_handler.get_api_property(self, name)  # noqa: SLF001
+            msg = f"{self.__class__.__name__} has no attribute {name!r}"
+            raise AttributeError(msg)
+
+        def __setattr__(self, name: str, value: Any) -> None:
+            """Set a deprecated attribute or raise an error."""
+            if name in self.DEPRECATED_API_PROPERTY_SETTERS:
+                self._ring.auth._dep_handler.set_api_property(self, name, value)  # noqa: SLF001
+            else:
+                super().__setattr__(name, value)

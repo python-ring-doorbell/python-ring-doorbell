@@ -7,7 +7,7 @@ import uuid
 from asyncio import TimeoutError
 from functools import cached_property
 from json import loads as json_loads
-from typing import Any, Callable, ClassVar
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSession
 from oauthlib.common import urldecode
@@ -268,9 +268,11 @@ class Auth:
         "query",
     }
 
-    def __getattr__(self, name: str) -> Any:
-        """Get a deprecated attribute or raise an error."""
-        if name in self.DEPRECATED_API_QUERIES:
-            return self._dep_handler.get_api_query(self, name)
-        msg = f"{self.__class__.__name__} has no attribute {name!r}"
-        raise AttributeError(msg)
+    if not TYPE_CHECKING:
+
+        def __getattr__(self, name: str) -> Any:
+            """Get a deprecated attribute or raise an error."""
+            if name in self.DEPRECATED_API_QUERIES:
+                return self._dep_handler.get_api_query(self, name)
+            msg = f"{self.__class__.__name__} has no attribute {name!r}"
+            raise AttributeError(msg)
