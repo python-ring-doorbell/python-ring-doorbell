@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.9.7](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.7) (2024-10-04)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.6...0.9.7)
+
+**Release highlights:**
+
+- Type checking will now raise errors when using deprecated attributes
+
+**Breaking change pull requests:**
+
+- Do not expose deprecated attributes to type checkers [\#451](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/451) (@sdb9696)
+
+**Implemented enhancements:**
+
+- Enable keep alive for webrtc stream [\#450](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/450) (@sdb9696)
+
+**Documentation updates:**
+
+- Update README.rst [\#444](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/444) (@jamesflores)
+
+**Project maintenance:**
+
+- Migrate workflows to setup-uv github action [\#449](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/449) (@sdb9696)
+
 ## [0.9.6](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.6) (2024-09-26)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.5...0.9.6)
