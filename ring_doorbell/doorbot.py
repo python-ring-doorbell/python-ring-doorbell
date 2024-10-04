@@ -49,7 +49,7 @@ from ring_doorbell.const import (
 )
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
-from ring_doorbell.rtcstream import RingWebRtcStream
+from ring_doorbell.webrtcstream import RingWebRtcStream
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ class RingDoorBell(RingGeneric):
         """Initialise the doorbell."""
         super().__init__(ring, device_api_id)
         self.shared = shared
-        self._rtc_streams: dict[str, RingWebRtcStream] = {}
+        self._webrtc_streams: dict[str, RingWebRtcStream] = {}
 
     @property
     def family(self) -> str:
@@ -452,21 +452,34 @@ class RingDoorBell(RingGeneric):
         await self._ring.async_query(url, method="PATCH", json=payload)
         await self._ring.async_update_devices()
 
-    async def generate_rtc_stream(self, sdp_offer: str) -> str:
+    async def generate_webrtc_stream(
+        self, sdp_offer: str, keep_alive_timeout: int | None = 30
+    ) -> str:
         """Generate the rtc stream."""
         if session_id := RingWebRtcStream.get_sdp_session_id(sdp_offer):
-            stream = RingWebRtcStream(self._ring, self.device_api_id)
+            stream = RingWebRtcStream(
+                self._ring,
+                self.device_api_id,
+                keep_alive_timeout=keep_alive_timeout,
+                on_close_callback=self.close_webrtc_stream(session_id),
+            )
             sdp_answer = await stream.generate(sdp_offer)
-            self._rtc_streams[session_id] = stream
+            self._webrtc_streams[session_id] = stream
             return sdp_answer
-        msg = "Unable to generate the stream"
+        msg = "Unable to generate the stream, could not extract session id from offer."
         raise RingError(msg)
 
-    async def close_rtc_stream(self, sdp_session_id: str) -> None:
+    async def close_webrtc_stream(self, sdp_session_id: str) -> None:
         """Close the rtc stream."""
-        stream = self._rtc_streams.pop(sdp_session_id, None)
+        stream = self._webrtc_streams.pop(sdp_session_id, None)
         if stream:
             await stream.close()
+
+    async def keep_alive_webrtc_stream(self, sdp_session_id: str) -> None:
+        """Keep alive the rtc stream."""
+        stream = self._webrtc_streams.get(sdp_session_id, None)
+        if stream:
+            await stream.keep_alive()
 
     def get_ice_servers(self) -> list[str]:
         """Return the ICE servers."""
