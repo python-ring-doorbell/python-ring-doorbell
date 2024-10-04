@@ -292,12 +292,14 @@ class Ring:
         "query",
     }
 
-    def __getattr__(self, name: str) -> Any:
-        """Get a deprecated attribute or raise an error."""
-        if name in self.DEPRECATED_API_QUERIES:
-            return self.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
-        msg = f"{self.__class__.__name__} has no attribute {name!r}"
-        raise AttributeError(msg)
+    if not TYPE_CHECKING:
+
+        def __getattr__(self, name: str) -> Any:
+            """Get a deprecated attribute or raise an error."""
+            if name in self.DEPRECATED_API_QUERIES:
+                return self.auth._dep_handler.get_api_query(self, name)  # noqa: SLF001
+            msg = f"{self.__class__.__name__} has no attribute {name!r}"
+            raise AttributeError(msg)
 
 
 class RingDevices:
