@@ -65,7 +65,6 @@ class RingEventListener:
         self._callbacks: dict[int, OnNotificationCallable] = {}
         self.subscribed = False
         self.started = False
-        self._app_id = self._ring.auth.get_hardware_id()
         self._device_model = self._ring.auth.get_device_model()
 
         self._credentials = credentials
@@ -166,6 +165,7 @@ class RingEventListener:
         timeout: int = 10,
     ) -> bool:
         """Start the listener."""
+        _logger.debug("Starting event listener")
         if not self._receiver:
             fcm_config = FcmRegisterConfig(
                 FCM_PROJECT_ID, FCM_APP_ID, FCM_API_KEY, FCM_RING_SENDER_ID
@@ -196,6 +196,7 @@ class RingEventListener:
             self.session_refresh_task = asyncio.create_task(
                 self._periodic_session_refresh()
             )
+            _logger.debug("Started event listener")
         return self.started
 
     async def _periodic_session_refresh(self) -> None:
@@ -276,8 +277,11 @@ class RingEventListener:
             ring_event = self._get_ring_event(msg_data)
 
         if ring_event:
+            _logger.debug("Event received %s", ring_event)
             for callback in self._callbacks.values():
                 callback(ring_event)
+        else:
+            _logger.debug("Unknown event received %s", msg_data)
 
     def _get_ring_event(self, msg_data: dict) -> RingEvent | None:
         if (android_config_str := msg_data.get("android_config")) is None or (

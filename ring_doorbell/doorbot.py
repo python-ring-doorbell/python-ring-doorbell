@@ -208,7 +208,6 @@ class RingDoorBell(RingGeneric):
         if self.existing_doorbell_type:
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             await self._ring.async_query(url, extra_params=params, method="PUT")
-            await self._ring.async_update_devices()
 
     @property
     def existing_doorbell_type_enabled(self) -> bool | None:
@@ -237,7 +236,6 @@ class RingDoorBell(RingGeneric):
             }
             url = DOORBELLS_ENDPOINT.format(self.device_api_id)
             await self._ring.async_query(url, extra_params=params, method="PUT")
-            await self._ring.async_update_devices()
 
     @property
     def existing_doorbell_type_duration(self) -> int | None:
@@ -273,7 +271,6 @@ class RingDoorBell(RingGeneric):
                 }
                 url = DOORBELLS_ENDPOINT.format(self.device_api_id)
                 await self._ring.async_query(url, extra_params=params, method="PUT")
-                await self._ring.async_update_devices()
 
     async def async_get_last_recording_id(self) -> int | None:
         """Return the last recording ID."""
@@ -388,7 +385,6 @@ class RingDoorBell(RingGeneric):
         }
         url = DOORBELLS_ENDPOINT.format(self.device_api_id)
         await self._ring.async_query(url, extra_params=params, method="PUT")
-        await self._ring.async_update_devices()
 
     @property
     def connection_status(self) -> str | None:
@@ -450,7 +446,6 @@ class RingDoorBell(RingGeneric):
         payload = {"motion_settings": {"motion_detection_enabled": state}}
 
         await self._ring.async_query(url, method="PATCH", json=payload)
-        await self._ring.async_update_devices()
 
     async def generate_webrtc_stream(
         self, sdp_offer: str, keep_alive_timeout: int | None = 30

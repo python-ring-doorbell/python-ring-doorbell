@@ -75,7 +75,6 @@ class RingChime(RingGeneric):
         }
         url = CHIMES_ENDPOINT.format(self.device_api_id)
         await self._ring.async_query(url, extra_params=params, method="PUT")
-        await self._ring.async_update_devices()
 
     async def async_get_linked_tree(self) -> dict[str, Any]:
         """Return doorbell data linked to chime."""

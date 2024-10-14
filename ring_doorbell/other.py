@@ -137,7 +137,6 @@ class RingOther(RingGeneric):
         }
         url = DOORBELLS_ENDPOINT.format(self.device_api_id)
         await self._ring.async_query(url, extra_params=params, method="PUT")
-        await self._ring.async_update_devices()
 
     @property
     def keep_alive_auto(self) -> float | None:
@@ -152,7 +151,6 @@ class RingOther(RingGeneric):
         payload = {"keep_alive_settings": {"keep_alive_auto": value}}
 
         await self._ring.async_query(url, method="PATCH", json=payload)
-        await self._ring.async_update_devices()
 
     @property
     def mic_volume(self) -> int | None:
@@ -170,7 +168,6 @@ class RingOther(RingGeneric):
         payload = {"volume_settings": {"mic_volume": value}}
 
         await self._ring.async_query(url, method="PATCH", json=payload)
-        await self._ring.async_update_devices()
 
     @property
     def voice_volume(self) -> int | None:
@@ -188,7 +185,6 @@ class RingOther(RingGeneric):
         payload = {"volume_settings": {"voice_volume": value}}
 
         await self._ring.async_query(url, method="PATCH", json=payload)
-        await self._ring.async_update_devices()
 
     async def async_get_clip_length_max(self) -> int | None:
         """Get the Maximum clip length."""
@@ -206,7 +202,6 @@ class RingOther(RingGeneric):
         url = SETTINGS_ENDPOINT.format(self.device_api_id)
         payload = {"video_settings": {"clip_length_max": value}}
         await self._ring.async_query(url, method="PATCH", json=payload)
-        await self._ring.async_update_devices()
 
     @property
     def connection_status(self) -> str | None:
@@ -246,7 +241,6 @@ class RingOther(RingGeneric):
             }
             resp = await self._ring.async_query(url, method="PUT", json=payload)
             response = resp.json()
-            await self._ring.async_update_devices()
             if response.get("result", {}).get("code", -1) == 0:
                 return True
 
