@@ -199,7 +199,7 @@ class Auth:
             "params": params,
             "timeout": timeout,
         }
-        headers = {"User-Agent": self.user_agent}
+        headers = {"User-Agent": self.user_agent, "hardware_id": self.get_hardware_id()}
         if json is not None:
             kwargs["json"] = json
             headers["Content-Type"] = "application/json"

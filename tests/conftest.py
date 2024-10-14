@@ -7,11 +7,16 @@ import json
 import re
 from pathlib import Path
 from time import time
+from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import pytest
 from aioresponses import CallbackResult, aioresponses
 from ring_doorbell import Auth, Ring
 from ring_doorbell.const import USER_AGENT
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 # The kwargs below are useful for request assertions
@@ -19,6 +24,7 @@ def json_request_kwargs():
     return {
         "headers": {
             "User-Agent": "android:com.ringapp",
+            "hardware_id": "21ac3af1-0eac-5fbd-8b0f-0b784889bfbd",
             "Content-Type": "application/json",
             "Authorization": "Bearer dummyBearerToken",
         },
@@ -33,6 +39,7 @@ def nojson_request_kwargs():
     return {
         "headers": {
             "User-Agent": "android:com.ringapp",
+            "hardware_id": "21ac3af1-0eac-5fbd-8b0f-0b784889bfbd",
             "Authorization": "Bearer dummyBearerToken",
         },
         "timeout": 10,
@@ -181,6 +188,13 @@ def putpatch_status_fixture():
             return CallbackResult(body=b"", status=204)
 
     return StatusOverrides()
+
+
+@pytest.fixture(autouse=True, name="hardware_id_mock")
+def _hardware_id_mock_fixture() -> Generator:
+    """Fixture to patch getnode ensures all tests generate same hardware_id."""
+    with patch("uuid.getnode", return_value=12345678901):
+        yield
 
 
 # setting the fixture name to requests_mock allows other
