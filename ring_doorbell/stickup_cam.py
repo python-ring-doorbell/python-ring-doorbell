@@ -150,7 +150,6 @@ class RingStickUpCam(RingDoorBell):
 
         url = LIGHTS_ENDPOINT.format(self.device_api_id, state)
         await self._ring.async_query(url, method="PUT")
-        await self._ring.async_update_devices()
 
     @property
     def siren(self) -> int:
@@ -177,7 +176,6 @@ class RingStickUpCam(RingDoorBell):
             params = {}
         url = SIREN_ENDPOINT.format(self.device_api_id, state)
         await self._ring.async_query(url, extra_params=params, method="PUT")
-        await self._ring.async_update_devices()
 
     DEPRECATED_API_PROPERTY_SETTERS: ClassVar = {
         *RingDoorBell.DEPRECATED_API_PROPERTY_SETTERS,
