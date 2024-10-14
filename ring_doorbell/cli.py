@@ -378,6 +378,7 @@ async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
         return None
 
     await device.async_set_motion_detection(turn_on if turn_on else False)
+    await ring.async_update_devices()
     state = "on" if device.motion_detection else "off"
     echo(f"{device!s} motion detection set to {state}")
     return None
