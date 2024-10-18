@@ -152,6 +152,17 @@ class RingStickUpCam(RingDoorBell):
         await self._ring.async_query(url, method="PUT")
 
     @property
+    def light(self) -> bool:
+        """Return lights status."""
+        return self._attrs.get("led_status", "") == "on"
+
+    async def async_set_light(self, value: bool) -> None:  # noqa: FBT001
+        """Control the lights."""
+        state = "on" if value else "off"
+        url = LIGHTS_ENDPOINT.format(self.device_api_id, state)
+        await self._ring.async_query(url, method="PUT")
+
+    @property
     def siren(self) -> int:
         """Return siren status."""
         if siren_status := self._attrs.get("siren_status"):

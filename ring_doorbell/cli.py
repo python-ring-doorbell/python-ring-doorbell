@@ -26,7 +26,9 @@ from ring_doorbell import (
     RingDoorBell,
     RingEvent,
     RingGeneric,
+    RingStickUpCam,
     RingOther,
+    RingCapability,
 )
 from ring_doorbell.const import (
     CLI_TOKEN_FILE,
@@ -381,6 +383,47 @@ async def motion_detection(ctx, ring: Ring, device_name, turn_on, turn_off):
     await ring.async_update_devices()
     state = "on" if device.motion_detection else "off"
     echo(f"{device!s} motion detection set to {state}")
+    return None
+
+
+@cli.command()
+@pass_ring
+@click.pass_context
+@click.argument("enable", type=click.BOOL, default=None, required=False)
+@click.option(
+    "--device-name",
+    "-dn",
+    required=True,
+    default=None,
+    help="Name of the ring device",
+)
+async def light(ctx, ring: Ring, device_name, enable):
+    """Get and change the light state of a device."""
+    device = ring.get_device_by_name(device_name)
+
+    if not device:
+        echo(
+            f"No device with name {device_name} found."
+            + " List of found device names (kind) is:"
+        )
+        return await ctx.invoke(list_command)
+    if not device.has_capability(RingCapability.LIGHT):
+        echo(f"{device!s} does not have a light")
+        return None
+    device = cast(RingStickUpCam, device)
+    state = "on" if device.light else "off"
+    if enable is None:
+        echo(f"{device!s} light is {state}")
+        return None
+    is_on = device.light
+    if (enable and is_on) or (not enable and not is_on):
+        echo(f"{device!s} light is already {state}")
+        return None
+
+    await device.async_set_light(enable)
+    await ring.async_update_devices()
+    state = "on" if device.light else "off"
+    echo(f"{device!s} light set to {state}")
     return None
 
 
