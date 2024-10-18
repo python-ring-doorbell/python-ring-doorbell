@@ -9,7 +9,7 @@ from ring_doorbell import Auth, Ring, RingError
 from ring_doorbell.const import MSG_EXISTING_TYPE, USER_AGENT
 from ring_doorbell.util import parse_datetime
 
-from .conftest import json_request_kwargs, load_fixture_as_dict, nojson_request_kwargs
+from .conftest import json_request_kwargs, load_fixture_as_dict
 
 
 def test_basic_attributes(ring):
@@ -116,7 +116,8 @@ def test_stickup_cam_attributes(ring):
 async def test_stickup_cam_controls(ring, aioresponses_mock):
     dev = ring.devices()["stickup_cams"][0]
 
-    kwargs = nojson_request_kwargs()
+    kwargs = json_request_kwargs()
+    kwargs["json"] = None
 
     await dev.async_set_lights("off")
     aioresponses_mock.assert_called_with(
@@ -296,7 +297,8 @@ async def test_set_existing_doorbell_type(ring, aioresponses_mock):
     dev = data["doorbots"][0]
     assert dev.existing_doorbell_type == "Mechanical"
 
-    kwargs = nojson_request_kwargs()
+    kwargs = json_request_kwargs()
+    kwargs["json"] = None
 
     aioresponses_mock.requests.clear()
     # Attempting to turn off the in-home chime

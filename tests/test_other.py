@@ -48,7 +48,8 @@ async def test_other_attributes(ring):
 async def test_other_controls(ring, aioresponses_mock):
     dev = ring.devices()["other"][0]
 
-    kwargs = nojson_request_kwargs()
+    kwargs = json_request_kwargs()
+    kwargs["json"] = None
 
     await dev.async_set_doorbell_volume(6)
     kwargs["params"] = {"doorbot[settings][doorbell_volume]": "6"}
