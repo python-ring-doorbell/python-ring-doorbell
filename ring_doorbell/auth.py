@@ -200,7 +200,8 @@ class Auth:
             "timeout": timeout,
         }
         headers = {"User-Agent": self.user_agent, "hardware_id": self.get_hardware_id()}
-        if json is not None:
+        # Ring servers started requiring a null json value for PUT requests in 2024-10
+        if json is not None or method == "PUT":
             kwargs["json"] = json
             headers["Content-Type"] = "application/json"
 
