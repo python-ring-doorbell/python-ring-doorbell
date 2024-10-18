@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.9.8](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.8) (2024-10-18)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.7...0.9.8)
+
+**Release highlights:**
+
+- **Breaking** - Devices no longer automatically refresh after calling setters. Consumers should call `async_refresh_devices` to get updated values. This allows consumers to wait for the api to properly reflect changes before reporting them back.
+- Fixes floodcam light switches - Ring servers suddenly require `PUT` requests to provide null json values.
+
+**Breaking change pull requests:**
+
+- Do not refresh devices after calling setters [\#454](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/454) (@sdb9696)
+
+**Implemented enhancements:**
+
+- Add light command to cli [\#457](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/457) (@sdb9696)
+
+**Fixed bugs:**
+
+- Fix 422 errors on PUT requests [\#456](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/456) (@sdb9696)
+- Add hardware\_id to all requests [\#455](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/455) (@sdb9696)
+
 ## [0.9.7](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.7) (2024-10-04)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.6...0.9.7)

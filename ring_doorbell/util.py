@@ -11,7 +11,7 @@ from threading import Lock
 from typing import TYPE_CHECKING, Any, Callable
 from warnings import warn
 
-from typing_extensions import Concatenate, ParamSpec, TypeVar
+from typing_extensions import ParamSpec, TypeVar
 
 from ring_doorbell.exceptions import RingError
 
@@ -66,7 +66,7 @@ class _DeprecatedSyncApiHandler:
 
     async def run_and_close_session(
         self,
-        async_method: Callable[Concatenate[_T, _P], Coroutine[Any, Any, _R]],
+        async_method: Callable[_P, Coroutine[Any, Any, _R]],
         *args: _P.args,
         **kwargs: _P.kwargs,
     ) -> _R:
@@ -101,7 +101,7 @@ class _DeprecatedSyncApiHandler:
         classname = type(class_instance).__name__
 
         def _deprecated_sync_function(
-            async_func: Callable[Concatenate[_T, _P], Coroutine[Any, Any, _R]],
+            async_func: Callable[_P, Coroutine[Any, Any, _R]],
         ) -> Callable[_P, _R]:
             def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _R:
                 self.check_no_loop(classname, method_name)
