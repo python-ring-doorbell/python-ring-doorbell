@@ -15,9 +15,10 @@ import uuid
 from dataclasses import dataclass
 from json import dumps as json_dumps
 from json import loads as json_loads
-from typing import TYPE_CHECKING, Any, Callable, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable
 
 from async_timeout import timeout as asyncio_timeout
+from typing_extensions import TypeAlias
 from websockets.client import connect
 
 from ring_doorbell.const import (
