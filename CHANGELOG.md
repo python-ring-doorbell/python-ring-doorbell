@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.9](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.9) (2024-11-06)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.8...0.9.9)
+
+**Release highlights:**
+
+- Support for asynchronous webrtc offers with trickle ice candidates
+
+**Merged pull requests:**
+
+- Enable async webrtc offers with trickle ICE candidates [\#460](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/460) (@sdb9696)
+
 ## [0.9.8](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.8) (2024-10-18)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.7...0.9.8)
