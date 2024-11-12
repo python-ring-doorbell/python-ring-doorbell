@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.10](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.10) (2024-11-12)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.9...0.9.10)
+
+**Release highlights:**
+
+- Fix for motion and ding alerts on Ring Elite
+
+**Fixed bugs:**
+
+- Add new push notification intercom unlock [\#464](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/464) (@sdb9696)
+- Fix doorbell elite missing capabilities [\#463](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/463) (@sdb9696)
+
 ## [0.9.9](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.9) (2024-11-06)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.8...0.9.9)
@@ -8,7 +21,7 @@
 
 - Support for asynchronous webrtc offers with trickle ice candidates
 
-**Merged pull requests:**
+**Implemented enhancements:**
 
 - Enable async webrtc offers with trickle ICE candidates [\#460](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/460) (@sdb9696)
 

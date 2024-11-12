@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from async_timeout import timeout as asyncio_timeout
 from typing_extensions import TypeAlias
-from websockets.client import connect
+from websockets.asyncio.client import connect
 
 from ring_doorbell.const import (
     APP_API_URI,
@@ -31,7 +31,7 @@ from ring_doorbell.exceptions import RingError
 if TYPE_CHECKING:
     from collections.abc import Coroutine
 
-    from websockets import WebSocketClientProtocol
+    from websockets.asyncio.client import ClientConnection
 
     from .ring import Ring
 
@@ -73,7 +73,7 @@ class RingWebRtcStream:
         self._ring = ring
         self.device_api_id = device_api_id
         self.sdp: str | None = None
-        self.websocket: WebSocketClientProtocol | None = None
+        self.websocket: ClientConnection | None = None
         self.is_alive = True
         self.ping_task: asyncio.Task | None = None
         self.read_task: asyncio.Task | None = None
