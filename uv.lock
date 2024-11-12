@@ -1387,7 +1387,7 @@ requires-dist = [
     { name = "sphinx", marker = "extra == 'docs'", specifier = "<7.2.6" },
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = "~=1.3" },
     { name = "typing-extensions", specifier = ">=4.12.2,<5.0" },
-    { name = "websockets", specifier = ">=11.0.1" },
+    { name = "websockets", specifier = ">=13.0.0" },
 ]
 
 [package.metadata.requires-dev]
