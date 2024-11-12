@@ -28,7 +28,7 @@ from ring_doorbell.const import (
     PUSH_NOTIFICATION_KINDS,
     SUBSCRIPTION_ENDPOINT,
 )
-from ring_doorbell.event import RingEvent
+from ring_doorbell.event import RingEvent, RingEventKey
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.util import parse_datetime
 
@@ -80,6 +80,8 @@ class RingEventListener:
 
         self.session_refresh_task: asyncio.Task | None = None
         self.fcm_token: str | None = None
+
+        self._seen_events: set[RingEventKey] = set()
 
     def _credentials_updated_cb(self, creds: dict[str, Any]) -> None:
         self._credentials = creds
@@ -263,6 +265,24 @@ class RingEventListener:
             state="unlock",
         )
 
+    def _check_is_update(self, ring_event: RingEvent) -> None:
+        """Battery doorbells send two events.
+
+        First without an image and the second with an image.
+        """
+        now = time.time()
+        seen_events = {
+            key
+            for key in self._seen_events
+            if (now - key.now) < DEFAULT_LISTEN_EVENT_EXPIRES_IN
+        }
+        event_key = ring_event.get_key()
+        if event_key in seen_events:
+            ring_event.is_update = True
+        else:
+            seen_events.add(event_key)
+        self._seen_events = seen_events
+
     def _on_notification(
         self,
         notification: dict[str, dict[str, str]],
@@ -277,6 +297,7 @@ class RingEventListener:
             ring_event = self._get_ring_event(msg_data)
 
         if ring_event:
+            self._check_is_update(ring_event)
             _logger.debug("Event received %s", ring_event)
             for callback in self._callbacks.values():
                 callback(ring_event)
@@ -299,7 +320,7 @@ class RingEventListener:
         event_kind = PUSH_NOTIFICATION_KINDS.get(event_category, "Unknown")
         device = data["device"]
         event = data["event"]
-        event_id = event["ding"]["id"]
+        event_id = int(event["ding"]["id"])
         created_at = event["ding"]["created_at"]
         create_seconds = parse_datetime(created_at).timestamp()
         return RingEvent(
