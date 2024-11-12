@@ -145,6 +145,7 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_PRO_2_KINDS
                 + DOORBELL_WIRED_KINDS
                 + DOORBELL_GEN2_KINDS
+                + DOORBELL_ELITE_KINDS
                 + PEEPHOLE_CAM_KINDS
             )
         return False
