@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.11](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.11) (2024-11-12)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.10...0.9.11)
+
+**Implemented enhancements:**
+
+- Add is\_update flag to ring events for updated events [\#467](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/467) (@sdb9696)
+
 ## [0.9.10](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.10) (2024-11-12)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.9...0.9.10)

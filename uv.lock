@@ -1334,7 +1334,7 @@ wheels = [
 
 [[package]]
 name = "ring-doorbell"
-version = "0.9.10"
+version = "0.9.11"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
