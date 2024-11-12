@@ -1,25 +1,26 @@
 # Changelog
 
-## [0.9.11](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.11) (2024-11-12)
+## [0.9.12](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.12) (2024-11-12)
 
-[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.10...0.9.11)
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.9...0.9.12)
+
+**Release highlights:**
+
+- Fix for Ring Elite motion and ding events
+- Add `is_update` to ring events to enable filtering duplicates
 
 **Implemented enhancements:**
 
 - Add is\_update flag to ring events for updated events [\#467](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/467) (@sdb9696)
 
-## [0.9.10](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.10) (2024-11-12)
-
-[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.9...0.9.10)
-
-**Release highlights:**
-
-- Fix for motion and ding alerts on Ring Elite
-
 **Fixed bugs:**
 
 - Add new push notification intercom unlock [\#464](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/464) (@sdb9696)
 - Fix doorbell elite missing capabilities [\#463](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/463) (@sdb9696)
+
+**Project maintenance:**
+
+- Update websockets dependency for \>=13 [\#469](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/469) (@sdb9696)
 
 ## [0.9.9](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.9) (2024-11-06)
 
