@@ -263,7 +263,7 @@ async def test_listen_event_handler(mocker, auth):
         "2023-10-24 09:42:18.789709: RingEvent(id=12345678901234, "
         "doorbot_id=12345678, device_name='Front Floodcam'"
         ", device_kind='floodlight_v2', now=1698140538.789709,"
-        " expires_in=180, kind='motion', state='human') : "
+        " expires_in=180, kind='motion', state='human', is_update=False) : "
         "Currently active count = 1"
     )
     echomock.assert_called_with(exp)
