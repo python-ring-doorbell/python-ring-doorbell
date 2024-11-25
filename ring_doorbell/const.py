@@ -160,12 +160,13 @@ CHIME_PRO_KINDS = ["chime_pro", "chime_pro_v2"]
 DOORBELL_KINDS = ["doorbot", "doorbell", "doorbell_v3"]
 DOORBELL_2_KINDS = ["doorbell_v4", "doorbell_v5"]
 DOORBELL_3_KINDS = ["doorbell_scallop_lite"]
-DOORBELL_4_KINDS = ["doorbell_oyster", "df_doorbell_clownfish"]  # Added
+DOORBELL_4_KINDS = ["doorbell_oyster"]  # Added
 DOORBELL_3_PLUS_KINDS = ["doorbell_scallop"]
 DOORBELL_PRO_KINDS = ["lpd_v1", "lpd_v2", "lpd_v3"]
 DOORBELL_PRO_2_KINDS = ["lpd_v4"]
 DOORBELL_ELITE_KINDS = ["jbox_v1"]
 DOORBELL_WIRED_KINDS = ["doorbell_graham_cracker"]
+DOORBELL_BATTERY_KINDS = ["df_doorbell_clownfish"]
 PEEPHOLE_CAM_KINDS = ["doorbell_portal"]
 DOORBELL_GEN2_KINDS = ["cocoa_doorbell", "cocoa_doorbell_v2"]
 
