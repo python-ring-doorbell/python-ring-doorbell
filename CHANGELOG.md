@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.13](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.13) (2024-11-26)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.12...0.9.13)
+
+**Release highlights:**
+
+Support for the new 2024 Battery Doorbell. Many thanks @dan5py!
+
+**Merged pull requests:**
+
+- Support new Battery Doorbell device [\#474](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/474) (@dan5py)
+
 ## [0.9.12](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.12) (2024-11-12)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.9...0.9.12)
