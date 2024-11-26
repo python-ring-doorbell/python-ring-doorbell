@@ -6,7 +6,7 @@
 
 **Release highlights:**
 
-Support for the new 2024 Battery Doorbell.
+Support for the new 2024 Battery Doorbell. Many thanks @dan5py!
 
 **Merged pull requests:**
 
