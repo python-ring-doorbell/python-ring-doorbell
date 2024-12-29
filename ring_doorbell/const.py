@@ -168,7 +168,7 @@ DOORBELL_ELITE_KINDS = ["jbox_v1"]
 DOORBELL_WIRED_KINDS = ["doorbell_graham_cracker"]
 DOORBELL_BATTERY_KINDS = ["df_doorbell_clownfish"]
 PEEPHOLE_CAM_KINDS = ["doorbell_portal"]
-DOORBELL_GEN2_KINDS = ["cocoa_doorbell", "cocoa_doorbell_v2"]
+DOORBELL_GEN2_KINDS = ["cocoa_doorbell", "cocoa_doorbell_v2", "cocoa_doorbell_v3"]
 
 FLOODLIGHT_CAM_KINDS = ["hp_cam_v1", "floodlight_v2"]
 FLOODLIGHT_CAM_PRO_KINDS = ["floodlight_pro"]
