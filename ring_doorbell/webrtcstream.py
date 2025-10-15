@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import re
 import ssl
 import time
 import uuid
@@ -125,6 +126,7 @@ class RingWebRtcStream:
             exmsg = "Unable to generate RTC stream in time"
             await self.close()
             raise RingError(exmsg)
+        self.force_correct_sdp_answer(sdp_offer)
         _LOGGER.debug("Returning SDP answer: %s", self.sdp)
         return self.sdp
 
@@ -300,6 +302,35 @@ class RingWebRtcStream:
                 error_code=reason_code, error_message=reason_message
             )
             self._on_message_callback(error_message)
+
+    def force_correct_sdp_answer(self, sdp_offer: str) -> None:
+        """Force the sdp response to have the valid answer.
+
+        As of October 2025 the Ring WebRTC Stream responses do not follow the
+        spec defined in https://www.ietf.org/rfc/rfc3264.txt
+        Effects Firefox which follows the spec. An offer of recvonly
+        must be answered with sendonly or inactive.
+        """
+        if isinstance(self.sdp, str) and "mozilla" in sdp_offer:
+            sdp_kinds = ["audio", "video", "application"]
+            sdp_directions = ["sendrecv", "sendonly", "recvonly", "inactive"]
+            sdp_pattern = "m=(?P<kind>{}).+?a=(?P<direction>{})\\r".format(
+                "|".join(sdp_kinds), "|".join(sdp_directions)
+            )
+
+            sdp_direction_offers = re.finditer(sdp_pattern, sdp_offer)
+            sdp_answers = re.finditer(sdp_pattern, self.sdp)
+
+            for offer in sdp_direction_offers:
+                for answer in sdp_answers:
+                    if (
+                        offer.group("kind") == answer.group("kind")
+                        and offer.group("direction") == "recvonly"
+                    ):
+                        correct_answer = re.sub(
+                            "a=(sendrecv|recvonly)\\r", "a=sendonly\\r", answer.group(0)
+                        )
+                        self.sdp = self.sdp.replace(answer.group(0), correct_answer)
 
     def insert_ice_candidates(self) -> None:
         """Insert an ice candidate into the sdp answer.
