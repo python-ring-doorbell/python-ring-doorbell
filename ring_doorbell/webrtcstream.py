@@ -306,8 +306,8 @@ class RingWebRtcStream:
     def force_correct_sdp_answer(self, sdp_offer: str) -> None:
         """Force the sdp response to have the valid answer.
 
-        As of October 2025 the Ring WebRTC Stream responses do not follow the
-        spec defined in https://www.ietf.org/rfc/rfc3264.txt
+        The Ring WebRTC Stream responses to certain offers do not
+        follow the spec defined in https://www.ietf.org/rfc/rfc3264.txt
         Effects Firefox which follows the spec. An offer of recvonly
         must be answered with sendonly or inactive.
         """
