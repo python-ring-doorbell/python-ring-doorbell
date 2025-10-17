@@ -73,6 +73,7 @@ class RingWebRtcStream:
         """Initialise the class."""
         self._ring = ring
         self.device_api_id = device_api_id
+        self.sdp_offer: str | None = None
         self.sdp: str | None = None
         self.websocket: ClientConnection | None = None
         self.is_alive = True
@@ -106,6 +107,7 @@ class RingWebRtcStream:
 
     async def generate(self, sdp_offer: str) -> str | None:
         """Generate the RTC stream."""
+        self.sdp_offer = sdp_offer
         await self._generate(sdp_offer)
 
         if self._on_message_callback:
@@ -126,7 +128,6 @@ class RingWebRtcStream:
             exmsg = "Unable to generate RTC stream in time"
             await self.close()
             raise RingError(exmsg)
-        self.force_correct_sdp_answer(sdp_offer)
         _LOGGER.debug("Returning SDP answer: %s", self.sdp)
         return self.sdp
 
@@ -281,6 +282,7 @@ class RingWebRtcStream:
         sdp = message["body"]["sdp"]
         _LOGGER.debug("SDP answer received: %s", sdp)
         self.sdp = sdp
+        self.force_correct_sdp_answer()
         self._sdp_answer_event.set()
 
         if self._on_message_callback:
@@ -303,7 +305,7 @@ class RingWebRtcStream:
             )
             self._on_message_callback(error_message)
 
-    def force_correct_sdp_answer(self, sdp_offer: str) -> None:
+    def force_correct_sdp_answer(self) -> None:
         """Force the sdp response to have the valid answer.
 
         The Ring WebRTC Stream responses to certain offers do not
@@ -311,7 +313,12 @@ class RingWebRtcStream:
         Effects Firefox which follows the spec. An offer of recvonly
         must be answered with sendonly or inactive.
         """
-        if isinstance(self.sdp, str) and "mozilla" in sdp_offer:
+        _LOGGER.debug("Attempt to fix sdp answer...")
+        if (
+            isinstance(self.sdp, str)
+            and isinstance(self.sdp_offer, str)
+            and "mozilla" in self.sdp_offer
+        ):
             sdp_kinds = ["audio", "video", "application"]
             sdp_directions = ["sendrecv", "sendonly", "recvonly", "inactive"]
             sdp_pattern = "m=(?P<kind>{}).+?a=(?P<direction>{})\\r".format(
@@ -319,7 +326,7 @@ class RingWebRtcStream:
             )
             _LOGGER.debug("Looking for pattern: %s", str(sdp_pattern))
 
-            sdp_direction_offers = re.finditer(sdp_pattern, sdp_offer)
+            sdp_direction_offers = re.finditer(sdp_pattern, self.sdp_offer)
             sdp_answers = re.finditer(sdp_pattern, self.sdp)
             _LOGGER.debug("Found offers: %s", str(sdp_direction_offers))
             _LOGGER.debug("Found answers: %s", str(sdp_answers))
