@@ -317,9 +317,12 @@ class RingWebRtcStream:
             sdp_pattern = "m=(?P<kind>{}).+?a=(?P<direction>{})\\r".format(
                 "|".join(sdp_kinds), "|".join(sdp_directions)
             )
+            _LOGGER.debug("Looking for pattern: %s", str(sdp_pattern))
 
             sdp_direction_offers = re.finditer(sdp_pattern, sdp_offer)
             sdp_answers = re.finditer(sdp_pattern, self.sdp)
+            _LOGGER.debug("Found offers: %s", str(sdp_direction_offers))
+            _LOGGER.debug("Found answers: %s", str(sdp_answers))
 
             for offer in sdp_direction_offers:
                 for answer in sdp_answers:
@@ -330,6 +333,7 @@ class RingWebRtcStream:
                         correct_answer = re.sub(
                             "a=(sendrecv|recvonly)\\r", "a=sendonly\\r", answer.group(0)
                         )
+                        _LOGGER.debug("Replacing answer with: %s", str(correct_answer))
                         self.sdp = self.sdp.replace(answer.group(0), correct_answer)
 
     def insert_ice_candidates(self) -> None:
