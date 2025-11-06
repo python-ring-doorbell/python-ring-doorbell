@@ -186,7 +186,7 @@ STICKUP_CAM_WIRED_KINDS = STICKUP_CAM_ELITE_KINDS  # Deprecated
 STICKUP_CAM_GEN3_KINDS = ["cocoa_camera"]
 BEAM_KINDS = ["beams_ct200_transformer"]
 
-INTERCOM_KINDS = ["intercom_handset_audio"]
+INTERCOM_KINDS = ["intercom_handset_audio", "intercom_handset_video"]
 
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."
