@@ -13,7 +13,6 @@ dependencies = [
     "aiohttp>=3",
     "aiofiles>=23",
     "typing-extensions>=4.12.2,<5.0",
-    "async-timeout>=3.0.0",
     "websockets>=13.0.0",
     "firebase-messaging>=0.4.0",
 ]

@@ -1341,7 +1341,6 @@ source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
     { name = "aiohttp" },
-    { name = "async-timeout" },
     { name = "asyncclick" },
     { name = "firebase-messaging" },
     { name = "oauthlib" },
@@ -1380,7 +1379,6 @@ dev = [
 requires-dist = [
     { name = "aiofiles", specifier = ">=23" },
     { name = "aiohttp", specifier = ">=3" },
-    { name = "async-timeout", specifier = ">=3.0.0" },
     { name = "asyncclick", specifier = ">=8.1.7.1" },
     { name = "firebase-messaging", specifier = ">=0.4.0" },
     { name = "myst-parser", marker = "extra == 'docs'" },
