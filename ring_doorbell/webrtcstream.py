@@ -17,7 +17,6 @@ from json import dumps as json_dumps
 from json import loads as json_loads
 from typing import TYPE_CHECKING, Any, Callable
 
-from async_timeout import timeout as asyncio_timeout
 from typing_extensions import TypeAlias
 from websockets.asyncio.client import connect
 
@@ -118,7 +117,7 @@ class RingWebRtcStream:
             await asyncio.sleep(SDP_ANSWER_TIMEOUT)
             self.insert_ice_candidates()
         else:
-            async with asyncio_timeout(SDP_ANSWER_TIMEOUT):
+            async with asyncio.timeout(SDP_ANSWER_TIMEOUT):
                 await self._sdp_answer_event.wait()
 
         if not self.sdp:
@@ -195,7 +194,7 @@ class RingWebRtcStream:
 
     async def on_ice_candidate(self, candidate: str, m_line_index: int) -> None:
         """Send an ICE candidate."""
-        async with asyncio_timeout(10):
+        async with asyncio.timeout(10):
             await self._offered_event.wait()
 
         assert self.websocket  # noqa: S101
