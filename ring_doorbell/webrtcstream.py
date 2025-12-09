@@ -310,14 +310,12 @@ class RingWebRtcStream:
 
         The Ring WebRTC Stream responses to certain offers do not
         follow the spec defined in https://www.ietf.org/rfc/rfc3264.txt
-        Effects Firefox which follows the spec. An offer of recvonly
-        must be answered with sendonly or inactive.
+        An offer of recvonly must be answered with sendonly or inactive.
         """
         _LOGGER.debug("Attempt to fix sdp answer...")
         if (
             isinstance(self.sdp, str)
             and isinstance(self.sdp_offer, str)
-            and "mozilla" in self.sdp_offer
         ):
             sdp_kinds = ["audio", "video", "application"]
             sdp_directions = ["sendrecv", "sendonly", "recvonly", "inactive"]
