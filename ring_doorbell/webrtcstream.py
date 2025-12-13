@@ -313,10 +313,7 @@ class RingWebRtcStream:
         An offer of recvonly must be answered with sendonly or inactive.
         """
         _LOGGER.debug("Attempt to fix sdp answer...")
-        if (
-            isinstance(self.sdp, str)
-            and isinstance(self.sdp_offer, str)
-        ):
+        if isinstance(self.sdp, str) and isinstance(self.sdp_offer, str):
             sdp_kinds = ["audio", "video", "application"]
             sdp_directions = ["sendrecv", "sendonly", "recvonly", "inactive"]
             sdp_pattern = (
