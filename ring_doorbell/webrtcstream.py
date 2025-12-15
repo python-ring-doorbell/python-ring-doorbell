@@ -76,7 +76,7 @@ class RingWebRtcStream:
         self.sdp_offer: str | None = None
         self.sdp: str | None = None
         self.websocket: ClientConnection | None = None
-        self.is_alive = True
+        self.is_alive = False
         self.ping_task: asyncio.Task | None = None
         self.read_task: asyncio.Task | None = None
         self._close_task: asyncio.Task | None = None
@@ -160,7 +160,21 @@ class RingWebRtcStream:
                 ssl=self.ssl_context,
             )
 
+            _LOGGER.debug("Connected to RTC streaming websocket")
             self.dialog_id = str(uuid.uuid4())
+
+            _LOGGER.debug("Starting reader task")
+            self.read_task = asyncio.create_task(self.reader())
+
+            await self.on_offer(sdp_offer)
+
+        except Exception as ex:
+            exmsg = "Error generating RTC stream"
+            raise RingError(exmsg, ex) from ex
+
+    async def on_offer(self, sdp_offer: str) -> None:
+        """Handle webrtc offer."""
+        if not self.is_alive:
             offer_msg = {
                 "method": "live_view",
                 "dialog_id": self.dialog_id,
@@ -171,20 +185,30 @@ class RingWebRtcStream:
                     "type": "offer",
                 },
             }
-            _LOGGER.debug(
-                "Connected to RTC streaming websocket, sending live_view offer msg: %s",
-                offer_msg,
-            )
-            _LOGGER.debug("Starting reader task")
-            self.read_task = asyncio.create_task(self.reader())
+        else:
+            offer_msg = {
+                "method": "sdp",
+                "body": {
+                    "doorbot_id": self.device_api_id,
+                    "sdp": sdp_offer,
+                    "type": "offer",
+                },
+            }
 
-            await self.websocket.send(json_dumps(offer_msg))
+        if TYPE_CHECKING:
+            assert isinstance(offer_msg["body"], dict)
+            assert isinstance(self.websocket, ClientConnection)
 
-            self._offered_event.set()
+        if self.session_id:
+            offer_msg["body"]["session_id"] = self.session_id
 
-        except Exception as ex:
-            exmsg = "Error generating RTC stream"
-            raise RingError(exmsg, ex) from ex
+        self._offered_event.clear()
+
+        _LOGGER.debug("Sending live_view offer msg: %s", offer_msg)
+
+        await self.websocket.send(json_dumps(offer_msg))
+
+        self._offered_event.set()
 
     async def _activate(self) -> None:
         if TYPE_CHECKING:
@@ -195,6 +219,7 @@ class RingWebRtcStream:
 
         self._last_keep_alive = time.time()
         self.ping_task = asyncio.create_task(self.pinger())
+        self.is_alive = True
 
     async def on_ice_candidate(self, candidate: str, m_line_index: int) -> None:
         """Send an ICE candidate."""
@@ -289,7 +314,8 @@ class RingWebRtcStream:
             answer_message = RingWebRtcMessage(answer=self.sdp)
             self._on_message_callback(answer_message)
 
-        await self._activate()
+        if not self.is_alive:
+            await self._activate()
 
     async def handle_close_message(self, message: dict) -> None:
         """Handle an sdp answer message."""
