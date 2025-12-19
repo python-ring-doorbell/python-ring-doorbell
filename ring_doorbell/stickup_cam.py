@@ -80,7 +80,7 @@ class RingStickUpCam(RingDoorBell):
         if self.kind in STICKUP_CAM_GEN3_KINDS:
             return "Stick Up Cam (3rd Gen)"
         if self.kind in OUTDOOR_CAM_PLUS_KINDS:
-            return "Outdoor Camera Plus"
+            return "Outdoor Cam Plus"
         _LOGGER.error("Unknown kind: %s", self.kind)
         return "Unknown Stickup Cam"
 
