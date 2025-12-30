@@ -19,6 +19,8 @@ from ring_doorbell.const import (
     DOORBELL_3_PLUS_KINDS,
     DOORBELL_4_KINDS,
     DOORBELL_BATTERY_KINDS,
+    DOORBELL_BATTERY_PLUS_KINDS,
+    DOORBELL_BATTERY_PRO_KINDS,
     DOORBELL_ELITE_KINDS,
     DOORBELL_EXISTING_DURATION_MAX,
     DOORBELL_EXISTING_DURATION_MIN,
@@ -102,6 +104,10 @@ class RingDoorBell(RingGeneric):
             return "Doorbell Wired"
         if self.kind in DOORBELL_BATTERY_KINDS:
             return "Battery Doorbell"
+        if self.kind in DOORBELL_BATTERY_PLUS_KINDS:
+            return "Battery Doorbell Plus"
+        if self.kind in DOORBELL_BATTERY_PRO_KINDS:
+            return "Battery Doorbell Pro"
         if self.kind in DOORBELL_GEN2_KINDS:
             return "Doorbell (2nd Gen)"
         if self.kind in PEEPHOLE_CAM_KINDS:
@@ -124,6 +130,8 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_4_KINDS
                 + DOORBELL_GEN2_KINDS
                 + DOORBELL_BATTERY_KINDS
+                + DOORBELL_BATTERY_PLUS_KINDS
+                + DOORBELL_BATTERY_PRO_KINDS
                 + PEEPHOLE_CAM_KINDS
             )
         if capability == RingCapability.KNOCK:
@@ -149,6 +157,8 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_PRO_2_KINDS
                 + DOORBELL_WIRED_KINDS
                 + DOORBELL_BATTERY_KINDS
+                + DOORBELL_BATTERY_PLUS_KINDS
+                + DOORBELL_BATTERY_PRO_KINDS
                 + DOORBELL_GEN2_KINDS
                 + DOORBELL_ELITE_KINDS
                 + PEEPHOLE_CAM_KINDS
