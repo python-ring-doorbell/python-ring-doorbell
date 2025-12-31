@@ -8,7 +8,6 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Callable
 
-from async_timeout import timeout as asyncio_timeout
 from firebase_messaging import FcmPushClient, FcmRegisterConfig
 
 from ring_doorbell.const import (
@@ -192,7 +191,7 @@ class RingEventListener:
         if self.subscribed:
             self.add_notification_callback(self._ring._add_event_to_dings_data)  # noqa: SLF001
 
-            async with asyncio_timeout(timeout):
+            async with asyncio.timeout(timeout):
                 await self._receiver.start()
             self.started = True
             self.session_refresh_task = asyncio.create_task(
