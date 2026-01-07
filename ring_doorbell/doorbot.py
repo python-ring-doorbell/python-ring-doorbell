@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 import aiofiles
 
 from ring_doorbell.const import (
+    BATTERY_DOORBELL_PRO_KINDS,
     DEFAULT_VIDEO_DOWNLOAD_TIMEOUT,
     DINGS_ENDPOINT,
     DOORBELL_2_KINDS,
@@ -106,6 +107,8 @@ class RingDoorBell(RingGeneric):
             return "Doorbell (2nd Gen)"
         if self.kind in PEEPHOLE_CAM_KINDS:
             return "Peephole Cam"
+        if self.kind in BATTERY_DOORBELL_PRO_KINDS:
+            return "Battery Doorbell Pro"
         return "Unknown Doorbell"
 
     def has_capability(self, capability: RingCapability | str) -> bool:  # noqa: PLR0911
@@ -124,6 +127,7 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_4_KINDS
                 + DOORBELL_GEN2_KINDS
                 + DOORBELL_BATTERY_KINDS
+                + BATTERY_DOORBELL_PRO_KINDS
                 + PEEPHOLE_CAM_KINDS
             )
         if capability == RingCapability.KNOCK:
@@ -149,6 +153,7 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_PRO_2_KINDS
                 + DOORBELL_WIRED_KINDS
                 + DOORBELL_BATTERY_KINDS
+                + BATTERY_DOORBELL_PRO_KINDS
                 + DOORBELL_GEN2_KINDS
                 + DOORBELL_ELITE_KINDS
                 + PEEPHOLE_CAM_KINDS
