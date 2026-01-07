@@ -169,6 +169,7 @@ DOORBELL_WIRED_KINDS = ["doorbell_graham_cracker"]
 DOORBELL_BATTERY_KINDS = ["df_doorbell_clownfish"]
 PEEPHOLE_CAM_KINDS = ["doorbell_portal"]
 DOORBELL_GEN2_KINDS = ["cocoa_doorbell", "cocoa_doorbell_v2"]
+BATTERY_DOORBELL_PRO_KINDS = ["cocoa_doorbell_v5"]
 
 FLOODLIGHT_CAM_KINDS = ["hp_cam_v1", "floodlight_v2"]
 FLOODLIGHT_CAM_PRO_KINDS = ["floodlight_pro"]
@@ -185,6 +186,7 @@ STICKUP_CAM_BATTERY_KINDS = ["stickup_cam_lunar"]
 STICKUP_CAM_ELITE_KINDS = ["stickup_cam_elite", "stickup_cam_wired"]
 STICKUP_CAM_WIRED_KINDS = STICKUP_CAM_ELITE_KINDS  # Deprecated
 STICKUP_CAM_GEN3_KINDS = ["cocoa_camera"]
+OUTDOOR_CAM_PLUS_KINDS = ["cocoa_camera_v2"]
 BEAM_KINDS = ["beams_ct200_transformer"]
 
 INTERCOM_KINDS = ["intercom_handset_audio", "intercom_handset_video"]

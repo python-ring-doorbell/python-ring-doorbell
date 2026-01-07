@@ -16,6 +16,7 @@ from ring_doorbell.const import (
     LIGHTS_ENDPOINT,
     MSG_ALLOWED_VALUES,
     MSG_VOL_OUTBOUND,
+    OUTDOOR_CAM_PLUS_KINDS,
     SIREN_DURATION_MAX,
     SIREN_DURATION_MIN,
     SIREN_ENDPOINT,
@@ -78,6 +79,8 @@ class RingStickUpCam(RingDoorBell):
             return "Stick Up Cam Wired"
         if self.kind in STICKUP_CAM_GEN3_KINDS:
             return "Stick Up Cam (3rd Gen)"
+        if self.kind in OUTDOOR_CAM_PLUS_KINDS:
+            return "Outdoor Cam Plus"
         _LOGGER.error("Unknown kind: %s", self.kind)
         return "Unknown Stickup Cam"
 
@@ -96,6 +99,7 @@ class RingStickUpCam(RingDoorBell):
                 + STICKUP_CAM_KINDS
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_GEN3_KINDS
+                + OUTDOOR_CAM_PLUS_KINDS
             )
         if capability == RingCapability.LIGHT:
             return self.kind in (
@@ -122,6 +126,7 @@ class RingStickUpCam(RingDoorBell):
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_ELITE_KINDS
                 + STICKUP_CAM_GEN3_KINDS
+                + OUTDOOR_CAM_PLUS_KINDS
             )
         if capability in [RingCapability.MOTION_DETECTION, RingCapability.VIDEO]:
             return self.kind in (
@@ -139,6 +144,7 @@ class RingStickUpCam(RingDoorBell):
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_ELITE_KINDS
                 + STICKUP_CAM_GEN3_KINDS
+                + OUTDOOR_CAM_PLUS_KINDS
             )
         return False
 
