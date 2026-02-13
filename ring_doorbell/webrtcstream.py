@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import re
 import ssl
 import time
 import uuid
@@ -71,6 +72,7 @@ class RingWebRtcStream:
         """Initialise the class."""
         self._ring = ring
         self.device_api_id = device_api_id
+        self.sdp_offer: str | None = None
         self.sdp: str | None = None
         self.websocket: ClientConnection | None = None
         self.is_alive = True
@@ -104,6 +106,7 @@ class RingWebRtcStream:
 
     async def generate(self, sdp_offer: str) -> str | None:
         """Generate the RTC stream."""
+        self.sdp_offer = sdp_offer
         await self._generate(sdp_offer)
 
         if self._on_message_callback:
@@ -278,10 +281,11 @@ class RingWebRtcStream:
         sdp = message["body"]["sdp"]
         _LOGGER.debug("SDP answer received: %s", sdp)
         self.sdp = sdp
+        self.force_correct_sdp_answer()
         self._sdp_answer_event.set()
 
         if self._on_message_callback:
-            answer_message = RingWebRtcMessage(answer=sdp)
+            answer_message = RingWebRtcMessage(answer=self.sdp)
             self._on_message_callback(answer_message)
 
         await self._activate()
@@ -299,6 +303,39 @@ class RingWebRtcStream:
                 error_code=reason_code, error_message=reason_message
             )
             self._on_message_callback(error_message)
+
+    def force_correct_sdp_answer(self) -> None:
+        """Force the sdp response to have the valid answer.
+
+        The Ring WebRTC Stream responses to certain offers do not
+        follow the spec defined in https://www.ietf.org/rfc/rfc3264.txt
+        An offer of recvonly must be answered with sendonly or inactive.
+        """
+        _LOGGER.debug("Attempt to fix sdp answer...")
+        if isinstance(self.sdp, str) and isinstance(self.sdp_offer, str):
+            sdp_kinds = ["audio", "video", "application"]
+            sdp_directions = ["sendrecv", "sendonly", "recvonly", "inactive"]
+            sdp_pattern = (
+                "m=(?P<kind>{})(.|\n)+?a=(?P<direction>{})(\r|\n|\r\n)".format(
+                    "|".join(sdp_kinds), "|".join(sdp_directions)
+                )
+            )
+
+            sdp_direction_offers = re.finditer(sdp_pattern, self.sdp_offer)
+            sdp_answers = re.finditer(sdp_pattern, self.sdp)
+
+            for offer in sdp_direction_offers:
+                for answer in sdp_answers:
+                    if (
+                        offer.group("kind") == answer.group("kind")
+                        and offer.group("direction") == "recvonly"
+                        and answer.group("direction") == "sendrecv"
+                    ):
+                        correct_answer = re.sub(
+                            "a=sendrecv", "a=sendonly", answer.group(0)
+                        )
+                        _LOGGER.debug("Replacing answer with: %s", str(correct_answer))
+                        self.sdp = self.sdp.replace(answer.group(0), correct_answer)
 
     def insert_ice_candidates(self) -> None:
         """Insert an ice candidate into the sdp answer.

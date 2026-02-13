@@ -175,6 +175,7 @@ FLOODLIGHT_CAM_PRO_KINDS = ["floodlight_pro"]
 FLOODLIGHT_CAM_PLUS_KINDS = ["cocoa_floodlight"]
 INDOOR_CAM_KINDS = ["stickup_cam_mini"]
 INDOOR_CAM_GEN2_KINDS = ["stickup_cam_mini_v2"]
+INDOOR_CAM_PTZ_KINDS = ["stickup_cam_mini_ptz_v1"]
 SPOTLIGHT_CAM_BATTERY_KINDS = ["stickup_cam_v4"]
 SPOTLIGHT_CAM_WIRED_KINDS = ["hp_cam_v2", "spotlightw_v2"]
 SPOTLIGHT_CAM_PLUS_KINDS = ["cocoa_spotlight"]
@@ -186,7 +187,7 @@ STICKUP_CAM_WIRED_KINDS = STICKUP_CAM_ELITE_KINDS  # Deprecated
 STICKUP_CAM_GEN3_KINDS = ["cocoa_camera"]
 BEAM_KINDS = ["beams_ct200_transformer"]
 
-INTERCOM_KINDS = ["intercom_handset_audio"]
+INTERCOM_KINDS = ["intercom_handset_audio", "intercom_handset_video"]
 
 # error strings
 MSG_BOOLEAN_REQUIRED = "Boolean value is required."
