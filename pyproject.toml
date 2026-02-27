@@ -1,6 +1,6 @@
 [project]
 name = "ring-doorbell"
-version = "0.9.13"
+version = "0.9.14"
 description = "A Python library to communicate with Ring Door Bell (https://ring.com/)"
 authors = [{ name = "python-ring-doorbell developers" }]
 license = { text="LGPL-3.0-or-later" }
