@@ -78,13 +78,6 @@ jobs:
           uv run pytest tests/
           --cov=${{ env.PACKAGE_NAME }} --cov-report=xml
           --cov-report=term-missing --import-mode importlib
-      - name: Coveralls GitHub Action
-        uses: coverallsapp/github-action@v2.2.3
-        with:
-          file: coverage.xml
-          debug: true
-          parallel: true
-        if: ${{ success() && matrix.python-version == '3.12' }}
 
   finish:
     name: Finish coverage build
