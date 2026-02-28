@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.14](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.14) (2026-02-27)
+
+[Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.13...0.9.14)
+
+**Release highlights:**
+
+Support for Ring Intercom Video
+
+**Merged pull requests:**
+
+- Support new device Ring Intercom Video [\#493](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/493) (@majd)
+- WebRTC Answer Fix for Firefox and Device Addition [\#491](https://github.com/python-ring-doorbell/python-ring-doorbell/pull/491) (@JackieGCodes)
+
 ## [0.9.13](https://github.com/python-ring-doorbell/python-ring-doorbell/tree/0.9.13) (2024-11-26)
 
 [Full Changelog](https://github.com/python-ring-doorbell/python-ring-doorbell/compare/0.9.12...0.9.13)
