@@ -19,7 +19,7 @@ jobs:
         python-version: ["3.12"]
     steps:
       - name: "Checkout source files"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v6"
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
@@ -39,7 +39,7 @@ jobs:
       matrix:
         python-version: ["3.12"]
     steps:
-      - uses: "actions/checkout@v4"
+      - uses: "actions/checkout@v6"
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
@@ -67,7 +67,7 @@ jobs:
             python-version: "pypy-3.10"
 
     steps:
-      - uses: "actions/checkout@v4"
+      - uses: "actions/checkout@v6"
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
@@ -79,7 +79,7 @@ jobs:
           --cov=${{ env.PACKAGE_NAME }} --cov-report=xml
           --cov-report=term-missing --import-mode importlib
       - name: Coveralls GitHub Action
-        uses: coverallsapp/github-action@v2.2.3
+        uses: coverallsapp/github-action@v2.3.6
         with:
           file: coverage.xml
           debug: true
@@ -92,6 +92,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Close parallel build
-        uses: coverallsapp/github-action@v2.2.3
+        uses: coverallsapp/github-action@v2.3.6
         with:
           parallel-finished: true

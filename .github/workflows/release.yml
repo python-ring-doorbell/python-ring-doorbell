@@ -1,0 +1,60 @@
+name: Release
+# This workflow creates a GitHub Release via workflow dispatch in case the job publish fails.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to release (for example: v1.2.3)"
+        required: true
+        type: string
+      publish_run_id:
+        description: "Run ID of the publish workflow that produced python-package-distributions"
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+
+jobs:
+  github-release:
+    name: Create github release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v6
+      with:
+        name: python-package-distributions
+        path: dist/
+        run-id: ${{ inputs.publish_run_id }}
+        github-token: ${{ github.token }}
+
+    - name: Sign the dists with Sigstore
+      uses: sigstore/gh-action-sigstore-python@v3
+      with:
+        inputs: >-
+          ./dist/*.tar.gz
+          ./dist/*.whl
+
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      # Repo clone is required for --notes-from-tag to work
+      run: |
+        gh repo clone '${{ github.repository }}'
+        cd ${{ github.event.repository.name }}
+        gh release create '${{ inputs.tag }}' --verify-tag --notes-from-tag --title '${{ inputs.tag }}' ${{ contains(inputs.tag, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
+        cd ..
+
+    - name: Upload artifact signatures to GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      # Upload to GitHub Release using the `gh` CLI.
+      # `dist/` contains the built packages, and the
+      # sigstore-produced signatures and certificates.
+      run: >-
+        gh release upload
+        '${{ inputs.tag }}' dist/**
+        --repo '${{ github.repository }}'
