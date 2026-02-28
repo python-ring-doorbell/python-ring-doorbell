@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Stale issues and prs
-        uses: actions/stale@v9.0.0
+        uses: actions/stale@v10.0.0
         with:
           repo-token: ${{ github.token }}
           days-before-stale: 90
@@ -45,7 +45,7 @@ jobs:
 
 
       - name: Needs-more-information and waiting-for-reporter stale issues policy
-        uses: actions/stale@v9.0.0
+        uses: actions/stale@v10.0.0
         with:
           repo-token: ${{ github.token }}
           only-labels: "needs-more-information,waiting-for-reporter"
