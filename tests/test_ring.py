@@ -16,7 +16,7 @@ def test_basic_attributes(ring):
     """Test the Ring class and methods."""
     data = ring.devices()
     assert len(data["chimes"]) == 1
-    assert len(data["doorbots"]) == 1
+    assert len(data["doorbots"]) == 2
     assert len(data["authorized_doorbots"]) == 1
     assert len(data["stickup_cams"]) == 1
     assert len(data["other"]) == 1
@@ -82,6 +82,22 @@ async def test_doorbell_attributes(ring):
     assert dev.wifi_name == "ring_mock_wifi"
     assert dev.wifi_signal_category == "good"
     assert dev.wifi_signal_strength == -58
+
+
+def test_doorbell_pro3_attributes(ring):
+    """Test the Ring Doorbell Pro 3rd Gen model name and capabilities."""
+    dev = ring.devices()["doorbots"][1]
+    assert dev.name == "Front Door Pro 3"
+    assert dev.id == 987654
+    assert dev.kind == "cocoa_doorbell_v5"
+    assert dev.model == "Doorbell Pro (3rd Gen)"
+    assert dev.has_capability("battery") is False
+    assert dev.has_capability("volume") is True
+    assert dev.has_capability("history") is True
+    assert dev.has_capability("motion_detection") is True
+    assert dev.has_capability("video") is True
+    assert dev.has_capability("ding") is True
+    assert dev.has_capability("pre_roll") is True
 
 
 def test_shared_doorbell_attributes(ring):

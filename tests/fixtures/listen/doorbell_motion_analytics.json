@@ -1,0 +1,9 @@
+{
+    "server_correlation_id": "123456789|human|1772800029955_Scc339d31",
+    "server_id": "com.ring.pns",
+    "subcategory": "human",
+    "triggered_at": 1772800029955,
+    "sent_at": 1772800030397,
+    "referring_item_type": "device_id",
+    "referring_item_id": "123456789"
+}

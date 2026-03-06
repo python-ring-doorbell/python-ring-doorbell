@@ -290,6 +290,11 @@ class RingEventListener:
         obj: Any | None = None,  # noqa: ARG002
     ) -> None:
         msg_data = notification["data"]
+        _logger.debug(
+            "FCM notification received. Format: %s. Raw data:\n%s",
+            "legacy (gcmData)" if "gcmData" in msg_data else "modern",
+            json.dumps(msg_data, indent=2),
+        )
         if "gcmData" in msg_data:
             gcm_data = json.loads(notification["data"]["gcmData"])
             ring_event = self._get_legacy_ring_event(gcm_data)
@@ -298,11 +303,19 @@ class RingEventListener:
 
         if ring_event:
             self._check_is_update(ring_event)
-            _logger.debug("Event received %s", ring_event)
+            _logger.debug(
+                "FCM event parsed successfully: id=%s doorbot_id=%s device_kind=%s kind=%s state=%s is_update=%s",
+                ring_event.id,
+                ring_event.doorbot_id,
+                ring_event.device_kind,
+                ring_event.kind,
+                ring_event.state,
+                ring_event.is_update,
+            )
             for callback in self._callbacks.values():
                 callback(ring_event)
         else:
-            _logger.debug("Unknown event received %s", msg_data)
+            _logger.debug("FCM event could not be parsed. Raw msg_data:\n%s", json.dumps(msg_data, indent=2))
 
     def _get_ring_event(self, msg_data: dict) -> RingEvent | None:
         if (android_config_str := msg_data.get("android_config")) is None or (
@@ -318,11 +331,32 @@ class RingEventListener:
         data = json.loads(data_str)
         event_category = android_config["category"]
         event_kind = PUSH_NOTIFICATION_KINDS.get(event_category, "Unknown")
+        _logger.debug(
+            "FCM modern event: category=%s -> kind=%s (known=%s)",
+            event_category,
+            event_kind,
+            event_category in PUSH_NOTIFICATION_KINDS,
+        )
         device = data["device"]
         event = data["event"]
-        event_id = int(event["ding"]["id"])
-        created_at = event["ding"]["created_at"]
-        create_seconds = parse_datetime(created_at).timestamp()
+        ding = event.get("ding", {})
+        _logger.debug(
+            "FCM modern event ding payload: keys=%s full_event_keys=%s",
+            list(ding.keys()),
+            list(event.keys()),
+        )
+        # Newer device firmware (e.g. cocoa_doorbell_v5) omits "id" from the
+        # ding object.  Fall back to the millisecond timestamp from "eventito"
+        # which is unique per event, or use the current time as a last resort.
+        eventito = event.get("eventito", {})
+        if "id" in ding:
+            event_id = int(ding["id"])
+        elif "timestamp" in eventito:
+            event_id = int(eventito["timestamp"])
+        else:
+            event_id = int(time.time() * 1000)
+        created_at = ding.get("created_at")
+        create_seconds = parse_datetime(created_at).timestamp() if created_at else time.time()
         return RingEvent(
             event_id,
             device["id"],
@@ -331,11 +365,16 @@ class RingEventListener:
             kind=event_kind,
             now=create_seconds,
             expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
-            state=event["ding"]["subtype"],
+            state=ding.get("subtype", ""),
         )
 
     def _get_legacy_ring_event(self, gcm_data: dict) -> RingEvent | None:
         re: RingEvent | None = None
+        _logger.debug(
+            "FCM legacy event: action=%s keys=%s",
+            gcm_data.get("action"),
+            list(gcm_data.keys()),
+        )
         if "ding" in gcm_data:
             re = self._get_ding_event(gcm_data)
         elif gcm_data.get("action") == PUSH_ACTION_INTERCOM_UNLOCK:

@@ -90,7 +90,8 @@ async def test_list(ring):
         res = await runner.invoke(list_command, obj=ring)
 
         expected = (
-            "Front Door (lpd_v1)\nBack Door (lpd_v1)\nDownstairs (chime)\n"
+            "Front Door (lpd_v1)\nFront Door Pro 3 (cocoa_doorbell_v5)\n"
+            "Back Door (lpd_v1)\nDownstairs (chime)\n"
             "Front (hp_cam_v1)\nIngress (intercom_handset_audio)\n"
         )
 
@@ -340,7 +341,7 @@ async def test_in_home_chime(ring, aioresponses_mock, devices_fixture):
             [],
             obj=ring,
         )
-        expected = "There are 2 doorbells, you need to pass the --device-name option"
+        expected = "There are 3 doorbells, you need to pass the --device-name option"
         assert res.exit_code == 1
         assert expected in res.output
 

@@ -134,6 +134,32 @@ def load_alert_v2(
     return msg
 
 
+def load_alert_v2_no_ding_id(
+    alert_type: str, device_id, *, eventito_timestamp_inc: int = 0, created_at: str | None = None
+) -> dict:
+    """Load a v2 alert where the ding object has no 'id' field (newer device firmware)."""
+    msg = json.loads(load_fixture(Path().joinpath("listen", "fcmdata_v2.json")))
+    data = json.loads(
+        load_fixture(Path().joinpath("listen", f"{alert_type}_data.json"))
+    )
+    android_config = json.loads(
+        load_fixture(Path().joinpath("listen", f"{alert_type}_android_config.json"))
+    )
+    analytics = json.loads(
+        load_fixture(Path().joinpath("listen", f"{alert_type}_analytics.json"))
+    )
+    if created_at is None:
+        created_at = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"  # noqa: DTZ003
+    data["device"]["id"] = device_id
+    data["event"]["ding"]["created_at"] = created_at
+    data["event"]["ding"].pop("id", None)  # Remove id to simulate newer firmware
+    data["event"]["eventito"]["timestamp"] = data["event"]["eventito"]["timestamp"] + eventito_timestamp_inc
+    msg["data"]["data"] = json.dumps(data)
+    msg["data"]["android_config"] = json.dumps(android_config)
+    msg["data"]["analytics"] = json.dumps(analytics)
+    return msg
+
+
 @pytest.fixture(autouse=True)
 def _listen_mock(mocker, request) -> None:
     if "nolistenmock" in request.keywords:
