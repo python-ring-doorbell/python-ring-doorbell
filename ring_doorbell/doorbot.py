@@ -26,6 +26,7 @@ from ring_doorbell.const import (
     DOORBELL_GEN2_KINDS,
     DOORBELL_KINDS,
     DOORBELL_PRO_2_KINDS,
+    DOORBELL_PRO_3_KINDS,
     DOORBELL_PRO_KINDS,
     DOORBELL_VOL_MAX,
     DOORBELL_VOL_MIN,
@@ -66,6 +67,7 @@ class RingDoorBell(RingGeneric):
         super().__init__(ring, device_api_id)
         self.shared = shared
         self._webrtc_streams: dict[str, RingWebRtcStream] = {}
+        _LOGGER.info("Initialised doorbell %s with id %s", self.name, self.device_api_id)
 
     @property
     def family(self) -> str:
@@ -96,6 +98,8 @@ class RingDoorBell(RingGeneric):
             return "Doorbell Pro"
         if self.kind in DOORBELL_PRO_2_KINDS:
             return "Doorbell Pro 2"
+        if self.kind in DOORBELL_PRO_3_KINDS:
+            return "Doorbell Pro (3rd Gen)"
         if self.kind in DOORBELL_ELITE_KINDS:
             return "Doorbell Elite"
         if self.kind in DOORBELL_WIRED_KINDS:
@@ -129,7 +133,7 @@ class RingDoorBell(RingGeneric):
         if capability == RingCapability.KNOCK:
             return self.kind in PEEPHOLE_CAM_KINDS
         if capability == RingCapability.PRE_ROLL:
-            return self.kind in DOORBELL_3_PLUS_KINDS
+            return self.kind in DOORBELL_3_PLUS_KINDS + DOORBELL_PRO_3_KINDS
         if capability == RingCapability.VOLUME:
             return True
         if capability == RingCapability.HISTORY:
@@ -147,6 +151,7 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_4_KINDS
                 + DOORBELL_PRO_KINDS
                 + DOORBELL_PRO_2_KINDS
+                + DOORBELL_PRO_3_KINDS
                 + DOORBELL_WIRED_KINDS
                 + DOORBELL_BATTERY_KINDS
                 + DOORBELL_GEN2_KINDS

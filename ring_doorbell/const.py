@@ -164,6 +164,7 @@ DOORBELL_4_KINDS = ["doorbell_oyster"]  # Added
 DOORBELL_3_PLUS_KINDS = ["doorbell_scallop"]
 DOORBELL_PRO_KINDS = ["lpd_v1", "lpd_v2", "lpd_v3"]
 DOORBELL_PRO_2_KINDS = ["lpd_v4"]
+DOORBELL_PRO_3_KINDS = ["cocoa_doorbell_v5"]
 DOORBELL_ELITE_KINDS = ["jbox_v1"]
 DOORBELL_WIRED_KINDS = ["doorbell_graham_cracker"]
 DOORBELL_BATTERY_KINDS = ["df_doorbell_clownfish"]

@@ -1,0 +1,31 @@
+{
+    "device": {
+        "e2ee_enabled": false,
+        "id": 123456789,
+        "kind": "cocoa_doorbell_v5",
+        "name": "Front Door"
+    },
+    "event": {
+        "ding": {
+            "created_at": "2026-03-06T12:27:09Z",
+            "subtype": "human",
+            "detection_type": "human"
+        },
+        "eventito": {
+            "initial_motion_offset": 4,
+            "type": "human",
+            "timestamp": 1772800029955
+        },
+        "riid": "b52155a7be5ffb69cf9b66f3d2486950",
+        "is_sidewalk": false,
+        "description_provider": "default",
+        "live_session": {
+            "active_streaming_profile": "rms",
+            "default_audio_route": "loud_speaker",
+            "max_duration": 120
+        }
+    },
+    "location": {
+        "id": "7d79c555-1d4f-49cd-99b7-ffc08528fb2a"
+    }
+}

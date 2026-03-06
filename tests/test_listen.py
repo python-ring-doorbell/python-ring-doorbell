@@ -9,7 +9,7 @@ from ring_doorbell import Ring
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.listen import RingEventListener
 
-from tests.conftest import load_alert_v1, load_alert_v2, load_fixture
+from tests.conftest import load_alert_v1, load_alert_v2, load_alert_v2_no_ding_id, load_fixture
 
 
 async def test_listen(auth, mocker):
@@ -71,6 +71,47 @@ async def test_active_dings(auth, mocker):
 
     dings = ring.active_alerts()
     assert len(dings) == num_active + alertstoadd * 3
+    await listener.stop()
+
+
+async def test_active_dings_no_ding_id(auth, mocker):
+    """Test that events from devices without ding.id (e.g. cocoa_doorbell_v5) are handled."""
+    ring = Ring(auth)
+    listener = RingEventListener(ring)
+    await listener.start()
+    assert listener.subscribed is True
+    assert listener.started is True
+
+    num_active = len(ring.active_alerts())
+    assert num_active == 0
+
+    base_timestamp = 1772800029955
+    device_id = 123456789
+    alertstoadd = 2
+    for i in range(alertstoadd):
+        msg = load_alert_v2_no_ding_id(
+            "doorbell_motion", device_id, eventito_timestamp_inc=i
+        )
+        listener._on_notification(msg, "1234567" + str(i))
+
+    dings = ring.active_alerts()
+    assert len(dings) == alertstoadd
+    assert all(d.kind == "motion" for d in dings)
+    assert all(d.doorbot_id == device_id for d in dings)
+    # IDs should be derived from eventito.timestamp since ding.id is absent
+    ids = {d.id for d in dings}
+    assert ids == {base_timestamp, base_timestamp + 1}
+
+    # Sending the same events again should not increase the count (they are updates)
+    for i in range(alertstoadd):
+        msg = load_alert_v2_no_ding_id(
+            "doorbell_motion", device_id, eventito_timestamp_inc=i
+        )
+        listener._on_notification(msg, "1234567" + str(i))
+
+    dings = ring.active_alerts()
+    assert len(dings) == alertstoadd
+
     await listener.stop()
 
 
