@@ -456,7 +456,10 @@ class RingDoorBell(RingGeneric):
     async def generate_webrtc_stream(
         self, sdp_offer: str, *, keep_alive_timeout: int | None = 30
     ) -> str:
-        """Generate the rtc stream."""
+        """Generate a  webrtc stream.
+
+        This method will wait until an sdp answer is received beofre returning.
+        """
         if session_id := RingWebRtcStream.get_sdp_session_id(sdp_offer):
 
             async def _close_callback() -> None:
@@ -484,10 +487,33 @@ class RingDoorBell(RingGeneric):
         *,
         keep_alive_timeout: int | None = 60 * 5,
     ) -> None:
-        """Generate the rtc stream. Will callback with answers and ICE candidates."""
+        """Generate a webrtc stream.
+
+        Will callback with answers and ICE candidates.
+        """
+        return await self.handle_webrtc_offer(
+            sdp_offer,
+            session_id,
+            on_message_callback,
+            keep_alive_timeout=keep_alive_timeout,
+        )
+
+    async def handle_webrtc_offer(
+        self,
+        sdp_offer: str,
+        session_id: str,
+        on_message_callback: RingWebRtcMessageCallback,
+        *,
+        keep_alive_timeout: int | None = 60 * 5,
+    ) -> None:
+        """Handle a webrtc offer."""
 
         async def _close_callback() -> None:
             await self.close_webrtc_stream(session_id)
+
+        if stream := self._webrtc_streams.get(session_id):
+            await stream.on_offer(sdp_offer)
+            return
 
         stream = RingWebRtcStream(
             self._ring,
