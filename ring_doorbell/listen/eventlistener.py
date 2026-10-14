@@ -47,6 +47,7 @@ class RingEventListener:
     """Class to connect to firebase cloud messaging."""
 
     SESSION_REFRESH_INTERVAL = 60 * 60 * 12
+    SESSION_REFRESH_RETRY_INTERVAL = 60 * 5
 
     def __init__(
         self,
@@ -211,11 +212,18 @@ class RingEventListener:
 
             if since_refresh > self.SESSION_REFRESH_INTERVAL:
                 _logger.debug("Refreshing ring session")
-                await self._ring.async_create_session()
-                await self.add_subscription_to_ring(self.fcm_token)
-                break
+                try:
+                    await self._ring.async_create_session()
+                    await self.add_subscription_to_ring(self.fcm_token)
+                except RingError:
+                    _logger.exception(
+                        "Error refreshing ring session, retrying in %s seconds",
+                        self.SESSION_REFRESH_RETRY_INTERVAL,
+                    )
+                    await asyncio.sleep(self.SESSION_REFRESH_RETRY_INTERVAL)
+                continue
 
-            sleep_for = 1 + time.monotonic() - self._ring.session_refresh_time
+            sleep_for = 1 + self.SESSION_REFRESH_INTERVAL - since_refresh
             await asyncio.sleep(sleep_for)
 
     def _get_ding_event(self, gcm_data: dict[str, Any]) -> RingEvent:
@@ -225,7 +233,7 @@ class RingEventListener:
         if action.lower() == PUSH_ACTION_MOTION.lower():
             kind = KIND_MOTION
             state = subtype
-        elif action.lower == PUSH_ACTION_DING.lower():
+        elif action.lower() == PUSH_ACTION_DING.lower():
             kind = KIND_DING
             state = "ringing"
         else:
@@ -290,11 +298,20 @@ class RingEventListener:
         obj: Any | None = None,  # noqa: ARG002
     ) -> None:
         msg_data = notification["data"]
-        if "gcmData" in msg_data:
-            gcm_data = json.loads(notification["data"]["gcmData"])
-            ring_event = self._get_legacy_ring_event(gcm_data)
-        else:
-            ring_event = self._get_ring_event(msg_data)
+        try:
+            if "gcmData" in msg_data:
+                gcm_data = json.loads(notification["data"]["gcmData"])
+                ring_event = self._get_legacy_ring_event(gcm_data)
+            else:
+                ring_event = self._get_ring_event(msg_data)
+        except Exception:
+            # Raising here counts towards the FcmPushClient error limit and
+            # an unparseable payload should not stop the listener.
+            _logger.exception(
+                "Unable to parse fcm message data.  Full message is:\n%s",
+                json.dumps(msg_data),
+            )
+            return
 
         if ring_event:
             self._check_is_update(ring_event)

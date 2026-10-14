@@ -15,4 +15,7 @@ class RingEventListenerConfig(FcmPushClientConfig):
         config.server_heartbeat_interval = 60
         config.client_heartbeat_interval = 120
         config.monitor_interval = 15
+        # Do not permanently shut down the push client after repeated errors,
+        # keep resetting the connection instead.
+        config.abort_on_sequential_error_count = None
         return config

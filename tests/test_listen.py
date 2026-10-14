@@ -2,6 +2,7 @@
 
 import datetime
 import json
+import time
 
 import pytest
 from freezegun.api import FrozenDateTimeFactory
@@ -193,3 +194,74 @@ async def test_listen_fcm_fail(auth, mocker, caplog):
         )
         == 1
     )
+
+
+async def test_legacy_ding_kind(auth, mocker):
+    ring = Ring(auth)
+    listener = RingEventListener(ring)
+    events = []
+    listener.add_notification_callback(events.append)
+
+    msg = load_alert_v1("doorbot_ding", 123456781)
+    listener._on_notification(msg, "12345671")
+
+    assert len(events) == 1
+    assert events[0].kind == "ding"
+    assert events[0].state == "ringing"
+
+
+async def test_unparseable_notification_does_not_raise(auth, mocker, caplog):
+    ring = Ring(auth)
+    listener = RingEventListener(ring)
+    events = []
+    listener.add_notification_callback(events.append)
+
+    msg = load_alert_v2("camera_motion", 123456782)
+    data = json.loads(msg["data"]["data"])
+    del data["event"]["ding"]["id"]
+    msg["data"]["data"] = json.dumps(data)
+
+    listener._on_notification(msg, "12345671")
+
+    assert events == []
+    assert "Unable to parse fcm message data" in caplog.text
+
+    # The listener keeps processing subsequent valid notifications
+    listener._on_notification(load_alert_v2("camera_motion", 123456782), "12345672")
+    assert len(events) == 1
+
+
+async def test_default_config_does_not_abort_on_errors(auth):
+    listener = RingEventListener(Ring(auth))
+    assert listener._config.abort_on_sequential_error_count is None
+
+
+async def test_periodic_session_refresh_repeats(auth, mocker, caplog):
+    ring = Ring(auth)
+    listener = RingEventListener(ring)
+    listener.SESSION_REFRESH_INTERVAL = -1
+    listener.SESSION_REFRESH_RETRY_INTERVAL = 0
+    listener.started = True
+    listener.fcm_token = "foobar"
+    ring.session_refresh_time = time.monotonic()
+
+    calls = 0
+
+    async def _create_session() -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            msg = "Session error"
+            raise RingError(msg)
+        ring.session_refresh_time = time.monotonic()
+        if calls == 3:
+            listener.started = False
+
+    mocker.patch.object(ring, "async_create_session", side_effect=_create_session)
+    subscribe = mocker.patch.object(listener, "add_subscription_to_ring")
+
+    await listener._periodic_session_refresh()
+
+    assert calls == 3
+    assert subscribe.call_count == 2
+    assert "Error refreshing ring session" in caplog.text
