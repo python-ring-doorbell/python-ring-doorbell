@@ -84,6 +84,35 @@ async def test_doorbell_attributes(ring):
     assert dev.wifi_signal_strength == -58
 
 
+def test_unmapped_doorbell_kind_keeps_capabilities(ring, caplog):
+    """Test unmapped doorbell kinds are assumed to support the standard alerts."""
+    dev = ring.devices()["doorbots"][0]
+    dev._attrs["kind"] = "unmapped_doorbell_v1"
+
+    assert dev.has_capability("ding") is True
+    assert dev.has_capability("motion_detection") is True
+    assert dev.has_capability("video") is True
+    assert dev.has_capability("history") is True
+    assert dev.has_capability("volume") is True
+    # Battery is hardware dependent and is not inferred from the kind
+    assert dev.has_capability("battery") is False
+
+    assert dev.model == "Unknown Doorbell"
+    assert "Unmapped doorbell kind: unmapped_doorbell_v1" in caplog.text
+
+
+def test_unmapped_doorbell_kind_is_logged_once(ring, caplog):
+    """Test the unmapped kind warning is logged once and not on every access."""
+    dev = ring.devices()["doorbots"][0]
+    dev._attrs["kind"] = "unmapped_doorbell_v2"
+
+    for _ in range(3):
+        assert dev.has_capability("ding") is True
+        assert dev.model == "Unknown Doorbell"
+
+    assert caplog.text.count("Unmapped doorbell kind: unmapped_doorbell_v2") == 1
+
+
 def test_shared_doorbell_attributes(ring):
     data = ring.devices()
     dev = data["authorized_doorbots"][0]
