@@ -54,6 +54,23 @@ from ring_doorbell.webrtcstream import RingWebRtcMessageCallback, RingWebRtcStre
 
 _LOGGER = logging.getLogger(__name__)
 
+# Kinds are logged once each, the model and capability properties are read on
+# every entity refresh and logging each time would flood consumer logs.
+_UNMAPPED_KINDS_LOGGED: set[str] = set()
+
+
+def _log_unmapped_kind(kind: str) -> None:
+    """Warn once about a doorbell kind that is not mapped."""
+    if kind in _UNMAPPED_KINDS_LOGGED:
+        return
+    _UNMAPPED_KINDS_LOGGED.add(kind)
+    _LOGGER.warning(
+        "Unmapped doorbell kind: %s. Assuming it supports the standard doorbell "
+        "capabilities (ding, motion detection, video). Please report the kind if "
+        "this device exposes different capabilities",
+        kind,
+    )
+
 
 class RingDoorBell(RingGeneric):
     """Implementation for Ring Doorbell."""
@@ -106,6 +123,7 @@ class RingDoorBell(RingGeneric):
             return "Doorbell (2nd Gen)"
         if self.kind in PEEPHOLE_CAM_KINDS:
             return "Peephole Cam"
+        _log_unmapped_kind(self.kind)
         return "Unknown Doorbell"
 
     def has_capability(self, capability: RingCapability | str) -> bool:  # noqa: PLR0911
@@ -139,7 +157,7 @@ class RingDoorBell(RingGeneric):
             RingCapability.VIDEO,
             RingCapability.DING,
         ]:
-            return self.kind in (
+            if self.kind in (
                 DOORBELL_KINDS
                 + DOORBELL_2_KINDS
                 + DOORBELL_3_KINDS
@@ -152,7 +170,15 @@ class RingDoorBell(RingGeneric):
                 + DOORBELL_GEN2_KINDS
                 + DOORBELL_ELITE_KINDS
                 + PEEPHOLE_CAM_KINDS
-            )
+            ):
+                return True
+            # Ring releases new doorbell models faster than this mapping is
+            # updated, and everything in the doorbots families is a doorbell, so
+            # assume the standard alerts rather than dropping ding, motion and
+            # video. Without them consumers leave the realtime event listener
+            # disabled and poll for events instead, which delays every alert.
+            _log_unmapped_kind(self.kind)
+            return True
         return False
 
     @property
