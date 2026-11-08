@@ -388,7 +388,9 @@ class RingWebRtcStream:
             await websocket.close()
         if read_task := self.read_task:
             self.read_task = None
-            if not read_task.done():
+            # When Ring ends the session, _close() runs inside the reader
+            # task itself; it exits on its own once the websocket is closed.
+            if not read_task.done() and read_task is not asyncio.current_task():
                 await read_task
 
     async def handle_message(self, message_str: str) -> None:  # noqa: C901, PLR0912

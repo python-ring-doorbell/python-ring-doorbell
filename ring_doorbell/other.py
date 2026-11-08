@@ -28,11 +28,12 @@ from ring_doorbell.const import (
 )
 from ring_doorbell.exceptions import RingError
 from ring_doorbell.generic import RingGeneric
+from ring_doorbell.webrtcdevice import RingWebRtcMixin
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class RingOther(RingGeneric):
+class RingOther(RingWebRtcMixin, RingGeneric):
     """Implementation for Ring Intercom."""
 
     if TYPE_CHECKING:
@@ -42,6 +43,7 @@ class RingOther(RingGeneric):
         """Initialise the other devices."""
         super().__init__(ring, device_api_id)
         self.shared = shared
+        self._webrtc_streams = {}
 
     @property
     def family(self) -> str:
