@@ -82,6 +82,58 @@ async def test_generate_webrtc_stream_unregisters_on_failure(ring, mocker) -> No
     assert SESSION_ID not in dev._webrtc_streams
 
 
+async def test_generate_webrtc_stream_cancellation_unregisters(ring, mocker) -> None:
+    """Cancelling generate must not leave a stale stream registered."""
+    dev = get_doorbell(ring)
+    generate_started = asyncio.Event()
+
+    async def fake_generate(self, _offer: str) -> str:
+        generate_started.set()
+        await asyncio.Event().wait()
+        return "v=0\r\ns=answer\r\n"
+
+    mocker.patch.object(RingWebRtcStream, "generate", new=fake_generate)
+
+    task = asyncio.create_task(dev.generate_webrtc_stream(SDP_OFFER))
+    await generate_started.wait()
+    stream = dev._webrtc_streams[SESSION_ID]
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert SESSION_ID not in dev._webrtc_streams
+    assert stream.is_alive is False
+
+
+async def test_generate_async_webrtc_stream_cancellation_unregisters(
+    ring, mocker
+) -> None:
+    """Cancelling the async generate must not leave a stale stream."""
+    dev = get_doorbell(ring)
+    generate_started = asyncio.Event()
+
+    async def fake_generate(self, _offer: str) -> str:
+        generate_started.set()
+        await asyncio.Event().wait()
+        return "v=0\r\ns=answer\r\n"
+
+    mocker.patch.object(RingWebRtcStream, "generate", new=fake_generate)
+
+    task = asyncio.create_task(
+        dev.generate_async_webrtc_stream(SDP_OFFER, SESSION_ID, lambda _: None)
+    )
+    await generate_started.wait()
+    stream = dev._webrtc_streams[SESSION_ID]
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert SESSION_ID not in dev._webrtc_streams
+    assert stream.is_alive is False
+
+
 async def test_on_webrtc_candidate_live_stream_forwards(ring) -> None:
     """A candidate for a live stream is still forwarded (control case)."""
     dev = get_doorbell(ring)

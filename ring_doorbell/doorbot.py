@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from pathlib import Path
@@ -471,15 +472,20 @@ class RingDoorBell(RingGeneric):
             # Register before awaiting generate so ICE candidates arriving
             # while the offer is being processed reach the stream instead
             # of raising (trickle-ICE race, #560). The stream holds them
-            # until the offer is sent. Remove the registration if generate
-            # fails so no stale stream is left behind.
+            # until the offer is sent. Remove the registration again if
+            # generate fails or is cancelled (CancelledError is a
+            # BaseException, so `except Exception` would miss it and leave
+            # a stale stream behind) and close the stream so no half-open
+            # websocket or reader task is left behind.
             self._webrtc_streams[session_id] = stream
             try:
                 sdp_answer = await stream.generate(sdp_offer)
                 # generate will raise if no sdp answer as no callback passed
                 assert sdp_answer  # noqa: S101
-            except Exception:
+            except BaseException:
                 self._webrtc_streams.pop(session_id, None)
+                with contextlib.suppress(Exception):
+                    await stream.close()
                 raise
             return sdp_answer
         msg = "Unable to generate the stream, could not extract session id from offer."
@@ -505,8 +511,17 @@ class RingDoorBell(RingGeneric):
             keep_alive_timeout=keep_alive_timeout,
             on_close_callback=_close_callback,
         )
+        # As in generate_webrtc_stream: remove the registration and close
+        # the stream if generate fails or is cancelled, so a failed or
+        # abandoned session does not leave a stale stream behind (#560).
         self._webrtc_streams[session_id] = stream
-        await stream.generate(sdp_offer)
+        try:
+            await stream.generate(sdp_offer)
+        except BaseException:
+            self._webrtc_streams.pop(session_id, None)
+            with contextlib.suppress(Exception):
+                await stream.close()
+            raise
 
     async def on_webrtc_candidate(
         self, session_id: str, candidate: str, multi_line_index: int
