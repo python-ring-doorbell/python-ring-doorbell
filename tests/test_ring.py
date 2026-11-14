@@ -370,3 +370,16 @@ async def test_set_existing_doorbell_type(ring, aioresponses_mock):
     # Attempting to set the doorbell duration to an invalid value
     with pytest.raises(RingError, match=f"Must be within the {0}-{1}."):
         await dev.async_set_existing_doorbell_type_duration(11)
+
+
+def test_existing_doorbell_type_unknown(ring):
+    """Unknown chime types must return None, not raise KeyError (#542)."""
+    dev = ring.devices()["doorbots"][0]
+    assert dev.existing_doorbell_type == "Mechanical"
+
+    settings = dev._attrs["settings"]["chime_settings"]
+    for unknown_type in (3, 5):
+        settings["type"] = unknown_type
+        assert dev.existing_doorbell_type is None
+        assert dev.existing_doorbell_type_enabled is False
+        assert dev.existing_doorbell_type_duration is None
