@@ -383,3 +383,44 @@ def test_existing_doorbell_type_unknown(ring):
         assert dev.existing_doorbell_type is None
         assert dev.existing_doorbell_type_enabled is False
         assert dev.existing_doorbell_type_duration is None
+
+
+async def test_set_existing_doorbell_type_unknown(ring, aioresponses_mock):
+    """Setters must reject unsupported chime types, not silently succeed (#542)."""
+    dev = ring.devices()["doorbots"][0]
+    assert dev.existing_doorbell_type == "Mechanical"
+
+    settings = dev._attrs["settings"]["chime_settings"]
+    for unknown_type in (3, 5):
+        settings["type"] = unknown_type
+        assert dev.existing_doorbell_type is None
+
+        aioresponses_mock.requests.clear()
+        with pytest.raises(
+            RingError, match=f"Unsupported existing doorbell type: {unknown_type}"
+        ):
+            await dev.async_set_existing_doorbell_type(0)
+        assert not aioresponses_mock.requests
+
+        aioresponses_mock.requests.clear()
+        with pytest.raises(
+            RingError, match=f"Unsupported existing doorbell type: {unknown_type}"
+        ):
+            await dev.async_set_existing_doorbell_type_enabled(value=True)
+        assert not aioresponses_mock.requests
+
+        aioresponses_mock.requests.clear()
+        with pytest.raises(
+            RingError, match=f"Unsupported existing doorbell type: {unknown_type}"
+        ):
+            await dev.async_set_existing_doorbell_type_duration(5)
+        assert not aioresponses_mock.requests
+
+    # A missing chime type keeps its existing silent no-op behaviour.
+    settings.pop("type", None)
+    assert dev.existing_doorbell_type is None
+    aioresponses_mock.requests.clear()
+    await dev.async_set_existing_doorbell_type(0)
+    await dev.async_set_existing_doorbell_type_enabled(value=True)
+    await dev.async_set_existing_doorbell_type_duration(5)
+    assert not aioresponses_mock.requests
