@@ -468,10 +468,19 @@ class RingDoorBell(RingGeneric):
                 keep_alive_timeout=keep_alive_timeout,
                 on_close_callback=_close_callback,
             )
-            sdp_answer = await stream.generate(sdp_offer)
-            # generate will raise if no sdp answer as no callback passed
-            assert sdp_answer  # noqa: S101
+            # Register before awaiting generate so ICE candidates arriving
+            # while the offer is being processed reach the stream instead
+            # of raising (trickle-ICE race, #560). The stream holds them
+            # until the offer is sent. Remove the registration if generate
+            # fails so no stale stream is left behind.
             self._webrtc_streams[session_id] = stream
+            try:
+                sdp_answer = await stream.generate(sdp_offer)
+                # generate will raise if no sdp answer as no callback passed
+                assert sdp_answer  # noqa: S101
+            except Exception:
+                self._webrtc_streams.pop(session_id, None)
+                raise
             return sdp_answer
         msg = "Unable to generate the stream, could not extract session id from offer."
         raise RingError(msg)
@@ -506,8 +515,15 @@ class RingDoorBell(RingGeneric):
         if stream := self._webrtc_streams.get(session_id):
             await stream.on_ice_candidate(candidate, multi_line_index)
         else:
-            msg = "Ice candidate received before stream has been created."
-            raise RingError(msg)
+            # Candidates can legitimately arrive before the stream is
+            # created (trickle ICE) or after it was closed; there is no
+            # stream to deliver them to, so drop them instead of raising
+            # (#560). Raising only produced "Unknown error" tracebacks in
+            # callers that do not expect this call to fail.
+            _LOGGER.debug(
+                "Ignoring ICE candidate for unknown or closed WebRTC session %s.",
+                session_id,
+            )
 
     async def close_webrtc_stream(self, session_id: str) -> None:
         """Close the rtc stream."""
