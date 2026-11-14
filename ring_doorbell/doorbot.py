@@ -190,11 +190,18 @@ class RingDoorBell(RingGeneric):
         """
         try:
             if (dtype := self._get_chime_setting("type")) is not None:
-                return DOORBELL_EXISTING_TYPE[dtype]
+                return DOORBELL_EXISTING_TYPE.get(dtype)
         except AttributeError:
             return None
         else:
             return None
+
+    def _validate_existing_doorbell_type(self) -> None:
+        """Raise if the device reports an unsupported existing doorbell type."""
+        dtype = self._get_chime_setting("type")
+        if dtype is not None and dtype not in DOORBELL_EXISTING_TYPE:
+            msg = f"Unsupported existing doorbell type: {dtype}"
+            raise RingError(msg)
 
     async def async_set_existing_doorbell_type(self, value: int) -> None:
         """
@@ -204,6 +211,7 @@ class RingDoorBell(RingGeneric):
         1: Digital
         2: Not Present
         """
+        self._validate_existing_doorbell_type()
         if value not in DOORBELL_EXISTING_TYPE:
             msg = f"value must be in {MSG_EXISTING_TYPE}"
             raise RingError(msg)
@@ -226,6 +234,7 @@ class RingDoorBell(RingGeneric):
 
     async def async_set_existing_doorbell_type_enabled(self, value: bool) -> None:  # noqa: FBT001
         """Enable/disable the existing doorbell if Digital/Mechanical."""
+        self._validate_existing_doorbell_type()
         if self.existing_doorbell_type:
             if not isinstance(value, bool):
                 raise RingError(MSG_BOOLEAN_REQUIRED)
@@ -255,6 +264,7 @@ class RingDoorBell(RingGeneric):
 
     async def async_set_existing_doorbell_type_duration(self, value: int) -> None:
         """Set duration for Digital chime."""
+        self._validate_existing_doorbell_type()
         if self.existing_doorbell_type:
             if not (
                 (isinstance(value, int))

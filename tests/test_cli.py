@@ -345,6 +345,43 @@ async def test_in_home_chime(ring, aioresponses_mock, devices_fixture):
         assert expected in res.output
 
 
+async def test_in_home_chime_unknown_type(ring, aioresponses_mock, devices_fixture):
+    """In-home-chime setters must not print success for unsupported types (#542)."""
+    runner = CliRunner()
+    dev = ring.devices()["doorbots"][0]
+    settings = dev._attrs["settings"]["chime_settings"]
+
+    with runner.isolated_filesystem():
+        for unknown_type in (3, 5):
+            settings["type"] = unknown_type
+            assert dev.existing_doorbell_type is None
+
+            for args, success_text in (
+                (
+                    ["--device-name", "Front Door", "enabled", "False"],
+                    "has been disabled",
+                ),
+                (
+                    ["--device-name", "Front Door", "type", "mechanical"],
+                    "has been set to",
+                ),
+                (
+                    ["--device-name", "Front Door", "duration", "5"],
+                    "has been set to 5 seconds",
+                ),
+            ):
+                aioresponses_mock.requests.clear()
+                res = await runner.invoke(in_home_chime, args, obj=ring)
+                assert res.exit_code != 0
+                assert success_text not in res.output
+                assert not aioresponses_mock.requests
+                assert (
+                    f"Unsupported existing doorbell type: {unknown_type}" in res.output
+                    or f"Unsupported existing doorbell type: {unknown_type}"
+                    in str(res.exception)
+                )
+
+
 async def test_open_door(ring, aioresponses_mock, devices_fixture):
     runner = CliRunner()
 
