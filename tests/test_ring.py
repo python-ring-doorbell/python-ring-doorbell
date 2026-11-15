@@ -18,7 +18,7 @@ def test_basic_attributes(ring):
     assert len(data["chimes"]) == 1
     assert len(data["doorbots"]) == 1
     assert len(data["authorized_doorbots"]) == 1
-    assert len(data["stickup_cams"]) == 1
+    assert len(data["stickup_cams"]) == 2
     assert len(data["other"]) == 1
 
 
@@ -108,6 +108,23 @@ def test_stickup_cam_attributes(ring):
     assert dev.model == "Floodlight Cam"
     assert dev.has_capability("battery") is False
     assert dev.has_capability("light") is True
+    assert dev.has_capability("history") is True
+    assert dev.lights == "off"
+    assert dev.siren == 0
+
+
+def test_osprey_floodlight_attributes(ring):
+    """Osprey Floodlight Cam 2K reports light and siren capabilities (#558)."""
+    dev = next(
+        d for d in ring.devices()["stickup_cams"] if d.kind == "osprey_floodlight"
+    )
+    assert dev.id == 987654
+    assert dev.model == "Floodlight Cam 2K"
+    assert dev.has_capability("battery") is False
+    assert dev.has_capability("light") is True
+    assert dev.has_capability("siren") is True
+    assert dev.has_capability("motion_detection") is True
+    assert dev.has_capability("video") is True
     assert dev.has_capability("history") is True
     assert dev.lights == "off"
     assert dev.siren == 0
