@@ -7,9 +7,11 @@ import logging
 from typing import ClassVar
 
 from ring_doorbell.const import (
+    ELITE_CAM_GEN2_KINDS,
     FLOODLIGHT_CAM_KINDS,
     FLOODLIGHT_CAM_PLUS_KINDS,
     FLOODLIGHT_CAM_PRO_KINDS,
+    INDOOR_CAM_4K_KINDS,
     INDOOR_CAM_GEN2_KINDS,
     INDOOR_CAM_KINDS,
     INDOOR_CAM_PTZ_KINDS,
@@ -58,6 +60,8 @@ class RingStickUpCam(RingDoorBell):
             return "Indoor Cam (2nd Gen)"
         if self.kind in INDOOR_CAM_PTZ_KINDS:
             return "Pan-Tilt Indoor Cam"
+        if self.kind in INDOOR_CAM_4K_KINDS:
+            return "Indoor Cam 4K"
         if self.kind in SPOTLIGHT_CAM_BATTERY_KINDS:
             return "Spotlight Cam {}".format(
                 self._attrs.get("ring_cam_setup_flow", "battery").title()
@@ -78,6 +82,8 @@ class RingStickUpCam(RingDoorBell):
             return "Stick Up Cam Wired"
         if self.kind in STICKUP_CAM_GEN3_KINDS:
             return "Stick Up Cam (3rd Gen)"
+        if self.kind in ELITE_CAM_GEN2_KINDS:
+            return "Elite Cam Gen 2 (360)"
         _LOGGER.error("Unknown kind: %s", self.kind)
         return "Unknown Stickup Cam"
 
@@ -115,6 +121,7 @@ class RingStickUpCam(RingDoorBell):
                 + INDOOR_CAM_KINDS
                 + INDOOR_CAM_GEN2_KINDS
                 + INDOOR_CAM_PTZ_KINDS
+                + INDOOR_CAM_4K_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
                 + SPOTLIGHT_CAM_PLUS_KINDS
@@ -122,6 +129,7 @@ class RingStickUpCam(RingDoorBell):
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_ELITE_KINDS
                 + STICKUP_CAM_GEN3_KINDS
+                + ELITE_CAM_GEN2_KINDS
             )
         if capability in [RingCapability.MOTION_DETECTION, RingCapability.VIDEO]:
             return self.kind in (
@@ -131,6 +139,7 @@ class RingStickUpCam(RingDoorBell):
                 + INDOOR_CAM_KINDS
                 + INDOOR_CAM_GEN2_KINDS
                 + INDOOR_CAM_PTZ_KINDS
+                + INDOOR_CAM_4K_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
                 + SPOTLIGHT_CAM_PLUS_KINDS
@@ -139,6 +148,7 @@ class RingStickUpCam(RingDoorBell):
                 + STICKUP_CAM_BATTERY_KINDS
                 + STICKUP_CAM_ELITE_KINDS
                 + STICKUP_CAM_GEN3_KINDS
+                + ELITE_CAM_GEN2_KINDS
             )
         return False
 

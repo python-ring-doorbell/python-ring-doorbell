@@ -113,6 +113,34 @@ def test_stickup_cam_attributes(ring):
     assert dev.siren == 0
 
 
+@pytest.mark.parametrize(
+    ("kind", "model"),
+    [
+        pytest.param("jewelfish_camera", "Indoor Cam 4K", id="indoor-cam-4k"),
+        pytest.param(
+            "hexa_camera_6_v1", "Elite Cam Gen 2 (360)", id="elite-cam-gen2-360"
+        ),
+    ],
+)
+def test_stickup_cam_new_kinds(ring, kind, model):
+    """Newer plug-in cameras are recognized instead of "Unknown Stickup Cam".
+
+    Without a known kind, has_capability() is False for motion detection, so
+    Home Assistant creates no motion event entity for these cameras.
+    """
+    dev = ring.devices()["stickup_cams"][0]
+    ring.devices_data[dev.family][dev.device_api_id]["kind"] = kind
+    assert dev.kind == kind
+    assert dev.model == model
+    assert dev.has_capability("motion_detection") is True
+    assert dev.has_capability("video") is True
+    assert dev.has_capability("siren") is True
+    assert dev.has_capability("history") is True
+    # Both are plug-in (no battery). Light is not claimed: unconfirmed for either.
+    assert dev.has_capability("battery") is False
+    assert dev.has_capability("light") is False
+
+
 async def test_stickup_cam_controls(ring, aioresponses_mock):
     dev = ring.devices()["stickup_cams"][0]
 
