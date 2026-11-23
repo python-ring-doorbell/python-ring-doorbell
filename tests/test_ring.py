@@ -102,12 +102,25 @@ def test_shared_doorbell_attributes(ring):
     assert dev.existing_doorbell_type == "Digital"
 
 
-def test_stickup_cam_attributes(ring):
+@pytest.mark.parametrize(
+    ("kind", "model"),
+    [
+        ("hp_cam_v1", "Floodlight Cam"),
+        ("floodlight_pro", "Floodlight Cam Pro"),
+        ("cocoa_floodlight_v2", "Floodlight Cam 4K Pro"),
+    ],
+)
+def test_stickup_cam_attributes(ring, monkeypatch, kind, model):
+    """Test the model and capabilities of wired floodlights."""
     dev = ring.devices()["stickup_cams"][0]
-    assert dev.kind == "hp_cam_v1"
-    assert dev.model == "Floodlight Cam"
+    monkeypatch.setitem(dev._attrs, "kind", kind)
+    assert dev.kind == kind
+    assert dev.model == model
     assert dev.has_capability("battery") is False
     assert dev.has_capability("light") is True
+    assert dev.has_capability("siren") is True
+    assert dev.has_capability("motion_detection") is True
+    assert dev.has_capability("video") is True
     assert dev.has_capability("history") is True
     assert dev.lights == "off"
     assert dev.siren == 0
