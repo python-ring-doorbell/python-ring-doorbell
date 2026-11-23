@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.9.0"
 
 [[package]]
@@ -1385,7 +1385,7 @@ requires-dist = [
     { name = "asyncclick", specifier = ">=8.1.7.1" },
     { name = "firebase-messaging", specifier = ">=0.4.0" },
     { name = "myst-parser", marker = "extra == 'docs'" },
-    { name = "oauthlib", specifier = ">=3.0.0,<4" },
+    { name = "oauthlib", specifier = ">=3.0.0,<5" },
     { name = "pytz", specifier = ">=2022.0" },
     { name = "sphinx", marker = "extra == 'docs'", specifier = "<7.2.6" },
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = "~=1.3" },

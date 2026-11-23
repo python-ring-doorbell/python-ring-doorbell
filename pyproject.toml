@@ -7,7 +7,7 @@ license = { text="LGPL-3.0-or-later" }
 readme = "README.rst"
 requires-python = ">=3.9.0"
 dependencies = [
-    "oauthlib>=3.0.0,<4",
+    "oauthlib>=3.0.0,<5",
     "pytz>=2022.0",
     "asyncclick>=8.1.7.1",
     "aiohttp>=3",
