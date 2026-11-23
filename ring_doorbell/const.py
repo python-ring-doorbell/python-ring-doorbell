@@ -172,6 +172,7 @@ DOORBELL_GEN2_KINDS = ["cocoa_doorbell", "cocoa_doorbell_v2"]
 
 FLOODLIGHT_CAM_KINDS = ["hp_cam_v1", "floodlight_v2"]
 FLOODLIGHT_CAM_PRO_KINDS = ["floodlight_pro"]
+FLOODLIGHT_CAM_PRO_GEN2_KINDS = ["cocoa_floodlight_v2"]
 FLOODLIGHT_CAM_PLUS_KINDS = ["cocoa_floodlight"]
 INDOOR_CAM_KINDS = ["stickup_cam_mini"]
 INDOOR_CAM_GEN2_KINDS = ["stickup_cam_mini_v2"]

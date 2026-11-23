@@ -9,6 +9,7 @@ from typing import ClassVar
 from ring_doorbell.const import (
     FLOODLIGHT_CAM_KINDS,
     FLOODLIGHT_CAM_PLUS_KINDS,
+    FLOODLIGHT_CAM_PRO_GEN2_KINDS,
     FLOODLIGHT_CAM_PRO_KINDS,
     INDOOR_CAM_GEN2_KINDS,
     INDOOR_CAM_KINDS,
@@ -50,6 +51,8 @@ class RingStickUpCam(RingDoorBell):
             return "Floodlight Cam"
         if self.kind in FLOODLIGHT_CAM_PRO_KINDS:
             return "Floodlight Cam Pro"
+        if self.kind in FLOODLIGHT_CAM_PRO_GEN2_KINDS:
+            return "Floodlight Cam 4K Pro"
         if self.kind in FLOODLIGHT_CAM_PLUS_KINDS:
             return "Floodlight Cam Plus"
         if self.kind in INDOOR_CAM_KINDS:
@@ -101,6 +104,7 @@ class RingStickUpCam(RingDoorBell):
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
                 + FLOODLIGHT_CAM_PRO_KINDS
+                + FLOODLIGHT_CAM_PRO_GEN2_KINDS
                 + FLOODLIGHT_CAM_PLUS_KINDS
                 + SPOTLIGHT_CAM_BATTERY_KINDS
                 + SPOTLIGHT_CAM_WIRED_KINDS
@@ -111,6 +115,7 @@ class RingStickUpCam(RingDoorBell):
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
                 + FLOODLIGHT_CAM_PRO_KINDS
+                + FLOODLIGHT_CAM_PRO_GEN2_KINDS
                 + FLOODLIGHT_CAM_PLUS_KINDS
                 + INDOOR_CAM_KINDS
                 + INDOOR_CAM_GEN2_KINDS
@@ -127,6 +132,7 @@ class RingStickUpCam(RingDoorBell):
             return self.kind in (
                 FLOODLIGHT_CAM_KINDS
                 + FLOODLIGHT_CAM_PRO_KINDS
+                + FLOODLIGHT_CAM_PRO_GEN2_KINDS
                 + FLOODLIGHT_CAM_PLUS_KINDS
                 + INDOOR_CAM_KINDS
                 + INDOOR_CAM_GEN2_KINDS
