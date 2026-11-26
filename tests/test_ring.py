@@ -102,6 +102,18 @@ def test_shared_doorbell_attributes(ring):
     assert dev.existing_doorbell_type == "Digital"
 
 
+@pytest.mark.parametrize("kind", ["df_doorbell_clownfish", "newport_portal"])
+def test_battery_doorbell_kinds(ring, kind):
+    dev = ring.devices()["doorbots"][0]
+    ring.devices_data[dev.family][dev.device_api_id]["kind"] = kind
+    assert dev.kind == kind
+    assert dev.model == "Battery Doorbell"
+    for capability in ("battery", "motion_detection", "ding", "video", "history"):
+        assert dev.has_capability(capability) is True
+    assert dev.has_capability("knock") is False
+    assert dev.has_capability("pre_roll") is False
+
+
 def test_stickup_cam_attributes(ring):
     dev = ring.devices()["stickup_cams"][0]
     assert dev.kind == "hp_cam_v1"
