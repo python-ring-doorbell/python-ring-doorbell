@@ -179,6 +179,47 @@ Event Listener
     event_listener.add_notification_callback(_event_handler(ring).on_event)
     await event_listener.start()
 
+Native event metadata
+~~~~~~~~~~~~~~~~~~~~~
+
+Modern camera push notifications can supply additional fields on ``RingEvent``:
+
+* ``detection_type``: Ring's structured detection label, such as ``human`` or
+  ``vehicle``. Labels are passed through unchanged, including future labels.
+  This is separate from the event ``kind`` (for example, ``motion``) and
+  existing ``state`` subtype.
+* ``description_provider``: the provider reported by Ring, or ``None``.
+* ``description``: Ring's native Video Description from the notification body,
+  only when Ring identifies its provider as ``llm``. Generic notification text
+  and bodies from unknown providers are not treated as AI descriptions.
+
+These fields are optional and default to ``None`` for notifications that do not
+provide them, including legacy notifications. The library does not generate
+descriptions, infer delivery carriers from text, or guarantee a particular set
+of classifications. Availability depends on Ring's device, account settings,
+subscription and notification delivery.
+
+Ring may first send a generic notification and later send the native description
+for the same event. Notification callbacks receive the later event with
+``is_update=True`` and the same ``get_key()``. ``ring.active_alerts()`` retains the
+latest notification when the event identity and creation time match. Consumers
+should update stored metadata using the event key rather than trigger another
+motion notification. A notification from a different event must not inherit the
+previous event's description.
+
+.. code-block:: python
+
+    def on_event(event):
+        if event.description is not None:
+            save_native_description(event.get_key(), event.description)
+        if not event.is_update:
+            handle_new_event(event)
+
+The metadata is excluded from the event's default representation to avoid
+logging private description text implicitly. Access the fields explicitly.
+This interface describes received push notifications; it does not fetch historical
+AI descriptions or populate null ``cv_properties`` history fields.
+
 Listing devices linked to your account
 ++++++++++++++++++++++++++++++++++++++
 .. code-block:: python
