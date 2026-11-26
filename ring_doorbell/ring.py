@@ -260,7 +260,7 @@ class Ring:
         alerts: dict[tuple[int, int, str], RingEvent] = {}
         for re in self.push_dings_data:
             key = (re.doorbot_id, re.id, re.kind)
-            if key not in alerts or re.now > alerts[key].now:
+            if key not in alerts or re.now >= alerts[key].now:
                 alerts[key] = re
 
         for ding_data in self.dings_data:

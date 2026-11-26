@@ -266,10 +266,7 @@ class RingEventListener:
         )
 
     def _check_is_update(self, ring_event: RingEvent) -> None:
-        """Battery doorbells send two events.
-
-        First without an image and the second with an image.
-        """
+        """Mark repeated event keys as updates, including delayed descriptions."""
         now = time.time()
         seen_events = {
             key
@@ -332,6 +329,13 @@ class RingEventListener:
             now=create_seconds,
             expires_in=DEFAULT_LISTEN_EVENT_EXPIRES_IN,
             state=event["ding"]["subtype"],
+            detection_type=event["ding"].get("detection_type"),
+            description_provider=event.get("description_provider"),
+            description=(
+                android_config.get("body")
+                if event.get("description_provider") == "llm"
+                else None
+            ),
         )
 
     def _get_legacy_ring_event(self, gcm_data: dict) -> RingEvent | None:

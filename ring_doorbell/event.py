@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, NamedTuple
 
 
@@ -19,6 +19,9 @@ class RingEvent:
     kind: str
     state: str
     is_update: bool = False
+    detection_type: str | None = field(default=None, repr=False)
+    description_provider: str | None = field(default=None, repr=False)
+    description: str | None = field(default=None, repr=False)
 
     def __getitem__(self, key: str) -> Any:
         """Get a value by string."""
